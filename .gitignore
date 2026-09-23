@@ -22,3 +22,9 @@ dist/
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# Source logo files (not for production)
+Logo Nou/
+
+# Playwright MCP temp files
+.playwright-mcp/
