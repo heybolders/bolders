@@ -18,7 +18,7 @@ Capturile stărilor originale: `reference/screenshots/<pagina>/scroll-1440|375/`
 
 | Atribut | Ce face | Unde |
 |---|---|---|
-| `data-anim="hero-syllables"` | silabe mascate care intră pe rând, apoi ciclu discret | titlul hero |
+| `data-anim="hero-syllables"` | pill, titlu, silabe mascate pe rând, subtitlu și buton; o respirație pe axa wght | secțiunea hero |
 | `data-anim="line-reveal"` | rânduri SplitText care urcă din mască | titluri H1/H2 mari |
 | `data-anim="words-light"` | cuvinte de la opacitate .2 la 1, legat de scroll | storytelling, citat lung |
 | `data-anim="title-settle"` | litere împrăștiate care se așază la scroll | titluri între secțiuni, Agenție |
@@ -95,6 +95,12 @@ SplitText `type: "lines"`, `mask: "lines"`, `autoSplit: true`, animația returna
 - **Trigger:** `astro:page-load` (o singură dată pe sesiune la prima vizită; la navigare înapoi, varianta scurtă de 0.4 s).
 - **Mobil:** titlul pe 3–4 rânduri, silabele rămân pe un rând propriu, stagger 0.04.
 - **Reduced motion:** text static complet, fără animație de weight.
+- **Implementare (Etapa 4):** `data-anim="hero-syllables"` stă pe `<section>`, nu pe titlu, pentru că orchestrează și pill-ul, subtitlul și butonul. Ținte: `data-hero-part="pill|line|word|after"`, `data-hero-syllable` (intrare din mască: „să” + cele 7 silabe), `data-hero-breath` (doar cele 7 silabe). Titlul complet e într-un `sr-only` din `h1`, partea vizuală e `aria-hidden`.
+  - Secvența completă: pill `opacity 0 → 1` + `yPercent 40 → 0` (0.5) la 0 s; „Acum este momentul” SplitText `lines` cu mască, `yPercent 130 → 0`, 0.9 `expo.out`, stagger 0.08 (mobil 0.06) la 0.3 s; silabele `yPercent 130 → 0`, 0.9 `expo.out`, stagger 0.06 (mobil 0.04) la 0.55 s; subtitlu și buton `opacity` 0.5 la 1.2 s (0.9 după începutul titlului); respirația la 4 s. Pornirea de la 130 (nu 110) e din același motiv ca la `line-reveal` (masca `.line-mask` lărgită).
+  - Respirația: `font-variation-settings 'wght' 700 → 200 → 700` (yoyo, 0.5 per sens, `sine.inOut`, stagger 0.05), o singură dată. Silabele stau la 700 în repaus (contrastul de greutate cerut), deci „200 → 700” se citește ca undă prin axa de greutate care pleacă de la 700 și revine. Lățimea e rezervată de copia invizibilă la 700: verificat la 375 și 1440 (rândul nu se rupe, textul din jur nu se mișcă).
+  - O dată pe sesiune: `sessionStorage["bolders:hero-intro"]`. La revenire (reload sau navigare înapoi pe `/`): toate părțile `opacity 0 → 1`, 0.4, fără respirație.
+  - **Fără flash și LCP:** modulul ajunge după primul paint pe rețele lente, deci nu poate ascunde singur textul fără flash. Un script inline (`is:inline`, excepție documentată) din `Hero.astro` rulează doar la încărcarea inițială a documentului (`readyState === "loading"`), înaintea primului paint: pune clasa `hero-pending` pe `<html>` (CSS: `[data-hero-part]` la `opacity 0`) și o scoate singur la **1 s de la începutul navigării**. Dacă modulul ajunge înainte, își setează starea inițială sincron (`from()` randează imediat), scoate clasa și rulează intrarea. Dacă bugetul a expirat, textul e deja vizibil: modulul nu-l mai ascunde, rulează doar respirația. La navigarea prin router, `astro:page-load` rulează înaintea primului cadru, deci modulul ascunde și animă direct. Fără JS sau la reduced motion clasa nu se pune.
+  - Resize peste pragul `md`: intrarea nu se repetă (flag în factory).
 
 ### 2. Storytelling — `data-anim="words-light"`
 - **Original:** SplitType `words, chars` + GSAP `[scrub-each-word]`: opacitate .2 → 1 pe cuvinte, `start top 85%`, `end top 55%`, `scrub 2`, `power1.out`. IX2 `About Us text`: culoarea textului .2 → 1 cu delay-uri de 200 ms.
@@ -169,7 +175,7 @@ SplitText `type: "lines"`, `mask: "lines"`, `autoSplit: true`, animația returna
 
 ### 11. Footer — `data-anim="wordmark"`
 - **Original:** wordmark „Bolders” contur + plin cu gradient; IX2 `Footer Gradient Animation` (gradientul urmărește mouse-ul); bară cu blur peste wordmark.
-- **Nou:** wordmark-ul urcă din mască legat de scroll (`yPercent 60 → 0`, scrub, `end bottom bottom`). Fără gradient pe mouse. Meniul cu „/” lime rămâne static.
+- **Nou:** wordmark-ul urcă din mască legat de scroll (`yPercent 60 → 0`, scrub, `end bottom bottom`). Fără gradient pe mouse. Meniul rămâne static.
 - **Implementare (Etapa 3):** `start top bottom`, `end bottom bottom`, `scrub: true`; pe mobil `yPercent 40 → 0`. Footerul e persistent: trigger-ul se recalculează la `ScrollTrigger.refresh()` după fiecare navigare.
 - **Sursă:** `inspiratie.md` → `07-footer` (footer-ul actual Bolders: „spațiere și ierarhie mai clară”). Captură: `footer.png`.
 - **Plugin / trigger:** ScrollTrigger scrub.

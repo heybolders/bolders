@@ -38,8 +38,6 @@
   --text-story--line-height: 1.25;
   --text-display: clamp(3.25rem, 1rem + 9vw, 9rem);
   --text-display--line-height: 0.95;
-  --text-wordmark: clamp(5rem, 22vw, 20rem);
-  --text-wordmark--line-height: 0.8;
 
   --font-weight-light: 200;
   --font-weight-normal: 400;
@@ -143,6 +141,19 @@
   .line-mask {
     padding-block: 0.12em 0.2em;
     margin-block: -0.12em -0.2em;
+  }
+
+  /*
+   * Hero (ANIMATIONS.md „hero-syllables”): clasa e pusă înaintea primului paint de scriptul inline din Hero
+   * și scoasă de modul după ce a setat starea inițială. Fără JS clasa nu există, deci textul rămâne vizibil.
+   */
+  .hero-pending [data-hero-part] {
+    opacity: 0;
+  }
+
+  /* liniile de construcție se sting spre margini, ca grila să nu concureze cu textul */
+  .hero-grid {
+    mask-image: radial-gradient(ellipse 70% 65% at 50% 50%, #000 30%, transparent 100%);
   }
 }
 

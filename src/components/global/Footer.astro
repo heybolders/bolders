@@ -7,6 +7,8 @@ const current = normalizePath(Astro.url.pathname);
 const ariaCurrent = (href: string) => (normalizePath(href) === current ? "page" : undefined);
 // anul la momentul build-ului; site-ul se reconstruiește la fiecare deploy
 const year = new Date().getFullYear();
+// conturul cernelii pentru „Bolders” la font-size 1000: stânga 70, dreapta 3389, ascendent 735, descendent 15
+const WORDMARK_VIEWBOX = "70 -735 3319 750";
 ---
 
 <footer transition:persist="footer" class="overflow-clip px-gutter pt-section">
@@ -14,9 +16,9 @@ const year = new Date().getFullYear();
     <div class="grid gap-12 lg:grid-cols-12">
       <nav aria-label={FOOTER_TEXT.navLabel} class="lg:col-span-7">
         {FOOTER_NAV.map((row) => (
-          <ul class="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-line py-5 text-h2-sm font-medium md:gap-x-4 md:py-6">
-            {row.map(({ href, label, pending }, index) => (
-              <li class="flex items-baseline gap-x-3 md:gap-x-4">
+          <ul class="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b border-line py-5 text-h2-sm font-medium md:gap-x-8 md:py-6">
+            {row.map(({ href, label, pending }) => (
+              <li>
                 <a
                   href={href}
                   data-nav-link
@@ -26,12 +28,6 @@ const year = new Date().getFullYear();
                 >
                   {label}
                 </a>
-                {/* separatorul stă după element, ca la rupere să încheie rândul (ca în original) */}
-                {index < row.length - 1 && (
-                  <span class="text-lime" aria-hidden="true">
-                    /
-                  </span>
-                )}
               </li>
             ))}
           </ul>
@@ -42,13 +38,22 @@ const year = new Date().getFullYear();
       <div data-slot="contact" class="hidden lg:col-span-5 lg:block"></div>
     </div>
 
+    {/*
+      SVG cu viewBox pe conturul literelor (Manrope 700, tracking −0.04em, măsurat la 1000px):
+      scalează la lățimea exactă a containerului la orice ecran, fără JS; înălțimea vine din viewBox, deci fără CLS.
+    */}
     <div data-anim="wordmark" class="mt-section overflow-clip" aria-hidden="true">
-      <p
-        data-anim-item
-        class="bg-linear-to-b from-paper to-line bg-clip-text text-wordmark font-bold tracking-display text-transparent"
-      >
-        {FOOTER_TEXT.wordmark}
-      </p>
+      <svg data-anim-item viewBox={WORDMARK_VIEWBOX} class="block h-auto w-full" focusable="false">
+        <defs>
+          <linearGradient id="wordmark-gradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="currentColor" class="text-paper" />
+            <stop offset="1" stop-color="currentColor" class="text-line" />
+          </linearGradient>
+        </defs>
+        <text font-size="1000" fill="url(#wordmark-gradient)" class="font-bold tracking-display">
+          {FOOTER_TEXT.wordmark}
+        </text>
+      </svg>
     </div>
 
     <div class="flex flex-col gap-4 border-t border-line py-6 text-tag text-paper-muted md:flex-row md:items-center md:justify-between">

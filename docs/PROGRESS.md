@@ -94,5 +94,41 @@
 - Routerul Astro scrie în consolă un avertisment informativ la reduced motion („all view transition animations … are disabled”); nu vine din codul nostru.
 - Wordmark-ul are `text-wordmark` (max 20rem), deci nu umple tot containerul la 1440 (≈ 1050 / 1216 px) ca în original. Se poate mări tokenul, dacă se dorește.
 
-## Etapa 4 ⏭️ următoarea
-- Secțiunile homepage-ului (DESIGN §3, ANIMATIONS „Homepage”). Se înlocuiește stub-ul de pe `/`.
+## Etapa 4 – Homepage 🔄 în lucru
+
+### Secțiunea 1: Hero ✅ (2026-10-27)
+
+#### Corecturi din Etapa 3
+- **Footer:** separatorul „/” eliminat din meniu (elementele despărțite doar de spațiu). Scos din DESIGN.md (tabelul de tokeni, identitate, rolurile lime), ANIMATIONS.md (footer) și `.claude/rules/styling.md`.
+- **Wordmark:** „Bolders” e acum un SVG cu `viewBox` pe conturul literelor, măsurat cu fontul real; umple exact lățimea containerului (verificat la 375 / 768 / 1440 / 1920: marginile SVG = marginile containerului), fără JS și fără CLS. Tokenul `text-wordmark` a fost eliminat (nefolosit).
+- **Logo fără cerc:** decizie notată în DESIGN.md §3 („Decizii Etapa 4”).
+
+#### Construit
+- `src/content/acasa.ts`: textele hero-ului din `continut.md` (pill, titlu în trei părți + cele 7 silabe originale, subtitlu, buton spre `/contact`).
+- `src/components/home/Hero.astro`: centrat (pill, titlu, subtitlu, buton), `min-h-svh` cu padding de sus pentru header (zona utilă = 100svh − header), „Acum este momentul” Manrope 200 și „să strălucești!” 700, ambele `text-display`. Titlul complet în `sr-only`, partea vizuală `aria-hidden`. Pe mobil titlul cade pe 3 rânduri („Acum este / momentul / să strălucești!”), silabele pe același rând (`whitespace-nowrap`).
+- `src/components/home/HeroGrid.astro`: liniile de construcție ale lui „b” ca grilă `line` aliniată la coloanele reale (detalii în DESIGN.md §2).
+- `src/scripts/animations/hero-syllables.ts` + scriptul inline din Hero: secvența, respirația, sesiunea, bugetul de 1 s (ANIMATIONS.md, Homepage §1, „Implementare (Etapa 4)”).
+- `src/pages/index.astro`: stub-ul înlocuit cu hero-ul.
+
+#### Verificare
+- Capturi: `reference/screenshots/etapa-4/hero/` (cadre la 0 / 400 / 900 / 1600 / 3200 / 4200 / 4500 ms + final la 375 / 768 / 1440; revenire; reduced motion; fără JS) și `reference/screenshots/etapa-4/footer-{375,768,1440,1920}.png`.
+- Comparație cu `reference/screenshots/home/hero-timeline/`: aceeași ordine (pill → titlu → silabe → subtitlu/buton) și aceeași compoziție centrată. Diferențe intenționate: titlul mult mai mare (display 200/700 în loc de 500), silabele urcă din mască fără blur și nu mai pleacă spre dreapta în buclă (o singură respirație la 4 s), fără canvas WebGL și fără halo-ul alb al pill-ului; grila pătrată cu glow e înlocuită cu liniile de construcție; butonul fără „→” și fără glow.
+- Fără scroll orizontal la 375 / 768 / 1440 / 1920; consola fără erori sau avertismente (în afara mesajului informativ al routerului la reduced motion, cunoscut din Etapa 3).
+- Reduced motion: fără clasă de ascundere, fără split, hero static. Fără JS: totul vizibil. Resize peste `md` după intrare: nimic nu dispare.
+- **Performanță (build, `astro preview`):** mobil Slow 4G + CPU 4×, cache rece: **LCP 1,40 s, CLS 0** (elementul LCP e subtitlul). Desktop fără throttling: LCP 67 ms, CLS 0, intrarea completă rulează. Lighthouse mobil: Accessibility 100, Best Practices 100, SEO 100.
+- `npm run build` (fără `ALLOW_PLACEHOLDERS`), `npm run check` (0/0/0), `npm run lint`, `npm run format:check`: curate.
+
+#### Abateri și motive
+- **Ascunderea inițială o face un script inline, nu modulul.** Pe Slow 4G modulul (≈ 60 KB gzip) ajunge la ≈ 2,3 s, după primul paint: dacă ar ascunde el textul, ar apărea un flash. Prima variantă (ascuns până la modul, failsafe 2 s) dădea LCP 2,96 s și un flash posibil între 2 s și sosirea modulului. Varianta finală: ascuns cel mult 1 s de la începutul navigării; dacă modulul nu a ajuns, hero-ul rămâne static și rulează doar respirația. Consecință: **pe conexiuni lente prima vizită nu vede intrarea completă**, doar respirația.
+- **`data-anim` pe `<section>`, nu pe titlu** (orchestrează și pill-ul, subtitlul și butonul).
+- **Respirația pleacă de la 700:** silabele stau la 700 în repaus, deci unda e 700 → 200 → 700.
+- **Varianta scurtă (revenire) nu are respirație.**
+- **Pill fără `shadow-tag`:** umbra albă din original arată ca un glow (lista anti-banal).
+- **Liniile de construcție sunt redesenate**, nu e inclus `card-bolders-linii-constructie.svg` (50 KB, cu măști și filtre exportate); se păstrează geometria (cerc, două diagonale paralele, trei orizontale, verticale).
+
+#### Neclarități
+- Respirația „200 → 700 → revenire” interpretată ca undă de la 700 (vezi mai sus). De confirmat.
+- Pe conexiuni lente, prima vizită vede hero-ul static. Dacă intrarea completă e mai importantă decât LCP, bugetul de 1 s se poate mări (fiecare secundă se adaugă direct la LCP).
+- La revenire în aceeași sesiune hero-ul apare cu un crossfade de 0.4 s, inclusiv la reload.
+
+### Următoarea secțiune: 2. Storytelling (`data-anim="words-light"`) ⏭️

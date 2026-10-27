@@ -1,0 +1,89 @@
+---
+import HeroGrid from "@/components/home/HeroGrid.astro";
+import Button from "@/components/ui/Button.astro";
+import { HERO, HERO_TITLE } from "@/content/acasa";
+
+// Animația: data-anim="hero-syllables" (ANIMATIONS.md, Homepage §1). Fără JS totul e vizibil.
+---
+
+{/*
+  Excepție documentată (ANIMATIONS.md, „hero-syllables”): scriptul inline rulează înaintea primului paint,
+  doar la încărcarea inițială a documentului (la navigarea prin router modulul e deja încărcat și își setează
+  singur starea). Hero-ul stă ascuns cel mult până la 1 s de la începutul navigării: dacă modulul nu a ajuns
+  până atunci (rețea lentă, eroare), clasa cade și hero-ul rămâne static, ca LCP să nu aștepte după JS.
+*/}
+<script is:inline>
+  (function () {
+    const root = document.documentElement;
+    if (document.readyState !== "loading") return;
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    root.classList.add("hero-pending");
+    setTimeout(
+      function () {
+        root.classList.remove("hero-pending");
+      },
+      Math.max(0, 1000 - performance.now()),
+    );
+  })();
+</script>
+
+<section
+  data-anim="hero-syllables"
+  class="relative isolate flex min-h-svh items-center overflow-clip px-gutter pt-24 pb-16 md:pt-28"
+>
+  <HeroGrid />
+
+  <div class="mx-auto flex w-full max-w-site flex-col items-center text-center">
+    <p
+      data-hero-part="pill"
+      class="rounded-pill border border-line bg-ink-soft px-6 py-2 text-tag text-paper md:px-8 md:py-3 md:text-body"
+    >
+      {HERO.pill}
+    </p>
+
+    <h1 class="mt-8 text-display tracking-display md:mt-10">
+      <span class="sr-only">{HERO_TITLE}</span>
+      <span aria-hidden="true" class="block">
+        <span data-hero-part="line" class="block font-light text-balance">
+          {HERO.title.light}
+        </span>
+        <span class="block font-bold">
+          <span data-hero-part="word" class="line-mask inline-block overflow-clip">
+            <span data-hero-syllable class="inline-block">
+              {HERO.title.bold}
+            </span>
+          </span>{" "}
+          {/* nowrap: silabele rămân pe același rând; fiecare are lățimea rezervată la wght 700 */}
+          <span
+            data-hero-part="word"
+            class="line-mask inline-block overflow-clip whitespace-nowrap"
+          >
+            {HERO.title.syllables.map((syllable) => (
+              <span class="inline-grid">
+                <span class="invisible col-start-1 row-start-1">{syllable}</span>
+                <span
+                  data-hero-syllable
+                  data-hero-breath
+                  class="col-start-1 row-start-1 justify-self-center"
+                >
+                  {syllable}
+                </span>
+              </span>
+            ))}
+          </span>
+        </span>
+      </span>
+    </h1>
+
+    <p
+      data-hero-part="after"
+      class="mt-8 max-w-prose text-lead text-balance text-paper-muted md:mt-10"
+    >
+      {HERO.subtitle}
+    </p>
+
+    <div data-hero-part="after" class="mt-10 md:mt-12">
+      <Button href={HERO.cta.href}>{HERO.cta.label}</Button>
+    </div>
+  </div>
+</section>
