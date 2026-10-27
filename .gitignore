@@ -28,3 +28,7 @@ Logo Nou/
 
 # Playwright MCP temp files
 .playwright-mcp/
+
+# Inspiration videos (extracted frames in reference/inspiratie/frames/ stay in repo)
+reference/inspiratie/**/*.mov
+reference/inspiratie/**/*.mp4

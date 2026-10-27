@@ -1,0 +1,214 @@
+# DESIGN – Bolders
+
+Sursa tokenilor: `reference/webflow/css/bolders1.webflow.shared.css` (`:root`, linia ~2077), stilurile calculate în Playwright la 375/768/1440 și embed-ul `global-styles` din `reference/webflow/custom-code/home.custom.txt`.
+Referințe vizuale: `reference/screenshots/`, `reference/inspiratie/` (+ `live/`).
+
+## 1. Tokeni extrași din Webflow
+
+### Culori (`:root`)
+
+| Variabilă Webflow | Valoare | Utilizare observată |
+|---|---|---|
+| `--black` | `#0d0d0d` | fundal pagină (`body`) |
+| `--grey` | `#141414` | suprafețe ridicate (rar) |
+| `--gray-bg` | `#252525` | fundal câmpuri, carduri |
+| — | `#1d1d1d` (rgb 29,29,29) | nav pill `rgba(29,29,29,.5)`, hover buton, carduri testimoniale `/.38` |
+| `--border` | `#312e2e` | borduri, fundal butoane și tag-uri (21 de utilizări) |
+| `--gradient-grey` | `#d0d0d0` | bordura butoanelor, gradient text |
+| `--white` | `#ffffff` | text principal |
+| `--white-transparent` | `#ffffffc9` | text secundar |
+| — | `rgba(255,255,255,.7)` | paragrafe (`text-color-secondary`) |
+| `--accent` | `#aaf22d` | accent lime: link activ în meniu, „/” din footer, punctul din butoane, eticheta CTA |
+| `--light-green` | `#9eeb21` | variantă accent (hover) |
+| `--transparent-green` | `#49691099` | umbră verde pe carduri |
+| `--shadow` | `#ddd6d633` | umbra pill-ului din hero |
+
+Gradienturi folosite: `linear-gradient(180deg, accent 24%, border 83%)` (bară proces), fade orizontal `black → transparent 25% … 75% → black` (marquee), `#0d0d0dbf` (overlay).
+
+### Fonturi
+
+- **Manrope Variable** (`Manrope-VariableFont_wght.ttf`, axa `wght` 200–800), font unic pentru tot site-ul. Fișier: `reference/webflow/fonts/`.
+- Poppins 400/500 se încarcă prin WebFont.js, dar apare într-o singură regulă (de template). **Nu se preia.**
+- Greutăți folosite: 400 (text), 500 (titluri, butoane), 600 (meniu footer), 700 (wordmark, titlu formular).
+
+### Scară tipografică (valori la 1440 px, unde 1rem = 16px)
+
+| Rol | Element | Mărime / line-height | Greutate |
+|---|---|---|---|
+| Display hero | `.heading-3`, `.heading-move` | 5rem (80px) / 110% | 500 |
+| Text storytelling | `.about-content [text-split]` | 60px / 75px, ls −0.32px | 400 |
+| H2 secțiune | `h2` | 4rem (64px) / 110% | 500 |
+| Bandă CTA | `.section_cta a` | 4rem / 150% | 500 |
+| Meniu footer | `.footer-menu-link` | 2rem / 150% | 600 |
+| H3 | `h3` | 1.5rem (24px) / 130% | 500 |
+| Text mare | `.text-size-medium` | 1.13rem (18px) / 150% | 400 |
+| Body | `body` | 1rem / 1.5 | 400 |
+| Tag / mic | `.tag` | .88rem (14px) / 150% | 400 |
+
+Scalare fluidă: `html { font-size: calc(.8127rem + .2081vw) }` sub 1440 px, `calc(.7495rem + .8368vw)` sub 479 px (≈ 15px la 375, 14.6px la 768, 16px la 1440). Pe mobil, H2 ajunge la ≈ 30px. Hero-ul scade sub 28px, de unde ritmul slab pe mobil semnalat în inspirație.
+
+### Spațiere și layout
+
+| Token | Valoare |
+|---|---|
+| `padding-global` (gutter lateral) | 2.5rem (40px) desktop → ≈ 36px tabletă → ≈ 19px mobil |
+| `padding-section-large` | 8rem (128px) desktop → ≈ 88px tabletă → ≈ 60px mobil |
+| `container-large` | 81rem (1296px) |
+| lățimi de text | 64rem, 50rem, 45rem, 20rem |
+| `padding` buton | .5rem 2rem |
+| `padding` tag | 1rem 2rem |
+
+### Raze
+
+`5rem` / `62.5rem` (pill: butoane, meniu, tag), `2rem` (carduri mari, testimoniale), `1.25rem`, `1rem`, `.7rem`, `.5rem` (imagini portofoliu), `50%` (avatare, punct).
+
+### Umbre și efecte
+
+- Tag hero: `2px 2px 14px 6px #ddd6d633`
+- Card verde: `4px 2px 6px 0 #49691099`
+- Buton „glowing”: `0 0 60px #ffffff4d, 0 0 20px #ffffff80, 0 0 5px #ffffff80` (**nu se preia**, vezi lista anti-banal)
+- Blur: nav `backdrop-filter: blur(11px)`, overlay-uri `blur(10px)` și `blur(30px)`
+
+### Breakpoint-uri Webflow (desktop-first)
+
+`≤ 991px` tabletă · `≤ 767px` mobil landscape · `≤ 479px` mobil. Pragul fluid de sus: 1440 / 1920.
+
+### Durate și easing
+
+- Tranziții CSS: `.2s` (opacitate, culoare, filtru), `.3s` și `.4s` (transform, padding), `.5s` (height), `1s`
+- IX2: 200 / 300 / 400 / 500 / 600 / 800 / 1000 ms. Bucle marquee: 50 000 ms
+- GSAP custom: 0.5s `back.out(2)`, 1.4s `power4.out`, scrub 2
+- Easing: `inOutQuint` (meniu), `outCirc` (titlu hero), `outQuart` (slide-in), `outCubic` (fade), `ease`
+
+## 2. Maparea la `@theme` (Tailwind v4)
+
+Mobile-first, cu prefixul `--color-` etc., ca să genereze utilitarele standard. Numele descriu rolul, nu valoarea.
+
+```css
+@theme {
+  /* reset: doar tokenii noștri */
+  --color-*: initial;
+
+  --color-ink: #0d0d0d;          /* --black */
+  --color-ink-raised: #141414;   /* --grey */
+  --color-ink-soft: #1d1d1d;     /* nav, carduri */
+  --color-surface: #252525;      /* --gray-bg */
+  --color-line: #312e2e;         /* --border */
+  --color-mist: #d0d0d0;         /* --gradient-grey */
+  --color-paper: #ffffff;        /* --white */
+  --color-paper-muted: #ffffffb3;/* text secundar (≈ .7) */
+  --color-paper-dim: #ffffff33;  /* text „stins” înainte de reveal (.2, ca în IX2) */
+  --color-lime: #aaf22d;         /* --accent */
+  --color-lime-deep: #9eeb21;    /* --light-green */
+  --color-lime-shade: #49691099; /* --transparent-green */
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+
+  /* scară fluidă: clamp(mobil, preferat, 1440+) – înlocuiește scalarea html */
+  --text-xs: 0.875rem;           --text-xs--line-height: 1.5;
+  --text-sm: 1rem;               --text-sm--line-height: 1.5;
+  --text-base: 1.125rem;         --text-base--line-height: 1.5;
+  --text-lg: 1.5rem;             --text-lg--line-height: 1.3;
+  --text-xl: clamp(1.5rem, 1.2rem + 1vw, 2rem);     --text-xl--line-height: 1.3;
+  --text-2xl: clamp(2rem, 1.4rem + 2.4vw, 4rem);    --text-2xl--line-height: 1.1;
+  --text-story: clamp(1.75rem, 1rem + 3.2vw, 3.75rem); --text-story--line-height: 1.25;
+  --text-display: clamp(3.25rem, 1rem + 9vw, 9rem); --text-display--line-height: 0.95;
+  --text-wordmark: clamp(5rem, 22vw, 20rem);        --text-wordmark--line-height: 0.8;
+
+  --font-weight-light: 200;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+
+  --tracking-tight: -0.02em;
+  --tracking-display: -0.04em;
+
+  --spacing: 0.25rem;
+  --spacing-gutter: clamp(1.25rem, 0.8rem + 2vw, 2.5rem); /* padding-global */
+  --spacing-section: clamp(4rem, 2.5rem + 6vw, 8rem);     /* padding-section-large */
+  --container-site: 81rem;  /* container-large */
+  --container-prose: 45rem;
+
+  --radius-media: 0.5rem;
+  --radius-card: 1.25rem;
+  --radius-panel: 2rem;
+  --radius-pill: 999px;
+
+  --shadow-tag: 2px 2px 14px 6px #ddd6d633;
+  --shadow-lime: 4px 2px 6px 0 #49691099;
+
+  --blur-nav: 11px;
+
+  --breakpoint-sm: 30rem;   /* 480  (Webflow ≤479) */
+  --breakpoint-md: 48rem;   /* 768  (≤767) */
+  --breakpoint-lg: 62rem;   /* 992  (≤991) */
+  --breakpoint-xl: 90rem;   /* 1440 (plafon fluid) */
+  --breakpoint-2xl: 120rem; /* 1920 */
+
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-circ: cubic-bezier(0, 0.55, 0.45, 1);
+  --ease-in-out-quint: cubic-bezier(0.83, 0, 0.17, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --default-transition-duration: 200ms;
+}
+```
+
+Duratele GSAP stau în modulul de animații (`docs/ANIMATIONS.md`), nu în CSS: `fast 0.2`, `base 0.5`, `slow 0.9`, `slower 1.4`.
+
+## 3. Direcția de modernizare
+
+**Subiect:** agenție mică româno-austriacă (web, marketing, branding), condusă de fondator, pentru antreprenori și IMM-uri care vor „să strălucească” online. Prima sarcină a site-ului: încredere și o discuție inițiată („Hai să discutăm!”).
+
+**Ce rămâne neschimbat (identitate):** fundal ink `#0d0d0d`, Manrope, accentul lime, simbolul „b”, wordmark-ul uriaș „Bolders” din footer, pill-ul „Construim viitorul tău digital!”, punctul lime din butoane, separatorul „/” lime din meniul footerului, textele.
+
+**Ce se schimbă:**
+
+1. **Un singur moment îndrăzneț: tipografia ca obiect.** Contrastul vine din *greutatea* aceluiași font, nu din al doilea font. Display-ul se scrie cu Manrope 200 (ExtraLight) la dimensiuni foarte mari, iar cuvintele-cheie în același rând cu 700. Varianta studiors (serif italic + grotesk) devine la noi „Manrope subțire + Manrope gros”. Silabele din „st·ră·lu·ce·ști!” rămân semnătura hero-ului, cu mască (`overflow: clip` pe linie).
+2. **Lime-ul e semnal, nu decor.** Apare numai acolo unde ceva e activ sau acționabil: punctul din butoane, linkul curent, pasul curent din metodă, progresul formularului, „/” din footer. Maximum ~3% din suprafața unui ecran. Fără titluri lime și fără fundaluri lime.
+3. **Layout editorial asimetric, aliniat la stânga.** Grilă de 12 coloane în `container-site`. Titlurile pornesc din coloana 1, textul de susținere stă decalat în coloanele 7–12 (cf. `sectiune sub hero.png`). Hero-ul păstrează ordinea elementelor (pill, titlu, subtitlu, buton), dar titlul ocupă toată lățimea, aliniat la stânga, iar pe mobil se rupe pe silabe la ≥ 3.25rem.
+4. **Liniile de construcție ale lui „b” ca motiv structural.** Liniile subțiri `line` din fundalul hero-ului și din `resurse/card-bolders-linii-constructie.svg` devin o grilă de fundal vizibilă doar în hero și în metodă, aliniată la coloanele reale. Nu e textură decorativă: arată grila pe care stă conținutul.
+5. **Ierarhie de raze, nu una singură:** pill pentru tot ce se apasă, `panel` (2rem) pentru suprafețele mari (formular, cardurile departamentelor), `media` (0.5rem) pentru capturile de proiect. Testimonialele devin citate tipografice pe fundal ink, fără card.
+6. **Secțiuni noi din inspirație, în identitatea Bolders:** proiecte în slider orizontal cu contor `01 / 04` (pe dark, nu pe crem), metodă fixată în 5 pași (secvență reală, numerotarea e justificată), departamente ca listă mare cu hover, formular în 3 pași, povestea agenției cu text care se așază la scroll.
+
+Schiță homepage (desktop):
+
+```
+┌ logo ───────── Agenție  Departamente  Proiecte  Contact ─────── (● Contact) ┐
+│ (pill) Construim viitorul tău digital!                                      │
+│ Acum este momentul                                                          │
+│ să st|ră|lu|ce|șt|i!          ← display 200/700, full width, silabe mascate │
+│                         Afacerea ta merită…        (● Hai să discutăm!)     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Garanția noastră este simplă… (story, cuvintele se aprind la scroll) col 1-9│
+│ Departamente: listă  Marketing Digital / Web-design / Branding (hover)      │
+│ Proiecte ─ slider orizontal ─ 01 / 04   Renox, e-garten, …                  │
+│ Metoda (pinned) 01 Solicită → 05 Livrare                                    │
+│ Echipa · FAQ (acordeon) · CTA bandă de mesaje · footer wordmark             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+Verificare față de bilet: paleta ink + lime este identitatea existentă (impusă de brief), nu o alegere implicită. Ca să nu arate ca varianta generică „dark + acid green”, accentul e limitat la rolul de semnal, contrastul tipografic vine din axa de greutate Manrope, iar motivul de fundal derivă din construcția logo-ului. Etichetele all-caps și meta-urile cu puncte din studiors **nu** se preiau.
+
+## 4. Lista anti-banal (nu folosim niciodată)
+
+- Gradient mov / albastru-mov, „aurora”, mesh gradients, blob-uri colorate
+- Carduri cu glow, bordură luminoasă sau `box-shadow` neon (inclusiv „glowing button” din Webflow)
+- Glassmorphism ca stil general (blur rămâne doar pe nav)
+- Iconițe 3D (inclusiv cele existente: glob, puzzle, mail, calendar, monede), emoji ca iconițe, iconițe svgrepo generice
+- Poze stock, portrete generate AI, mockup-uri de device generice, fotografii cu oameni care arată la laptop
+- Layout centrat simetric clasic (hero centrat + 3 carduri egale + CTA centrat)
+- Grile de carduri identice cu aceeași rază și aceeași umbră gri
+- Preloader cu procent, ecran de încărcare, intro care blochează conținutul
+- WebGL, Three.js, shader-e, efecte fluide (`splash-effect-8.js` se elimină), canvas decorativ
+- Cursor personalizat care înlocuiește cursorul sistemului, magnetic buttons
+- Fade-and-slide-up identic pe fiecare secțiune
+- Etichete ALL CAPS cu tracking mare deasupra fiecărui titlu; meta-uri legate cu „·”; „→” lipit de fiecare buton
+- Accentuarea unui singur cuvânt din titlu cu altă culoare sau italic
+- Numerotare 01/02/03 pe conținut care nu e secvență
+- Contoare animate „0 → 349” și statistici decorative
+- Badge-uri de parteneri sau tehnologie (Webflow Partner, Client First etc.)
+- Fonturi suplimentare (Poppins, serif-uri de import) și monospace pentru etichete
+- Parallax pe fiecare imagine, scroll-jacking în afara secțiunilor fixate planificate
