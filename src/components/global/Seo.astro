@@ -1,0 +1,46 @@
+---
+import { normalizePath } from "@/config/navigation";
+import { SITE } from "@/content/global";
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** cale sau URL absolut; implicit URL-ul paginii curente */
+  canonical?: string | undefined;
+  noindex?: boolean;
+  type?: "website" | "article";
+}
+
+const {
+  title = SITE.name,
+  description = SITE.tagline,
+  canonical,
+  noindex = false,
+  type = "website",
+} = Astro.props;
+
+// la build (format "file") pathname-ul conține ".html"; URL-ul public e fără extensie
+const canonicalUrl = new URL(
+  canonical ?? normalizePath(Astro.url.pathname),
+  Astro.site ?? Astro.url,
+).href;
+---
+
+<title>{title}</title>
+<meta name="description" content={description} />
+{noindex ? (
+  <meta name="robots" content="noindex, nofollow" />
+) : (
+  <link rel="canonical" href={canonicalUrl} />
+)}
+
+<meta property="og:type" content={type} />
+<meta property="og:site_name" content={SITE.name} />
+<meta property="og:locale" content={SITE.locale} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonicalUrl} />
+
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />

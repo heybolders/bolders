@@ -1,0 +1,27 @@
+---
+import Button from "@/components/ui/Button.astro";
+import { ROUTES } from "@/config/navigation";
+import { NOT_FOUND_TEXT, SITE } from "@/content/global";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title={`${NOT_FOUND_TEXT.title} | ${SITE.name}`}
+  description={NOT_FOUND_TEXT.description}
+  noindex
+>
+  <section class="flex min-h-svh items-end px-gutter pt-32 pb-section">
+    <div class="mx-auto flex w-full max-w-site flex-col gap-8">
+      <p class="text-display font-light tracking-display text-paper-muted" aria-hidden="true">
+        {NOT_FOUND_TEXT.code}
+      </p>
+      <h1 data-anim="line-reveal" class="text-h2 font-medium tracking-tight">
+        {NOT_FOUND_TEXT.title}
+      </h1>
+      <p class="max-w-prose text-lead text-paper-muted">{NOT_FOUND_TEXT.description}</p>
+      <div>
+        <Button href={ROUTES.acasa}>{NOT_FOUND_TEXT.cta}</Button>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

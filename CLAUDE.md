@@ -12,6 +12,7 @@ Node: versiunea din `.nvmrc`.
 
 - `npm run dev`: server de dev pe http://localhost:4321 (Astro 7 îl pornește ca daemon; oprire cu `npx astro dev stop`)
 - `npm run build`: build static în `dist/`; **eșuează dacă găsește „lorem” în output** (`integrations/placeholder-guard.mjs`)
+- `ALLOW_PLACEHOLDERS=1 npm run build`: doar local, transformă eroarea „lorem” în avertisment. **Scriptul de deploy nu setează niciodată acest flag.**
 - `npm run preview`: servește `dist/`
 - `npm run check`: `astro check` (TypeScript strictest + Astro)
 - `npm run lint`: ESLint (typescript-eslint strict + eslint-plugin-astro)
@@ -21,10 +22,14 @@ Hook `.claude/hooks/format-lint.sh` (PostToolUse pe Edit/Write): Prettier + ESLi
 
 ## Structură
 
-- `src/layouts/BaseLayout.astro`: `<html lang="ro">`, `<Font />` (preload), `<ClientRouter />`, pornirea modulului de animații
+- `src/layouts/BaseLayout.astro`: `<html lang="ro">`, SEO, favicon, `<Font />` (preload), `<ClientRouter />`, skip link, Header + `<main>` + Footer, pornirea modulului de animații
+- `src/config/navigation.ts`: sursa unică pentru rute și listele de linkuri (header, meniu mobil, footer); etichetele vin din `src/content/global.ts`
+- `src/components/global/`: `Header`, `Footer` (ambele `transition:persist`), `Seo`, `StubPage`; `src/components/ui/Button.astro`
+- `src/scripts/navigation/current-page.ts`: `aria-current` sincronizat după navigare (header/footer persistente)
+- URL-uri fără slash final (`/agentie`), build `format: "file"` → `dist/agentie.html`; `site: https://bolders.ro`
 - `src/styles/global.css`: `@import "tailwindcss"` + `@theme` (DESIGN.md §2)
-- `src/scripts/animations/`: `index.ts` (ciclu de viață), `registry.ts`, `smooth-scroll.ts` (Lenis), `conditions.ts` (matchMedia), câte un fișier per `data-anim`
-- `src/content.config.ts` + `src/content/<colecție>/`: `pagini`, `testimoniale`, `proiecte`, `faq`
+- `src/scripts/animations/`: `index.ts` (ciclu de viață), `registry.ts`, `smooth-scroll.ts` (Lenis, `getLenis()`), `conditions.ts` (matchMedia), `timing.ts` (durate), `anchor-scroll.ts`, câte un fișier per `data-anim`
+- `src/content.config.ts` + `src/content/<colecție>/`: `pagini` (meta + titlu per pagină), `testimoniale`, `proiecte`, `faq`; `src/content/global.ts`: texte globale
 - `src/assets/fonts/`: Manrope Variable woff2 (latin + latin-ext), încărcat prin Fonts API din `astro.config.mjs`
 - Alias `@/*` → `src/*`
 

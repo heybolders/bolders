@@ -35,11 +35,15 @@ Capturile stărilor originale: `reference/screenshots/<pagina>/scroll-1440|375/`
 | `data-anim="parallax"` | deplasare verticală ușoară (max. 10%) | imaginea din echipă |
 | `data-anim="nav"` | header ascuns la scroll în jos, vizibil la scroll în sus; meniu mobil | header global |
 
-Temporar (Etapa 2): `data-anim="debug"` confirmă pe pagina de test că modulul pornește și afișează condițiile matchMedia. Se șterge odată cu pagina de test (Etapa 3).
 
 Modificatori comuni: `data-anim-delay="0.2"`, `data-anim-start="top 80%"`, `data-anim-scrub="1"`, `data-anim-stagger="0.04"`. Ținte interne: `data-anim-item`, `data-anim-counter`, `data-anim-progress`.
 
 Contract modul: `registry[name](el, { mm, lenis }) => cleanup`. Fiecare inițializare rulează într-un `gsap.context(el)` și într-un `gsap.matchMedia()` cu condițiile `isDesktop`, `isMobile`, `reduceMotion`.
+
+Elementele persistente (header, footer) se montează o singură dată, dar Lenis se recreează la fiecare navigare: ele nu păstrează `lenis` primit la montare, ci citesc instanța curentă cu `getLenis()` (`smooth-scroll.ts`) în momentul acțiunii.
+
+### `line-reveal` (implementare, Etapa 3)
+SplitText `type: "lines"`, `mask: "lines"`, `autoSplit: true`, animația returnată din `onSplit`. Rândurile: `yPercent 130 → 0`, 0.9 `expo.out`, stagger 0.08 (mobil 0.06), ScrollTrigger `start top 90%` (modificator `data-anim-start`), `once: true`; titlurile din primul ecran pornesc imediat. Masca are clasa `line-mask` (DESIGN §2, „Clase de componente”), lărgită cu padding + margine negativă ca să nu taie descendentele și diacriticele (g, ș, ț, Î), de aceea pornirea e la 130, nu 110. Reduced motion: textul nu se împarte.
 
 ---
 
@@ -54,6 +58,7 @@ Contract modul: `registry[name](el, { mm, lenis }) => cleanup`. Fiecare inițial
 ### Header / navigație — `data-anim="nav"`
 - **Original:** pill cu blur 11px. Meniu mobil IX2 `NAVBAR_OPEN/CLOSE`: liniile hamburger se rotesc la ±45°, 400 ms `inOutQuint`. Logo hover: simbolul urcă −110% și reapare (500/300 ms).
 - **Nou:** același pill. Headerul se ascunde la scroll în jos (`yPercent -100`, 0.5 `expo.out`) și reapare la scroll în sus. Hover pe logo: păstrat (mască, 0.3). Meniu mobil full-screen cu linkuri mari, `line-reveal` cu stagger 0.05.
+- **Implementare (Etapa 3):** se animă doar bara (`data-nav-bar`), nu `<header>`: un `transform` pe header ar deveni containing block pentru meniul `position: fixed`. Ascunderea pornește după ce scroll-ul depășește înălțimea barei; orice `focusin` în header o readuce (tastatura nu ajunge într-un header ascuns); după swap bara revine vizibilă. Logo: simbolul iese în sus (0.15 `power2.in`), reintră de jos (0.3 `expo.out`), doar `isDesktop` (hover). Meniu: fundalul intră cu opacitate 0.2, linkurile urcă din mască (`yPercent 110 → 0`, 0.9 `expo.out`, stagger 0.05); masca e un `li` cu `overflow: clip` în markup (un rând per link, fără SplitText). Hamburger → X: CSS pe `aria-expanded`, 400 ms `in-out-quint`. Comportament (indiferent de mișcare): `aria-expanded`/`aria-controls`, restul paginii `inert` + capcană pe Tab, Esc închide și readuce focusul pe buton, închidere instant la `astro:before-preparation` și la trecerea pe desktop (≥ 62rem), `lenis.stop()` (fără Lenis: `overflow-hidden` pe `html`). Meniul mobil e activ sub `lg` (992 px), nu sub `md`: cele 4 linkuri + butonul nu încap în pill la 768.
 - **Sursă:** Webflow (identitate).
 - **Plugin / trigger:** ScrollTrigger `onUpdate` (direcție); click pe buton.
 - **Mobil:** la fel; meniul este principalul moment de mișcare pe mobil.
@@ -72,6 +77,10 @@ Contract modul: `registry[name](el, { mm, lenis }) => cleanup`. Fiecare inițial
 - **Original:** încărcare clasică.
 - **Nou:** View Transitions: crossfade 0.3 pe `main`, header și footer persistente. Titlul paginii noi folosește `line-reveal` după `astro:page-load`.
 - **Reduced motion:** `::view-transition-*` cu `animation: none`.
+- **Implementare (Etapa 3):** `<html transition:animate="none">`, `<main transition:animate={fade({ duration: "0.3s" })}>`. Header (`transition:persist="header"` + `transition:name="header"`, grup ridicat cu `z-index` ca snapshot-ul lui `main` să nu se picteze peste el) și footer (`transition:persist="footer"`). Fiind persistente, starea `aria-current` a linkurilor se sincronizează pe client la `astro:page-load` (`src/scripts/navigation/current-page.ts`). `astro:page-load` rulează înaintea primului cadru al paginii noi, deci titlul nu apare neascuns.
+
+### Linkuri cu ancoră
+- Linkurile spre o ancoră din aceeași pagină (inclusiv skip link-ul) sunt interceptate în faza de capture, înaintea routerului Astro: `lenis.scrollTo(target, { offset: -(înălțimea barei + 16px) })`; fără Lenis, salt instant cu același offset. URL-ul se actualizează cu `history.replaceState` (routerul Astro își ține indexul în `history.state`), iar focusul trece pe țintă. Implementare: `src/scripts/animations/anchor-scroll.ts`.
 
 ---
 
@@ -161,6 +170,7 @@ Contract modul: `registry[name](el, { mm, lenis }) => cleanup`. Fiecare inițial
 ### 11. Footer — `data-anim="wordmark"`
 - **Original:** wordmark „Bolders” contur + plin cu gradient; IX2 `Footer Gradient Animation` (gradientul urmărește mouse-ul); bară cu blur peste wordmark.
 - **Nou:** wordmark-ul urcă din mască legat de scroll (`yPercent 60 → 0`, scrub, `end bottom bottom`). Fără gradient pe mouse. Meniul cu „/” lime rămâne static.
+- **Implementare (Etapa 3):** `start top bottom`, `end bottom bottom`, `scrub: true`; pe mobil `yPercent 40 → 0`. Footerul e persistent: trigger-ul se recalculează la `ScrollTrigger.refresh()` după fiecare navigare.
 - **Sursă:** `inspiratie.md` → `07-footer` (footer-ul actual Bolders: „spațiere și ierarhie mai clară”). Captură: `footer.png`.
 - **Plugin / trigger:** ScrollTrigger scrub.
 - **Mobil:** identic, distanță mai mică.

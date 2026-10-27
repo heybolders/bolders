@@ -29,6 +29,14 @@ export function startSmoothScroll(): Lenis | null {
   return lenis;
 }
 
+/**
+ * Instanța curentă. Elementele persistente (header) o citesc la momentul acțiunii, nu la montare:
+ * Lenis se recreează la fiecare navigare, deci referința primită la montare devine învechită.
+ */
+export function getLenis(): Lenis | null {
+  return lenis;
+}
+
 export function stopSmoothScroll(): void {
   if (!lenis) return;
   gsap.ticker.remove(tick);

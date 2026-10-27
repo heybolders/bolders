@@ -27,6 +27,8 @@ async function* walk(dir) {
 /**
  * Oprește build-ul de producție dacă în output a rămas text placeholder („lorem”).
  * Rulează doar la `astro build`; în dev placeholderele sunt permise.
+ * `ALLOW_PLACEHOLDERS=1` transformă eroarea în avertisment, doar pentru build-uri locale:
+ * scriptul de deploy nu setează niciodată acest flag.
  * @returns {import("astro").AstroIntegration}
  */
 export default function placeholderGuard() {
@@ -44,9 +46,12 @@ export default function placeholderGuard() {
           });
         }
         if (hits.length > 0) {
-          throw new Error(
-            `Placeholder „lorem” găsit în build (${hits.length}):\n  ${hits.join("\n  ")}\nÎnlocuiește conținutul placeholder înainte de producție.`,
-          );
+          const report = `Placeholder „lorem” găsit în build (${hits.length}):\n  ${hits.join("\n  ")}`;
+          if (process.env["ALLOW_PLACEHOLDERS"] === "1") {
+            logger.warn(`${report}\nALLOW_PLACEHOLDERS=1: build local permis, nu se publică.`);
+            return;
+          }
+          throw new Error(`${report}\nÎnlocuiește conținutul placeholder înainte de producție.`);
         }
         logger.info("Fără placeholdere „lorem” în output.");
       },

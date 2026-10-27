@@ -6,7 +6,13 @@ import placeholderGuard from "./integrations/placeholder-guard.mjs";
 
 // https://astro.build/config
 export default defineConfig({
+  site: "https://bolders.ro",
   output: "static",
+  // URL-uri fără slash final (/agentie), ca în configurația de navigație; dist/agentie.html
+  trailingSlash: "never",
+  build: { format: "file" },
+  // bara de dev se suprapune peste nav și capturile de verificare
+  devToolbar: { enabled: false },
   fonts: [
     {
       provider: fontProviders.local(),

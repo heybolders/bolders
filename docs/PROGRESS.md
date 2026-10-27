@@ -49,5 +49,50 @@
 - Imaginile placeholder neutre pentru proiecte se generează la etapa secțiunii Proiecte.
 - `inspiratie.md` are titlul `## 01-hero` duplicat și nu listează `footer.png`; nu am modificat fișierul de inspirație.
 
-## Etapa 3 ⏭️ următoarea
-- Conținutul exact se stabilește la cerere (Etapele 3–5: header, footer, secțiuni, pagini). Se șterge pagina de test și `data-anim="debug"`.
+## Etapa 3 – Structura globală ✅ (2026-10-27)
+
+### Corecturi din Etapa 2
+- Guard „lorem”: build-ul de producție eșuează în continuare; `ALLOW_PLACEHOLDERS=1` îl transformă în avertisment doar local (documentat în CLAUDE.md: deploy-ul nu setează flag-ul).
+- `inspiratie.md`: eliminat titlul `## 01-hero` duplicat (intrarea rămasă e cea despre hero-ul Bolders); `07-footer` are acum `Fișier: footer.png`.
+
+### Construit
+- **Layout:** `BaseLayout` cu `lang="ro"`, `theme-color #0d0d0d`, Fonts API, `global.css`, `<ClientRouter />`, skip link „Sari la conținut” (spre `<main id="continut">`, cu focus).
+- **SEO:** `components/global/Seo.astro` (title, description, canonical, Open Graph, Twitter, `noindex` pe 404, fără canonical acolo); `site: https://bolders.ro`; URL-uri fără slash final (`trailingSlash: "never"`, `build.format: "file"`).
+- **Favicon:** `public/favicon.svg` cu `<style>` + `prefers-color-scheme` (ink pe tab deschis, alb pe tab închis), `favicon-32.png` și `apple-touch-icon.png` 180 generate din `brand/logo.svg` (simbol alb pe pătrat ink, pentru că PNG-ul nu se poate adapta temei).
+- **Navigație:** `src/config/navigation.ts` (rute + liste header/meniu/footer/legal), etichete în `src/content/global.ts`. Fără News.
+- **Header** (`transition:persist`): logo „b” paper cu hover mascat, linkuri cu `aria-current` + lime, buton „Contact” cu punct lime, pill cu blur, `data-anim="nav"` (ascundere la scroll), meniu mobil full-screen.
+- **Button** (`ui/Button.astro`): variante `header`, `cta`, `footer`; punctul lime se extinde prin `clip-path` (doar CSS), textul trece la ink, fără glow.
+- **Footer** (`transition:persist`): meniul pe 3 rânduri cu „/” lime (fără News), coloană rezervată pentru contact (Etapa 6), wordmark „Bolders” cu `data-anim="wordmark"`, bară cu © anul build-ului + linkuri legale. Fără iconițe sociale și fără linkuri de template.
+- **Pagini:** stub-uri pentru `/`, `/agentie`, `/departamente`, `/proiecte`, `/contact`, `/intrebari-frecvente` (titlu cu `line-reveal`, meta din colecția `pagini`), 404 în identitatea Bolders. Pagina de test și `data-anim="debug"` eliminate.
+- **Animații:** `nav`, `line-reveal`, `wordmark`; crossfade 0.3 pe `main`; ancore prin `lenis.scrollTo` cu offset (detalii în ANIMATIONS.md, „Implementare (Etapa 3)”).
+
+### Verificare
+- Playwright 375 / 768 / 1440: header, meniu mobil (deschidere, Tab rămâne în header, Esc închide și readuce focusul, închidere la navigare, `main` inert și Lenis oprit cât e deschis), header ascuns la scroll în jos (−100%) și vizibil la scroll în sus, tranziții între toate stub-urile (header același nod DOM, `aria-current`, title și canonical corecte), 404, reduced motion (fără Lenis, fără split, header fix, meniu fără animație, scroll blocat prin `overflow-hidden`).
+- Tastatură: skip link → logo → linkuri → buton → footer, inel lime pe toate; ținte ≥ 44 px (linkurile footerului ridicate de la 42 la 44).
+- Contrast: `paper` și `paper-muted` pe ink, `lime` pe `ink`/`ink-soft`, `ink` pe `lime` (buton activ) peste AA. Lighthouse mobil (build): Accessibility 100, Best Practices 100, SEO 100. Performanța nu e inclusă în tool-ul Lighthouse disponibil; trace mobil (Slow 4G, CPU 4×): LCP 1,4 s, CLS 0.
+- Fără erori în consolă, fără scroll orizontal la 375 / 768 / 1440. În producție titlul e împărțit și ascuns înainte de primul paint (fără flash).
+- `npm run build` (fără `ALLOW_PLACEHOLDERS`), `npm run check` (0/0/0), `npm run lint`: curate.
+- Capturi: `reference/screenshots/etapa-3/` (header, footer, meniu deschis, pagini, 404, focus, hover, skip link, reduced motion).
+- Comparație cu `reference/screenshots/home/` și `footer.png`: aceeași structură (logo stânga, pill central, buton dreapta; pe mobil pill cu logo + hamburger; meniul footerului pe rânduri cu „/” lime; wordmark mare; bara de jos). Diferențe intenționate: logo fără cercul din original (cerut „b” din `brand/logo.svg`), „Contact” din meniu nu mai e lime permanent (lime = pagina curentă), separatorul „/” stă la finalul elementului, wordmark cu gradient vertical static, fără iconițe sociale, Stripe/Wise și „Privacy Policy and Terms”.
+
+### Abateri și motive
+- **Meniul mobil sub `lg` (992 px), nu sub `md`:** la 768 cele 4 linkuri + logo + buton nu încap în pill.
+- **Masca `line-reveal` lărgită** (`.line-mask`) și pornire de la `yPercent 130` în loc de 110: cu line-height 0.95, masca strictă tăia „g” și virgula din „ț”.
+- **Linkurile din meniul mobil** folosesc o mască în markup (`li` cu `overflow: clip`), nu SplitText: un singur rând per link.
+- **Persistente vs. Lenis:** header/footer citesc instanța curentă cu `getLenis()`; rezolvă și neclaritatea din Etapa 2 pentru elementele persistente.
+- **Ancore:** `history.replaceState` în loc de `pushState`, ca să nu stric indexul de istoric al routerului Astro.
+- **Prefetch dezactivat** (`data-astro-prefetch="false"`) pe linkurile legale cât timp paginile nu există (hover-ul producea 404 în consolă). Lista `PENDING_ROUTES` din `navigation.ts` se golește la Etapa 5.
+- **Bara de dev Astro dezactivată** (`devToolbar: false`): se suprapunea peste capturi.
+- **`@custom-variant current`** în loc de `aria-[current=page]:` (fără valori arbitrare în markup).
+- **Anul din footer** se generează la build (site static, se reconstruiește la fiecare deploy), nu pe client.
+
+### Neclarități
+- **Format URL / hosting:** `dist/agentie.html` servit la `/agentie` funcționează direct pe Netlify, Vercel, Cloudflare Pages și nginx cu `try_files $uri $uri.html`; pe Apache e nevoie de o regulă de rewrite. De confirmat la deploy.
+- **Texte de interfață fără sursă** (marcate `TODO(continut)` în `src/content/global.ts`): etichetele ARIA, textele paginii 404. **Meta provizorii** (`provizoriu: true` în `src/content/pagini/*.json`): title compus din etichetă + „Bolders”, description din texte existente în `continut.md`.
+- Lipsește o imagine Open Graph (cardul Twitter e `summary`, fără imagine).
+- Linkurile legale duc la 404 până la Etapa 5.
+- Routerul Astro scrie în consolă un avertisment informativ la reduced motion („all view transition animations … are disabled”); nu vine din codul nostru.
+- Wordmark-ul are `text-wordmark` (max 20rem), deci nu umple tot containerul la 1440 (≈ 1050 / 1216 px) ca în original. Se poate mări tokenul, dacă se dorește.
+
+## Etapa 4 ⏭️ următoarea
+- Secțiunile homepage-ului (DESIGN §3, ANIMATIONS „Homepage”). Se înlocuiește stub-ul de pe `/`.

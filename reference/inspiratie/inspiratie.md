@@ -5,8 +5,6 @@ Evităm tot ce e Three.js / WebGL.
 
 ## 01-hero
 
-## 01-hero
-
 Link: https://bolders1.webflow.io/
 Sursă: hero-ul actual Bolders (nu studiors)
 Ce preiau: structura, textele și animația cu literele din hero-ul actual
@@ -63,3 +61,4 @@ Ce preiau: structura, linkurile, datele de contact și banda finală cu mesaje
 Ce modernizez: spațiere și ierarhie mai clară, banda cu mișcare mai fluidă, legată de scroll
 Ce NU preiau: rămășițele de template (linkuri minimdesign, heymara, lissanh95 etc.), nimic din footer-ul studiors
 Unde la noi: footer global
+Fișier: footer.png

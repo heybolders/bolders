@@ -163,6 +163,15 @@ Duratele GSAP stau în modulul de animații (`docs/ANIMATIONS.md`), nu în CSS: 
 
 Corespondența cu scara din §1: `text-tag` = Tag, `text-body` = Body, `text-lead` = Text mare, `text-h3` = H3, `text-h2-sm` = Meniu footer / H2 mic, `text-h2` = H2 și bandă CTA, `text-story` = storytelling, `text-display` = hero, `text-wordmark` = wordmark footer. `--text-*: initial` elimină scara implicită (`text-xs`, `text-lg` etc. nu există).
 
+### Clase de componente și variante (Etapa 3)
+
+Cazuri în care utilitarele nu ajung și se scrie CSS în `@layer components` din `global.css` (fără valori arbitrare în markup):
+
+- `.btn`, `.btn-lg`, `.btn-fill` (componenta `ui/Button.astro`): punctul lime este chiar stratul de umplere. `--btn-pad` (6 sau 8 × `--spacing`) dă atât padding-ul lateral, cât și poziția punctului (`--btn-dot-x = --btn-pad + --spacing`). Repaus: `clip-path: circle(--spacing at --btn-dot-x 50%)` (punct de 0.5rem); hover/focus-visible: `circle(150% …)`, 0.4s `--ease-out-expo`; textul trece la `ink`. Reduced motion: fără tranziție. Variante: `header` (compact, `ink-soft/50` + blur nav), `cta` (mare, `text-lead`), `footer` (mare, lățime plină sub `sm`, poate fi `<button type="submit">`).
+- `.line-mask`: masca SplitText a `line-reveal`, cu `padding-block: .12em .2em` și margine negativă egală (zona de clip mai mare, layout neschimbat).
+- `@custom-variant current` (`[aria-current="page"]`): `current:text-lime` pentru linkul paginii curente.
+- Wordmark footer: Manrope 700, `text-wordmark`, `tracking-display`, gradient vertical `paper → line` prin `bg-clip-text` (decorativ, `aria-hidden`).
+
 **Regulă de greutate:** Manrope 200 (`font-light`) se folosește **doar** cu `text-display` și `text-wordmark`, niciodată la o mărime randată sub ~3rem. Sub acest prag, greutatea minimă e 400.
 
 ## 3. Direcția de modernizare

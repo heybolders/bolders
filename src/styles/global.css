@@ -97,3 +97,67 @@
     @apply outline-2 outline-offset-2 outline-lime;
   }
 }
+
+/* linkul paginii curente (header, meniu mobil, footer) */
+@custom-variant current (&[aria-current="page"]);
+
+@layer components {
+  /*
+   * Button (ANIMATIONS.md „Butoane”): punctul lime este chiar stratul de umplere.
+   * În repaus e un cerc de 0.25rem în dreptul spațiului rezervat pentru punct; la hover/focus
+   * cercul crește din aceeași poziție până acoperă butonul. --btn-pad leagă padding-ul de poziția punctului.
+   */
+  .btn {
+    --btn-pad: calc(var(--spacing) * 6);
+    --btn-dot-x: calc(var(--btn-pad) + var(--spacing));
+    padding-inline: var(--btn-pad);
+  }
+
+  .btn-lg {
+    --btn-pad: calc(var(--spacing) * 8);
+  }
+
+  .btn-fill {
+    clip-path: circle(var(--spacing) at var(--btn-dot-x) 50%);
+    transition: clip-path 0.4s var(--ease-out-expo);
+  }
+
+  .btn:hover .btn-fill,
+  .btn:focus-visible .btn-fill {
+    /* 150% din raza de referință acoperă și butoanele late, pornind din stânga */
+    clip-path: circle(150% at var(--btn-dot-x) 50%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn-fill {
+      transition: none;
+    }
+  }
+}
+
+@layer components {
+  /*
+   * Masca SplitText (line-reveal): line-height-ul mic al titlurilor (0.95) ar tăia descendentele
+   * și diacriticele (g, ș/ț, Î, Ă). Padding + margine negativă lărgesc zona de clip fără să schimbe layout-ul.
+   */
+  .line-mask {
+    padding-block: 0.12em 0.2em;
+    margin-block: -0.12em -0.2em;
+  }
+}
+
+/*
+ * View Transitions: crossfade doar pe <main> (BaseLayout). Headerul are grup propriu deasupra,
+ * altfel snapshot-ul lui main s-ar picta peste headerul fix în timpul tranziției.
+ */
+::view-transition-group(header) {
+  z-index: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

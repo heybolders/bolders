@@ -1,0 +1,46 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+// Pill cu punct lime; efectul de umplere e doar CSS (.btn / .btn-fill în global.css).
+// header: compact, peste blur · cta: mare, în pagini · footer: lățime plină pe mobil (formular, Etapa 6)
+type Variant = "header" | "cta" | "footer";
+
+interface Props {
+  variant?: Variant;
+  href?: string;
+  type?: HTMLAttributes<"button">["type"];
+  class?: string;
+}
+
+const { variant = "cta", href, type = "button", class: className } = Astro.props;
+
+const variants: Record<Variant, string> = {
+  header: "min-h-11 bg-ink-soft/50 text-body backdrop-blur-nav",
+  cta: "btn-lg min-h-14 bg-ink-soft text-lead",
+  footer: "btn-lg min-h-14 w-full bg-ink-soft text-body sm:w-auto",
+};
+
+const classes = [
+  "btn group relative isolate inline-flex items-center justify-center gap-3 overflow-clip rounded-pill border border-line font-medium text-paper",
+  variants[variant],
+  className,
+];
+---
+
+{href ? (
+  <a href={href} class:list={classes}>
+    <span class="btn-fill absolute inset-0 -z-10 bg-lime" aria-hidden="true" />
+    <span class="size-2 shrink-0" aria-hidden="true" />
+    <span class="transition-colors duration-400 group-hover:text-ink group-focus-visible:text-ink motion-reduce:transition-none">
+      <slot />
+    </span>
+  </a>
+) : (
+  <button type={type} class:list={classes}>
+    <span class="btn-fill absolute inset-0 -z-10 bg-lime" aria-hidden="true" />
+    <span class="size-2 shrink-0" aria-hidden="true" />
+    <span class="transition-colors duration-400 group-hover:text-ink group-focus-visible:text-ink motion-reduce:transition-none">
+      <slot />
+    </span>
+  </button>
+)}

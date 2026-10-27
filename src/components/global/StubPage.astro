@@ -1,0 +1,26 @@
+---
+import { getEntry } from "astro:content";
+
+import BaseLayout from "@/layouts/BaseLayout.astro";
+
+// Etapa 3: doar titlul paginii; secțiunile vin la Etapele 4–5.
+interface Props {
+  /** id-ul din colecția `pagini` (src/content/pagini/<id>.json) */
+  id: string;
+}
+
+const { id } = Astro.props;
+const page = await getEntry("pagini", id);
+if (!page) throw new Error(`Lipsește src/content/pagini/${id}.json`);
+const { title, description, titlu } = page.data;
+---
+
+<BaseLayout title={title} description={description}>
+  <section class="flex min-h-svh items-end px-gutter pt-32 pb-section">
+    <div class="mx-auto w-full max-w-site">
+      <h1 data-anim="line-reveal" class="text-display font-light tracking-display text-balance">
+        {titlu}
+      </h1>
+    </div>
+  </section>
+</BaseLayout>

@@ -2,14 +2,20 @@ import { defineCollection } from "astro:content";
 import { glob } from "astro/loaders";
 import { z } from "astro/zod";
 
-// Structura urmează reference/continut.md. Conținutul se adaugă din Etapa 3.
+// Structura urmează reference/continut.md.
 const DATA_PATTERN = "**/*.{json,yaml,yml}";
 
 const pagini = defineCollection({
   loader: glob({ pattern: DATA_PATTERN, base: "./src/content/pagini" }),
   schema: z.object({
+    /** meta title */
     title: z.string(),
+    /** meta description */
     description: z.string(),
+    /** titlul vizibil (h1) */
+    titlu: z.string(),
+    /** TODO(continut): meta provizorii, de înlocuit cu cele furnizate de client */
+    provizoriu: z.boolean().default(false),
   }),
 });
 

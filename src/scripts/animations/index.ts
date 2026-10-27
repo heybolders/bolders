@@ -2,6 +2,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
 
+import { startAnchorScroll } from "@/scripts/animations/anchor-scroll";
 import { registry } from "@/scripts/animations/registry";
 import { startSmoothScroll, stopSmoothScroll } from "@/scripts/animations/smooth-scroll";
 import type { Cleanup } from "@/scripts/animations/types";
@@ -73,6 +74,7 @@ export function startAnimations(): void {
 
   document.addEventListener("astro:page-load", init);
   document.addEventListener("astro:before-swap", teardown);
+  startAnchorScroll();
 
   // schimbarea preferinței în timpul sesiunii: Lenis pornește/se oprește, matchMedia se ocupă de restul
   window.matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", (event) => {
