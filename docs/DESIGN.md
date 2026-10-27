@@ -104,15 +104,18 @@ Mobile-first, cu prefixul `--color-` etc., ca să genereze utilitarele standard.
   --color-transparent: transparent;
   --color-current: currentColor;
 
-  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  /* --font-sans: în `@theme inline { --font-sans: var(--font-manrope); }` – Fonts API din Astro
+     generează un nume de familie cu hash și un fallback cu metrici ajustate, deci nu se scrie "Manrope" literal */
 
-  /* scară fluidă: clamp(mobil, preferat, 1440+) – înlocuiește scalarea html */
-  --text-xs: 0.875rem;           --text-xs--line-height: 1.5;
-  --text-sm: 1rem;               --text-sm--line-height: 1.5;
-  --text-base: 1.125rem;         --text-base--line-height: 1.5;
-  --text-lg: 1.5rem;             --text-lg--line-height: 1.3;
-  --text-xl: clamp(1.5rem, 1.2rem + 1vw, 2rem);     --text-xl--line-height: 1.3;
-  --text-2xl: clamp(2rem, 1.4rem + 2.4vw, 4rem);    --text-2xl--line-height: 1.1;
+  /* scară fluidă: clamp(mobil, preferat, 1440+) – înlocuiește scalarea html.
+     Nume proprii (nu xs/sm/lg…), ca să nu se confunde cu scara standard Tailwind. */
+  --text-*: initial;
+  --text-tag: 0.875rem;          --text-tag--line-height: 1.5;
+  --text-body: 1rem;             --text-body--line-height: 1.5;
+  --text-lead: 1.125rem;         --text-lead--line-height: 1.5;
+  --text-h3: 1.5rem;             --text-h3--line-height: 1.3;
+  --text-h2-sm: clamp(1.5rem, 1.2rem + 1vw, 2rem);  --text-h2-sm--line-height: 1.3;
+  --text-h2: clamp(2rem, 1.4rem + 2.4vw, 4rem);     --text-h2--line-height: 1.1;
   --text-story: clamp(1.75rem, 1rem + 3.2vw, 3.75rem); --text-story--line-height: 1.25;
   --text-display: clamp(3.25rem, 1rem + 9vw, 9rem); --text-display--line-height: 0.95;
   --text-wordmark: clamp(5rem, 22vw, 20rem);        --text-wordmark--line-height: 0.8;
@@ -158,6 +161,10 @@ Mobile-first, cu prefixul `--color-` etc., ca să genereze utilitarele standard.
 
 Duratele GSAP stau în modulul de animații (`docs/ANIMATIONS.md`), nu în CSS: `fast 0.2`, `base 0.5`, `slow 0.9`, `slower 1.4`.
 
+Corespondența cu scara din §1: `text-tag` = Tag, `text-body` = Body, `text-lead` = Text mare, `text-h3` = H3, `text-h2-sm` = Meniu footer / H2 mic, `text-h2` = H2 și bandă CTA, `text-story` = storytelling, `text-display` = hero, `text-wordmark` = wordmark footer. `--text-*: initial` elimină scara implicită (`text-xs`, `text-lg` etc. nu există).
+
+**Regulă de greutate:** Manrope 200 (`font-light`) se folosește **doar** cu `text-display` și `text-wordmark`, niciodată la o mărime randată sub ~3rem. Sub acest prag, greutatea minimă e 400.
+
 ## 3. Direcția de modernizare
 
 **Subiect:** agenție mică româno-austriacă (web, marketing, branding), condusă de fondator, pentru antreprenori și IMM-uri care vor „să strălucească” online. Prima sarcină a site-ului: încredere și o discuție inițiată („Hai să discutăm!”).
@@ -168,23 +175,27 @@ Duratele GSAP stau în modulul de animații (`docs/ANIMATIONS.md`), nu în CSS: 
 
 1. **Un singur moment îndrăzneț: tipografia ca obiect.** Contrastul vine din *greutatea* aceluiași font, nu din al doilea font. Display-ul se scrie cu Manrope 200 (ExtraLight) la dimensiuni foarte mari, iar cuvintele-cheie în același rând cu 700. Varianta studiors (serif italic + grotesk) devine la noi „Manrope subțire + Manrope gros”. Silabele din „st·ră·lu·ce·ști!” rămân semnătura hero-ului, cu mască (`overflow: clip` pe linie).
 2. **Lime-ul e semnal, nu decor.** Apare numai acolo unde ceva e activ sau acționabil: punctul din butoane, linkul curent, pasul curent din metodă, progresul formularului, „/” din footer. Maximum ~3% din suprafața unui ecran. Fără titluri lime și fără fundaluri lime.
-3. **Layout editorial asimetric, aliniat la stânga.** Grilă de 12 coloane în `container-site`. Titlurile pornesc din coloana 1, textul de susținere stă decalat în coloanele 7–12 (cf. `sectiune sub hero.png`). Hero-ul păstrează ordinea elementelor (pill, titlu, subtitlu, buton), dar titlul ocupă toată lățimea, aliniat la stânga, iar pe mobil se rupe pe silabe la ≥ 3.25rem.
+3. **Hero centrat, secțiunile editoriale asimetrice.** Hero-ul rămâne **centrat**, ca în original: pill, titlu, subtitlu, buton, în această ordine, toate centrate pe axa paginii. Titlul display ocupă lățimea containerului, iar pe mobil se rupe pe silabe la ≥ 3.25rem. Restul secțiunilor folosesc o grilă de 12 coloane în `container-site`: titlurile pornesc din coloana 1, textul de susținere stă decalat în coloanele 7–12 (cf. `sectiune sub hero.png`). Contrastul dintre hero-ul centrat și secțiunile aliniate la stânga e intenționat.
 4. **Liniile de construcție ale lui „b” ca motiv structural.** Liniile subțiri `line` din fundalul hero-ului și din `resurse/card-bolders-linii-constructie.svg` devin o grilă de fundal vizibilă doar în hero și în metodă, aliniată la coloanele reale. Nu e textură decorativă: arată grila pe care stă conținutul.
 5. **Ierarhie de raze, nu una singură:** pill pentru tot ce se apasă, `panel` (2rem) pentru suprafețele mari (formular, cardurile departamentelor), `media` (0.5rem) pentru capturile de proiect. Testimonialele devin citate tipografice pe fundal ink, fără card.
-6. **Secțiuni noi din inspirație, în identitatea Bolders:** proiecte în slider orizontal cu contor `01 / 04` (pe dark, nu pe crem), metodă fixată în 5 pași (secvență reală, numerotarea e justificată), departamente ca listă mare cu hover, formular în 3 pași, povestea agenției cu text care se așază la scroll.
+6. **Secțiuni noi din inspirație, în identitatea Bolders:** proiecte în slider orizontal cu contor `01 / 04` (pe dark, nu pe crem), metodă fixată în 5 pași (secvență reală, numerotarea e justificată), departamente ca listă mare cu hover (doar pe pagina Departamente), formular în 3 pași, povestea agenției cu text care se așază la scroll.
 
 Schiță homepage (desktop):
 
 ```
 ┌ logo ───────── Agenție  Departamente  Proiecte  Contact ─────── (● Contact) ┐
-│ (pill) Construim viitorul tău digital!                                      │
-│ Acum este momentul                                                          │
-│ să st|ră|lu|ce|șt|i!          ← display 200/700, full width, silabe mascate │
-│                         Afacerea ta merită…        (● Hai să discutăm!)     │
+│                 (pill) Construim viitorul tău digital!                      │
+│                         Acum este momentul                                  │
+│                        să st|ră|lu|ce|șt|i!                                 │
+│               ← display 200/700, centrat, silabe mascate →                  │
+│     Afacerea ta merită mai mult decât să fie doar un nume pe internet.      │
+│                         (● Hai să discutăm!)                                │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ Garanția noastră este simplă… (story, cuvintele se aprind la scroll) col 1-9│
-│ Departamente: listă  Marketing Digital / Web-design / Branding (hover)      │
-│ Proiecte ─ slider orizontal ─ 01 / 04   Renox, e-garten, …                  │
+│ Departamente: stivă de carduri (fan)  Marketing Digital / Web-design / …    │
+│ Fii Bolders + testimoniale (citate)                                         │
+│ Resurse: 2 carduri, deschidere mascată legată de scroll                     │
+│ Proiecte ─ slider orizontal ─ 01 / 04   (placeholder până la confirmare)    │
 │ Metoda (pinned) 01 Solicită → 05 Livrare                                    │
 │ Echipa · FAQ (acordeon) · CTA bandă de mesaje · footer wordmark             │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -192,14 +203,20 @@ Schiță homepage (desktop):
 
 Verificare față de bilet: paleta ink + lime este identitatea existentă (impusă de brief), nu o alegere implicită. Ca să nu arate ca varianta generică „dark + acid green”, accentul e limitat la rolul de semnal, contrastul tipografic vine din axa de greutate Manrope, iar motivul de fundal derivă din construcția logo-ului. Etichetele all-caps și meta-urile cu puncte din studiors **nu** se preiau.
 
-## 4. Lista anti-banal (nu folosim niciodată)
+## 4. Reguli de mișcare
+
+- Se animă **doar** `transform`, `opacity` și `clip-path`.
+- Fără animații care modifică layout-ul în timpul scroll-ului: `width`, `height`, `margin`, `padding`, `top`/`left`, `font-size`. Excepții documentate în `ANIMATIONS.md`: axa `wght` pe silabele hero (lățime rezervată, fără reflow) și înălțimea acordeonului/descrierilor, declanșate de utilizator, nu de scroll.
+- Preferință pentru **scrub legat de scroll** și **măști** (`overflow: clip`, `clip-path`) față de apariții simple (fade-in/fade-up la intrarea în viewport).
+- Țintă: **60 fps pe mobil** (testat cu throttling CPU 4× în DevTools). Ce nu ține 60 fps se simplifică sau se dezactivează pe `isMobile`.
+
+## 5. Lista anti-banal (nu folosim niciodată)
 
 - Gradient mov / albastru-mov, „aurora”, mesh gradients, blob-uri colorate
 - Carduri cu glow, bordură luminoasă sau `box-shadow` neon (inclusiv „glowing button” din Webflow)
 - Glassmorphism ca stil general (blur rămâne doar pe nav)
 - Iconițe 3D (inclusiv cele existente: glob, puzzle, mail, calendar, monede), emoji ca iconițe, iconițe svgrepo generice
 - Poze stock, portrete generate AI, mockup-uri de device generice, fotografii cu oameni care arată la laptop
-- Layout centrat simetric clasic (hero centrat + 3 carduri egale + CTA centrat)
 - Grile de carduri identice cu aceeași rază și aceeași umbră gri
 - Preloader cu procent, ecran de încărcare, intro care blochează conținutul
 - WebGL, Three.js, shader-e, efecte fluide (`splash-effect-8.js` se elimină), canvas decorativ

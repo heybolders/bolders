@@ -14,5 +14,6 @@ paths:
 - Fără CSS scris de mână în componente, în afară de `@layer components` pentru cazurile documentate (ex. masca SplitText).
 - Mobile-first: clasele de bază sunt pentru mobil, apoi `md:`, `lg:`, `xl:`.
 - Ordinea claselor e sortată automat de `prettier-plugin-tailwindcss`. Nu se sortează manual și nu se comite cod neformatat.
-- Accentul `lime` se folosește doar ca semnal (stare activă, punct buton, progres, separator „/”). Lista anti-banal din DESIGN.md §4 e obligatorie.
+- Accentul `lime` se folosește doar ca semnal (stare activă, punct buton, progres, separator „/”). Lista anti-banal din DESIGN.md §5 e obligatorie.
+- Mărimi de text doar din scara proprie: `text-tag`, `text-body`, `text-lead`, `text-h3`, `text-h2-sm`, `text-h2`, `text-story`, `text-display`, `text-wordmark`. `font-light` (200) doar cu `text-display` / `text-wordmark`.
 - Contrast minim WCAG AA pentru text (`paper-muted` pe `ink` e verificat; `paper-dim` doar pentru stări animate, niciodată pentru text final).

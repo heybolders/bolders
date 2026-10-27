@@ -10,12 +10,23 @@ Node: versiunea din `.nvmrc`.
 
 ## Comenzi
 
-Se completează la Etapa 2.
+- `npm run dev`: server de dev pe http://localhost:4321 (Astro 7 îl pornește ca daemon; oprire cu `npx astro dev stop`)
+- `npm run build`: build static în `dist/`; **eșuează dacă găsește „lorem” în output** (`integrations/placeholder-guard.mjs`)
+- `npm run preview`: servește `dist/`
+- `npm run check`: `astro check` (TypeScript strictest + Astro)
+- `npm run lint`: ESLint (typescript-eslint strict + eslint-plugin-astro)
+- `npm run format` / `npm run format:check`: Prettier (pluginuri astro + tailwindcss)
 
-- `npm run dev`: _TBD_
-- `npm run build`: _TBD_
-- `npm run preview`: _TBD_
-- `npm run lint` / `npm run format`: _TBD_
+Hook `.claude/hooks/format-lint.sh` (PostToolUse pe Edit/Write): Prettier + ESLint `--fix` pe fișierul modificat, apoi `astro check`.
+
+## Structură
+
+- `src/layouts/BaseLayout.astro`: `<html lang="ro">`, `<Font />` (preload), `<ClientRouter />`, pornirea modulului de animații
+- `src/styles/global.css`: `@import "tailwindcss"` + `@theme` (DESIGN.md §2)
+- `src/scripts/animations/`: `index.ts` (ciclu de viață), `registry.ts`, `smooth-scroll.ts` (Lenis), `conditions.ts` (matchMedia), câte un fișier per `data-anim`
+- `src/content.config.ts` + `src/content/<colecție>/`: `pagini`, `testimoniale`, `proiecte`, `faq`
+- `src/assets/fonts/`: Manrope Variable woff2 (latin + latin-ext), încărcat prin Fonts API din `astro.config.mjs`
+- Alias `@/*` → `src/*`
 
 ## Documentație (citește înainte de lucru)
 

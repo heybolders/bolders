@@ -6,12 +6,13 @@ Capturile stărilor originale: `reference/screenshots/<pagina>/scroll-1440|375/`
 ## Principii
 
 - **Un singur modul central** (`src/scripts/animations/`) citește `data-anim` și pornește animația. Componentele nu importă GSAP direct.
+- Reguli de mișcare: `docs/DESIGN.md` §4 (doar `transform`, `opacity`, `clip-path`; scrub și măști înaintea aparițiilor simple; 60 fps pe mobil).
 - Un singur moment orchestrat per ecran. Restul secțiunilor primesc animații discrete sau niciuna. Fără fade-up generic pe fiecare secțiune.
 - Pluginuri: `gsap`, `ScrollTrigger`, `SplitText` (gratuit din GSAP 3.13), `Flip` doar dacă e nevoie. Lenis pentru smooth scroll, sincronizat cu `ScrollTrigger.update`.
 - Durate (secunde): `fast 0.2` · `base 0.5` · `slow 0.9` · `slower 1.4`. Easing implicit `expo.out`; `power4.out` la intrări mari; `none` la scrub.
 - Mobil (`< 768px`): fără pinning lung (max. 1 secțiune fixată pe pagină), scrub mai scurt, fără efecte dependente de hover.
 - `prefers-reduced-motion: reduce`: Lenis dezactivat (scroll nativ), fără scrub, pin și marquee. Conținutul apare direct în starea finală. Se păstrează doar tranzițiile de stare declanșate de utilizator (acordeon, meniu, pași formular), ca schimbare instant sau crossfade ≤ 150 ms.
-- View Transitions (`<ClientRouter />`): la `astro:before-swap` se apelează `ctx.revert()` pe toate contextele GSAP, `ScrollTrigger.killAll()` și `lenis.destroy()`. La `astro:page-load` se reinițializează. Elementele persistente (`transition:persist`: header, footer) nu se reanimează.
+- View Transitions (`<ClientRouter />`): la `astro:before-swap` se apelează cleanup-ul, `mm.revert()` și `ctx.revert()` pe toate contextele GSAP ale paginii (ceea ce omoară și ScrollTrigger-ele lor), apoi `lenis.destroy()`. Dacă nu există elemente persistente, se omoară și orice ScrollTrigger rămas (`ScrollTrigger.getAll()`). La `astro:page-load` se reinițializează și se apelează `ScrollTrigger.refresh()`. Elementele persistente (`transition:persist`: header, footer) își păstrează contextul și nu se reanimează. Implementare: `src/scripts/animations/index.ts`.
 
 ## Atribute `data-anim`
 
@@ -23,7 +24,8 @@ Capturile stărilor originale: `reference/screenshots/<pagina>/scroll-1440|375/`
 | `data-anim="title-settle"` | litere împrăștiate care se așază la scroll | titluri între secțiuni, Agenție |
 | `data-anim="story"` | fraze care apar pe bucăți (Întâi / Apoi / Azi), secțiune fixată | povestea agenției |
 | `data-anim="fan"` | stiva de carduri se răsfiră | departamente (carduri) |
-| `data-anim="service-list"` | rând activ la hover/focus, celelalte se estompează | lista de departamente |
+| `data-anim="resource-reveal"` | carduri deschise dintr-o fantă mascată, legat de scroll | Resurse (homepage) |
+| `data-anim="service-list"` | rând activ la hover/focus, celelalte se estompează | lista de departamente, **doar pe pagina Departamente** |
 | `data-anim="slider"` | slider orizontal de proiecte cu contor | proiecte |
 | `data-anim="method"` | secțiune fixată, pașii se schimbă la scroll | procesul în 5 pași |
 | `data-anim="accordion"` | deschidere/închidere cu înălțime animată | FAQ |
@@ -32,6 +34,8 @@ Capturile stărilor originale: `reference/screenshots/<pagina>/scroll-1440|375/`
 | `data-anim="wordmark"` | wordmark-ul „Bolders” se ridică din mască | footer |
 | `data-anim="parallax"` | deplasare verticală ușoară (max. 10%) | imaginea din echipă |
 | `data-anim="nav"` | header ascuns la scroll în jos, vizibil la scroll în sus; meniu mobil | header global |
+
+Temporar (Etapa 2): `data-anim="debug"` confirmă pe pagina de test că modulul pornește și afișează condițiile matchMedia. Se șterge odată cu pagina de test (Etapa 3).
 
 Modificatori comuni: `data-anim-delay="0.2"`, `data-anim-start="top 80%"`, `data-anim-scrub="1"`, `data-anim-stagger="0.04"`. Ținte interne: `data-anim-item`, `data-anim-counter`, `data-anim-progress`.
 
@@ -75,8 +79,9 @@ Contract modul: `registry[name](el, { mm, lenis }) => cleanup`. Fiecare inițial
 
 ### 1. Hero — `data-anim="hero-syllables"`
 - **Original:** IX2 `heading [scroll in - change txt]`. `.heading-move._1…_7` („st · ră · lu · ce · șt · i · !”) intră din `y −100%` cu blur și opacitate, 400 ms `outCirc`, decalaj 100 ms. După 3000 ms ies spre `x 160%` (500 ms) și ciclul se repetă. Fundal: canvas WebGL + grilă de linii. Capturi: `screenshots/home/hero-timeline/`.
-- **Nou:** silabele urcă din mască (`overflow: clip` pe linie, `yPercent 110 → 0`), stagger 0.06, 0.9 `expo.out`, după pill (0.3) și „Acum este momentul” (`line-reveal`). Fără blur. După intrare, la 4 s, silabele „respiră” o singură dată: weight 200 → 700 pe axa variabilă, stagger 0.05, apoi revin. Fără buclă infinită. Subtitlul și butonul: opacitate 0 → 1, 0.5, delay 0.9.
-- **Sursă:** `inspiratie.md` 01-hero (hero actual Bolders, „intrare cu mască, tipografie mai mare, ritm pe mobil”).
+- **Nou:** hero centrat (DESIGN §3). Silabele urcă din mască (`overflow: clip` pe linie, `yPercent 110 → 0`), stagger 0.06, 0.9 `expo.out`, după pill (0.3) și „Acum este momentul” (`line-reveal`). Fără blur. După intrare, la 4 s, silabele „respiră” o singură dată: weight 200 → 700 pe axa variabilă, stagger 0.05, apoi revin. Fără buclă infinită. Subtitlul și butonul: opacitate 0 → 1, 0.5, delay 0.9.
+- **Fără reflow la respirație:** fiecare silabă e un `inline-grid` cu două straturi în aceeași celulă: o copie invizibilă (`aria-hidden`, `visibility: hidden`) la `wght 700`, care fixează lățimea, și silaba vizibilă centrată peste ea. Se animă doar `font-variation-settings` pe stratul vizibil, în interiorul cutiei deja dimensionate, deci textul din jur nu se mișcă. Lățimea rezervată se verifică la 375 și 1440 (fără salt de rând între 200 și 700).
+- **Sursă:** `inspiratie.md` → `01-hero` (hero actual Bolders, „intrarea literelor mai fluidă, cu mască, tipografie mai mare, ritm mai bun pe mobil”). Fișier: `hero.png`.
 - **Plugin:** SplitText (`lines` pentru prima linie), GSAP timeline.
 - **Trigger:** `astro:page-load` (o singură dată pe sesiune la prima vizită; la navigare înapoi, varianta scurtă de 0.4 s).
 - **Mobil:** titlul pe 3–4 rânduri, silabele rămân pe un rând propriu, stagger 0.04.
@@ -85,7 +90,7 @@ Contract modul: `registry[name](el, { mm, lenis }) => cleanup`. Fiecare inițial
 ### 2. Storytelling — `data-anim="words-light"`
 - **Original:** SplitType `words, chars` + GSAP `[scrub-each-word]`: opacitate .2 → 1 pe cuvinte, `start top 85%`, `end top 55%`, `scrub 2`, `power1.out`. IX2 `About Us text`: culoarea textului .2 → 1 cu delay-uri de 200 ms.
 - **Nou:** aceeași idee, dar pe o distanță de scroll mai lungă (`start top 75%`, `end bottom 60%`), `scrub 0.6`, cuvintele trec de la `paper-dim` la `paper`. Fragmentul „Garanția noastră este simplă...” e setat la weight 700, restul la 400.
-- **Sursă:** Webflow + `sectiune sub hero.png`.
+- **Sursă:** Webflow + captura `sectiune sub hero.png` (fără intrare în `inspiratie.md`, de confirmat).
 - **Plugin:** SplitText (`words`), ScrollTrigger scrub.
 - **Mobil:** `end bottom 80%`, aceeași logică.
 - **Reduced motion:** text complet aprins.
@@ -106,26 +111,27 @@ Contract modul: `registry[name](el, { mm, lenis }) => cleanup`. Fiecare inițial
 - **Mobil:** swipe.
 - **Reduced motion:** schimbare instant.
 
-### 5. Departamente pe homepage (listă) — `data-anim="service-list"`
-- **Original:** secțiunea Resurse: IX2 `Resource Menu Transition` (`x −10% → 100% → 0`, 500 ms `easeInOut`), `Shiny Gradient Hover`, parallax pe imagine (`y 0 → 40%`).
-- **Nou:** listă mare de departamente (Marketing Digital, Web-design, Branding), fiecare cu descriere scurtă și link spre pagina proprie. La hover/focus, rândul activ rămâne `paper`, celelalte trec la `paper-dim` (0.3). Descrierea se deschide sub titlu (înălțime 0 → auto, 0.4 `expo.out`), iar titlul se deplasează `x 1.5rem`.
-- **Sursă:** `inspiratie.md` 04-servicii (studiors „Prestations”, fără WebGL). Capturi: `live/studiors-04-servicii/`.
-- **Plugin / trigger:** CSS pentru culori, GSAP pentru înălțime; `pointerenter`/`focusin`.
-- **Mobil:** toate descrierile vizibile, fără hover.
-- **Reduced motion:** fără deplasare, doar schimbare de culoare.
+### 5. Resurse — `data-anim="resource-reveal"`
+- **Original:** IX2 `Resource Menu Transition` (`x −10% → 100% → 0`, 500 ms `easeInOut`), `Shiny Gradient Hover`, parallax pe imagine (`y 0 → 40%`). Cardurile „Creăm branduri memorabile” și „De la strategie la rezultate”.
+- **Nou:** titlul „Aducem digitalizarea mai aproape ca niciodată” cu `line-reveal`. Cele 2 carduri (`data-anim-item`) se deschid dintr-o fantă orizontală, legat de scroll: `clip-path: inset(48% 0 48% 0 round panel) → inset(0 0 0 0 round panel)`, scrub 0.6, de la `top 85%` la `top 35%`. Conținutul cardului face contra-mișcare în interiorul măștii (`yPercent 18 → 0`), astfel încât textul pare că „se așază” pe măsură ce fanta se lărgește. Al doilea card pornește cu un decalaj de scroll (offset 15% din distanță), deci cele două nu se deschid simultan. Fără pin, fără fade simplu, fără rotații (diferit de `fan` și de `service-list`).
+- **Sursă:** Webflow (secțiunea Resurse, conținut) + DESIGN §4 „Reguli de mișcare” (scrub și mască). Fără intrare în `inspiratie.md`.
+- **Plugin / trigger:** ScrollTrigger `scrub 0.6`, câte un trigger per card.
+- **Mobil:** cardurile în coloană, fanta pornește de la `inset(30% 0 30% 0)`, contra-mișcare `yPercent 10 → 0`, scrub 0.4.
+- **Reduced motion:** cardurile complet deschise, fără scrub.
 
 ### 6. Proiecte — `data-anim="slider"`
 - **Original:** grilă de capturi lungi; la hover imaginea derulează `y 0 → −77%` în 50 s; overlay alb .2; `y −1rem`. Fundalul secțiunii își schimbă padding-ul la intrare. Pe mobil: `x 2rem → −2rem` la scroll.
 - **Nou:** slider orizontal cu contor `01 / 04` (`data-anim-counter`), fiecare slide cu număr, nume, tip, an. Navigare prin drag, săgeți și tastatură. Slide-ul activ e la scara 1, celelalte la `0.92` și opacitate .5. Tranziție 0.8 `expo.out`. Derularea capturii la hover se păstrează (mai lentă, 12 s, `none`) ca semnătură Bolders.
-- **Sursă:** `inspiratie.md` 02-proiecte (studiors „Projets en image”, fără WebGL). Capturi: `live/studiors-02-proiecte/`.
+- **Sursă:** `inspiratie.md` → `02-proiecte` (studiors „Projets en image”, fără WebGL). Fișier: `proiecte.png`. Capturi: `live/studiors-02-proiecte/`.
+- **Conținut:** nume, tip, an și descriere sunt placeholder (lorem ipsum), imaginile sunt placeholder neutre generate local (`reference/continut.md`).
 - **Plugin / trigger:** GSAP + Observer (drag/wheel orizontal), fără pin.
 - **Mobil:** scroll-snap nativ CSS. Contorul se actualizează prin IntersectionObserver, fără GSAP.
 - **Reduced motion:** fără scalare, fără derularea capturii; schimbare instant.
 
 ### 7. Proces / Metoda — `data-anim="method"`
 - **Original:** listă de 5 pași cu iconițe 3D; IX2 `Scroll Progress` pe `.sticky-wrap-2` (bara crește cu scroll-ul, gradient lime → line).
-- **Nou:** secțiune fixată (`pin`, durată `+=400%`), un pas pe ecran: număr mare (`01`–`05`), titlu, text, etichete. Pasul curent iese cu `yPercent −30` + opacitate, următorul intră din mască (0.6 `expo.out`, cu snap pe pași). Un rând de 5 indicatori jos; cel activ e lime. Bara de progres e păstrată din original.
-- **Sursă:** `inspiratie.md` 03-metoda (studiors „La Méthode”). Capturi: `metoda.png`, `prima/doua/treia/patra metoda.png`, `live/studiors-03-metoda/`.
+- **Nou:** secțiune fixată (`pin`, durată `+=250%`), un pas pe ecran: număr mare (`01`–`05`), titlu, text, etichete. Pasul curent iese cu `yPercent −30` + opacitate, următorul intră din mască (0.6 `expo.out`, cu snap pe pași). Un rând de 5 indicatori jos; cel activ e lime. Bara de progres e păstrată din original.
+- **Sursă:** `inspiratie.md` → `03-metoda` (studiors „La Méthode”). Fișiere: `metoda.png`, `prima metoda.png`, `doua metoda.png`, `treia metoda.png`, `patra metoda.png`. Capturi: `live/studiors-03-metoda/`.
 - **Plugin / trigger:** ScrollTrigger `pin`, `scrub 0.5`, `snap: 1/4`.
 - **Mobil:** fără pin: pașii în listă verticală, fiecare cu `line-reveal` pe titlu.
 - **Reduced motion:** listă verticală statică, toți pașii vizibili.
@@ -147,7 +153,7 @@ Contract modul: `registry[name](el, { mm, lenis }) => cleanup`. Fiecare inițial
 ### 10. CTA final — `data-anim="marquee"`
 - **Original:** IX2 `Partner [Loop]`: `.partner_list x 0 → −100%` în 50 000 ms, buclă liniară; mască fade la margini.
 - **Nou:** bandă continuă (cele 12 mesaje), viteză de bază lentă. Viteza și direcția urmăresc scroll-ul (`velocity` din ScrollTrigger, accelerare temporară, revenire în 0.8). Separatoarele dintre mesaje sunt simbolul „b”, nu puncte.
-- **Sursă:** `inspiratie.md` 07-footer („banda cu mișcare mai fluidă, legată de scroll”).
+- **Sursă:** `inspiratie.md` → `07-footer` („banda cu mișcare mai fluidă, legată de scroll”). Captură: `footer.png` (prezentă în folder, nelistată în `inspiratie.md`).
 - **Plugin / trigger:** GSAP `ticker` + ScrollTrigger `onUpdate`.
 - **Mobil:** viteză de bază, fără legătura cu scroll-ul.
 - **Reduced motion:** banda statică, mesajele pe 2–3 rânduri, fără mișcare.
@@ -155,15 +161,15 @@ Contract modul: `registry[name](el, { mm, lenis }) => cleanup`. Fiecare inițial
 ### 11. Footer — `data-anim="wordmark"`
 - **Original:** wordmark „Bolders” contur + plin cu gradient; IX2 `Footer Gradient Animation` (gradientul urmărește mouse-ul); bară cu blur peste wordmark.
 - **Nou:** wordmark-ul urcă din mască legat de scroll (`yPercent 60 → 0`, scrub, `end bottom bottom`). Fără gradient pe mouse. Meniul cu „/” lime rămâne static.
-- **Sursă:** `inspiratie.md` 07-footer (structură Bolders).
+- **Sursă:** `inspiratie.md` → `07-footer` (footer-ul actual Bolders: „spațiere și ierarhie mai clară”). Captură: `footer.png`.
 - **Plugin / trigger:** ScrollTrigger scrub.
 - **Mobil:** identic, distanță mai mică.
 - **Reduced motion:** wordmark static.
 
 ### Titluri între secțiuni — `data-anim="title-settle"`
 - **Original:** nu există.
-- **Nou:** pentru 1–2 titluri de trecere pe pagină (ex. „Proiecte noastre de Succes”, „Întrebări frecvente”), literele pornesc cu `y` și `rotate` aleatoare deterministe (seed per literă, max. ±40px, ±12°) și se așază pe linie pe măsură ce secțiunea intră în ecran (scrub 0.8).
-- **Sursă:** capturile `text-intre sectiuni*.png` (guillaumezhu.com, manifesto + „My journey”). Nu au intrare proprie în `inspiratie.md`, deci trebuie confirmate de client.
+- **Nou:** pentru 1–2 titluri de trecere pe pagină (ex. „Proiectele noastre de succes”, „Întrebări frecvente”), literele pornesc cu `y` și `rotate` aleatoare deterministe (seed per literă, max. ±40px, ±12°) și se așază pe linie pe măsură ce secțiunea intră în ecran (scrub 0.8).
+- **Sursă:** capturile `text-intre sectiuni.png`, `text intre sectiuni 2.png`, `text intre sectiuni 3 .png` (guillaumezhu.com, manifest + „My journey”; capturi: `live/guillaumezhu-06-poveste-titlu/`). Nu au intrare proprie în `inspiratie.md`, deci trebuie confirmate de client.
 - **Plugin:** SplitText (`chars`), ScrollTrigger scrub.
 - **Mobil:** amplitudine la jumătate.
 - **Reduced motion:** titlu static.
@@ -173,7 +179,7 @@ Contract modul: `registry[name](el, { mm, lenis }) => cleanup`. Fiecare inițial
 ## Departamente
 
 - **Original:** aceleași secțiuni ca homepage + secțiunea de servicii detaliate cu `slideInLeft/Right/Bottom` (100px, 1000 ms `outQuart`), cerc Lottie „Rotund” rotit la scroll (`Lottie Circle`), parallax pe imagini (`[Home] Portfolio Parallax`), `growBigIn` pe cerc.
-- **Nou:** pagina are listă cu cele trei departamente (`service-list`), apoi câte o secțiune per departament: titlu cu `line-reveal` și sub-servicii (Website / Landing page / Webshop / Suport web) ca listă numerotată (secvență reală de produse). Cercul Lottie se înlocuiește cu un cerc de text SVG rotit lent la scroll (scrub, `rotate 0 → 180`).
+- **Nou:** pagina are listă cu cele trei departamente — `data-anim="service-list"` (singurul loc unde se folosește): listă mare (Marketing Digital, Web-design, Branding), fiecare cu descriere scurtă și link spre secțiunea proprie. La hover/focus, rândul activ rămâne `paper`, celelalte trec la `paper-dim` (0.3, prin `opacity`). Descrierea se deschide sub titlu (înălțime 0 → auto, 0.4 `expo.out`, declanșată de utilizator, nu de scroll), iar titlul se deplasează `x 1.5rem`. Sursă: `inspiratie.md` → `04-servicii` (studiors „Prestations”, fără serviciul de WebGL). Fișier: `servicii.png`. Capturi: `live/studiors-04-servicii/`. Mobil: toate descrierile vizibile, fără hover. Reduced motion: fără deplasare, doar schimbare de culoare. Apoi câte o secțiune per departament: titlu cu `line-reveal` și sub-servicii (Website / Landing page / Webshop / Suport web) ca listă numerotată (secvență reală de produse). Cercul Lottie se înlocuiește cu un cerc de text SVG rotit lent la scroll (scrub, `rotate 0 → 180`).
 - **Mobil:** fără rotație legată de scroll.
 - **Reduced motion:** totul static.
 
@@ -182,7 +188,7 @@ Contract modul: `registry[name](el, { mm, lenis }) => cleanup`. Fiecare inițial
 ### Povestea agenției — `data-anim="story"`
 - **Original:** nu există.
 - **Nou:** secțiune fixată (`pin`, `+=300%`). Frazele apar pe bucăți: „Întâi…”, „Apoi…”, „Azi…”. Fiecare fragment are cuvântul-ancoră mare și restul frazei care se așază literă cu literă (`title-settle` intern), apoi fragmentul se estompează la `paper-dim` când apare următorul.
-- **Sursă:** `inspiratie.md` 06-poveste (guillaumezhu „My journey”). Fără logo 3D, toolkit sau playground. Capturi: `live/guillaumezhu-06-poveste/` (Video-ul `07-poveste.mov` lipsește din repo.)
+- **Sursă:** `inspiratie.md` → `06-poveste` (guillaumezhu „My journey”). Ce NU preiau: logo-ul 3D, toolkit-ul cu iconițe, playground-ul, tot ce e Three.js. Fișier: `07-poveste.mov` (listat în `inspiratie.md`, lipsește din repo). Capturi: `live/guillaumezhu-06-poveste/`.
 - **Plugin / trigger:** SplitText (`words, chars`), ScrollTrigger `pin` + `scrub 0.8`.
 - **Mobil:** fără pin. Fiecare fragment e un bloc separat cu `title-settle` scurt.
 - **Reduced motion:** cele trei paragrafe statice.
@@ -192,7 +198,7 @@ Contract modul: `registry[name](el, { mm, lenis }) => cleanup`. Fiecare inițial
 
 - **Original:** formular simplu în footer (nume, e-mail, mesaj, bifă), fără animații.
 - **Nou:** formular în 3 pași (1. cine ești, 2. ce vrei + buget, 3. mesaj), indicator `01 / 03`, bară de progres lime (`data-anim-progress`, `scaleX`, 0.5 `expo.out`). Pașii trec cu `xPercent 8` + opacitate, 0.4. Focusul se mută pe primul câmp al pasului. Lângă formular: timpul de răspuns și „un loc liber în acest trimestru”.
-- **Sursă:** `inspiratie.md` 05-contact (doar logica). Capturi: `live/studiors-05-contact/`.
+- **Sursă:** `inspiratie.md` → `05-contact` (doar logica, nimic de design). Fișier: `contact.png`. Capturi: `live/studiors-05-contact/`.
 - **Plugin / trigger:** GSAP timeline la click „Continuă”/„Înapoi”.
 - **Mobil:** identic.
 - **Reduced motion:** schimbare instant de pas, bara fără tranziție.

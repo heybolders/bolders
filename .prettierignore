@@ -1,0 +1,10 @@
+dist/
+.astro/
+node_modules/
+reference/
+brand/
+Logo Nou/
+public/
+package-lock.json
+splash-effect-8.js
+*.md
