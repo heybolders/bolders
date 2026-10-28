@@ -10,6 +10,7 @@ export default defineConfig(
     ".astro/",
     "node_modules/",
     "reference/",
+    ".screenshots/",
     "brand/",
     "Logo Nou/",
     "splash-effect-8.js",

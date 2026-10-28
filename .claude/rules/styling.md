@@ -20,7 +20,7 @@ paths:
 
 ## CSS scris de mână
 
-Permis **doar** în `src/styles/global.css`, **doar** în layere cu nume (`@layer base`, `@layer components`) și doar pentru ce nu se poate face cu utilitare: `@font-face`, `@keyframes`, `::view-transition-*`, stări de bază (`html`, `body`, `:focus-visible`) și excepțiile de mai jos. La nivelul de sus al fișierului stau numai `@import`, `@theme`, `@custom-variant` și `@layer <nume>`.
+Permis **doar** în `src/styles/global.css`, **doar** în layere cu nume (`@layer base`, `@layer components`) și doar pentru ce nu se poate face cu utilitare: `@font-face`, `@keyframes`, `::view-transition-*`, stări de bază (`html`, `body`, `:focus-visible`) și excepțiile de mai jos. La nivelul de sus al fișierului stau numai `@import`, `@source not` (folderele excluse din detectarea claselor: `docs/`, `scripts/`, `.claude/`, `.screenshots/`, `reference/`), `@theme`, `@custom-variant` și `@layer <nume>`.
 
 ### Excepții (lista exactă; `npm run audit:rules` cere ca fiecare clasă din `global.css` să apară aici)
 

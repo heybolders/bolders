@@ -442,13 +442,13 @@ for (const { path, file } of files) {
 }
 
 /**
- * global.css: la nivelul de sus doar @import, @theme, @custom-variant și @layer cu nume; orice
+ * global.css: la nivelul de sus doar @import, @source not, @theme, @custom-variant și @layer cu nume; orice
  * clasă scrisă de mână trebuie să apară în lista de excepții din .claude/rules/styling.md.
  */
 function auditGlobalCss() {
   const source = readFileSync(join(ROOT, GLOBAL_CSS), "utf8");
   const code = stripComments(source);
-  const allowedTop = /^@(import|theme|custom-variant|layer\s+[a-z][\w-]*)\b/;
+  const allowedTop = /^@(import|source\s+not|theme|custom-variant|layer\s+[a-z][\w-]*)\b/;
   let depth = 0;
   let start = 0;
   for (let i = 0; i < code.length; i += 1) {

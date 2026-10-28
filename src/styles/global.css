@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+/*
+ * Detectarea surselor: folderele fără cod (documentație, scripturi, reguli, capturi, referința Webflow)
+ * ar genera clase din exemple și din HTML-ul vechi. Căile sunt relative la acest fișier.
+ */
+@source not "../../docs";
+@source not "../../scripts";
+@source not "../../.claude";
+@source not "../../.screenshots";
+@source not "../../reference";
+
 /* Tokeni: docs/DESIGN.md §2. Un token nou se adaugă întâi acolo. */
 @theme {
   /* reset: doar tokenii noștri */

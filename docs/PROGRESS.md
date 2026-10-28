@@ -395,6 +395,12 @@ Fără nicio schimbare vizuală (verificat pixel cu pixel, vezi mai jos).
 - `npm run audit:rules` (0 abateri), `npm run check` (0/0/0), `npm run lint`, `npm run format:check`, `npm run build` (cu `ALLOW_PLACEHOLDERS=1`): curate.
 - Corectură: scripturile de captură copiate în `.screenshots/consolidare/` la consolidare făceau `npm run lint` să eșueze (ESLint nu ignoră folderul); au fost scoase.
 
+### Corectură configurare: scanarea Tailwind și ESLint ✅ (2026-10-28)
+- **Tailwind:** sintaxa verificată în Context7 (documentația oficială, „Detecting classes in source files”): `@source not "<cale>"`, relativ la fișierul CSS. În `global.css`, imediat după `@import`: `docs/`, `scripts/`, `.claude/`, `.screenshots/`, `reference/` excluse (`.screenshots/` era deja ignorat prin `.gitignore`, acum e explicit). `audit:rules` acceptă `@source not` la nivelul de sus; `styling.md` aliniat.
+- **CSS de producție:** înainte **31 057 B** (6 720 B gzip), după **27 020 B** (6 101 B gzip). 34 de selectori eliminați, toți din exemple din documentație/reguli sau din referința Webflow (`.max-w-prose`, `.w-[37px]`, `.text-[#aaf22d]`, `.container`, `.sr-only`, `.text-tag` etc.); 0 adăugați. Verificat pe `src/`: niciuna dintre clasele eliminate nu e folosită (`md:rounded-panel` și `py-1.25` rămân).
+- **ESLint:** `.screenshots/` adăugat la `globalIgnores` (`reference/` era deja). Testat cu un fișier cu erori în `.screenshots/`: ignorat.
+- **Verificare:** pagina principală, 6 viewport-uri, cu și fără reduced motion: 0 pixeli diferiți pe 18 capturi (`.screenshots/consolidare/scanare/`). `npm run audit:rules`, `npm run check` (0/0/0), `npm run lint`, `npm run format:check`, `npm run build` (cu `ALLOW_PLACEHOLDERS=1`): curate.
+
 ### Următoarea secțiune: 2. Storytelling (`data-anim="words-light"`) ⏭️
 
 ## Etapa 8 ⏳
