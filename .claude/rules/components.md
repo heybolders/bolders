@@ -9,7 +9,7 @@ paths:
 
 Documentația fiecărei primitive (props, variante, exemple, când se folosește): `docs/COMPONENTS.md`.
 
-- **Secțiunile compun doar primitive.** Butoanele, titlurile, containerele, pill-urile și linkurile se scriu **doar** prin primitivele din `src/components/ui/`: `Button`, `Heading`, `Container`, `Section`, `Pill`, `TextLink`, `Icon`, `Halo`. `Cursor` e tot în `ui/`, dar e un singur element global (inclus o dată în `BaseLayout`), nu o primitivă de compus în secțiuni. Markup-ul propriu al unei secțiuni rămâne pentru layout (grile, liste, paragrafe) și pentru elementele animate (`data-anim`, `data-hero-*`).
+- **Secțiunile compun doar primitive.** Butoanele, titlurile, containerele, pill-urile și linkurile se scriu **doar** prin primitivele din `src/components/ui/`: `Button`, `Heading`, `Container`, `Section`, `Pill`, `TextLink`, `Icon`, `Halo`. `Cursor` și `Fluid` sunt tot în `ui/`, dar sunt elemente globale unice (incluse o dată în `BaseLayout`), nu primitive de compus în secțiuni. Markup-ul propriu al unei secțiuni rămâne pentru layout (grile, liste, paragrafe) și pentru elementele animate (`data-anim`, `data-hero-*`).
 - **Primitive noi:** doar dacă tiparul apare de **minim 2 ori** în componente; se documentează în `docs/COMPONENTS.md` și aici, în aceeași modificare. O variantă nouă a unei primitive existente urmează aceeași regulă (o variantă unică e permisă doar pentru elemente unice: skip link, logo, bara headerului, hero).
 - **Convenții pentru primitive:**
   - `interface Props` tipată, valori implicite în destructurare; atributele HTML trec prin `...attrs`.

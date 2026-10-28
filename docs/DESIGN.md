@@ -169,6 +169,7 @@ Mobile-first, cu prefixul `--color-` etc., ca să genereze utilitarele standard.
   --default-transition-duration: 200ms;
 
   --z-index-cursor: 100;    /* cursorul (§9), peste header (z-50) și skip link (z-60); original 100000 */
+  --z-index-fluid: -1;      /* fumul WebGL (§10), sub conținut, peste fundalul body; original .canvas-outer z-index -1 */
 }
 
 /* straturile lui --shadow-glow (§8), măsurate pe pill-ul din hero-ul original; fără namespace Tailwind */
@@ -178,9 +179,15 @@ Mobile-first, cu prefixul `--color-` etc., ca să genereze utilitarele standard.
   --glow-spread: 6px;
   --glow-opacity: 20%;
 }
+
+/* fumul WebGL (§10): citite de fluid.ts cu getComputedStyle; `static` ca să existe în CSS fără utilitare */
+@theme static {
+  --color-fluid: #c5fcfc;   /* culoarea splat-urilor din splash-effect-8.js: (197, 252, 252) */
+  --fluid-intensity: 0.15;  /* factorul cu care culoarea intră în dye (original × 0.15) */
+}
 ```
 
-Duratele GSAP stau în modulul de animații (`docs/ANIMATIONS.md`), nu în CSS: `fast 0.2`, `base 0.5`, `slow 0.9`, `slower 1.4`. Duratele cursorului (§9) sunt în `CURSOR_TIMING` (`timing.ts`); tokenii CSS ai cursorului sunt doar dimensiuni, culoare și `z-index`.
+Duratele GSAP stau în modulul de animații (`docs/ANIMATIONS.md`), nu în CSS: `fast 0.2`, `base 0.5`, `slow 0.9`, `slower 1.4`. Duratele cursorului (§9) sunt în `CURSOR_TIMING` (`timing.ts`); tokenii CSS ai cursorului sunt doar dimensiuni, culoare și `z-index`. Parametrii simulării fumului și duratele lui (§10) sunt constante TS în `fluid.ts` / `fluid-loader.ts`; în `@theme` stau doar culoarea, intensitatea și `z-index`.
 
 Corespondența cu scara din §1: `text-tag` = Tag, `text-body` = Body, `text-lead` = Text mare, `text-h3` = H3, `text-h2-sm` = Meniu footer / H2 mic, `text-h2` = H2 și bandă CTA, `text-story` = storytelling, `text-display` = hero. Wordmark-ul din footer nu are token de text: e un SVG care scalează la lățimea containerului (vezi mai jos). `--text-*: initial` elimină scara implicită (`text-xs`, `text-lg` etc. nu există).
 
@@ -295,7 +302,7 @@ Excepțiile reactivate din original (fum WebGL, cursor custom, glow pe butoane, 
 
 | Efect | Original | `data-anim` | Stare |
 |---|---|---|---|
-| Fum la cursor/atingere pe toată pagina (inclusiv mobil) | `splash-effect-8.js` (fluid WebGL pe canvas fix) | `fluid` | reactivat, pasul 6 |
+| Fum la cursor/atingere pe toată pagina (inclusiv mobil) | `splash-effect-8.js` (fluid WebGL pe canvas fix) | `fluid` | ✅ pasul 6 (28.10): port TS din WebGL-Fluid-Simulation (MIT), configurația originalului, valorile din §10 |
 | Cursor custom | `.cursor-element` (IX2 `MOUSE_MOVE`) | `cursor` | ✅ pasul 5 (28.10): punct alb doar pe desktop (mouse + hover), valorile din §9 |
 | Glow pe butoane | butonul „glowing” | — (decor static, §8) | ✅ pasul 3 (28.10, corectat): **halou static uniform pe contur** = umbra pill-ului din hero, pe toate butoanele și pe pill (decizie Adi); dunga rotativă de pe border eliminată |
 | Halouri de lumină difuză în spatele textelor | fundalul hero (omis la recreare) | — (decor static, §7) | ✅ pasul 2 (28.10): **static, ca în original** (decizie Adi, pentru performanță) |
@@ -404,3 +411,49 @@ Decizie Adi (28.10): punct alb, doar desktop, fidel originalului. Cursorul siste
 - **Dispare la ieșirea din fereastră** și reapare direct sub mouse la revenire (originalul rămânea la margine). Apare la prima mișcare, nu în centrul ecranului.
 - **Fără pâlpâire pe linkuri:** starea se citește prin delegare (`pointerover` + `closest("[data-cursor]")`), deci trecerea pe copiii linkului nu o resetează.
 
+
+## 10. Fum WebGL (`fluid`)
+
+Decizie Adi (28.10): fum care reacționează la cursor și la atingere pe toată pagina, inclusiv pe mobil, fidel originalului. Bază: **WebGL-Fluid-Simulation** de Pavel Dobryakov (MIT, verificată pe GitHub la 28.10: `PavelDoGreat/WebGL-Fluid-Simulation`, commit `a2d2929`), portată în TypeScript strict doar cu părțile folosite (`src/scripts/animations/fluid.ts`). Licență: antetul din fișier + `THIRD_PARTY_NOTICES.md`.
+
+### Originalul (Playwright pe bolders1.webflow.io, `config` citit din pagină + `splash-effect-8.js`, 28.10)
+
+| Parametru | Valoare | Notă |
+|---|---|---|
+| `SIM_RESOLUTION` | 128 | identic pe mobil |
+| `DYE_RESOLUTION` | 1024 (desktop), **512 pe mobil** (`/Mobi\|Android/` în user agent) | 512 și fără filtrare liniară |
+| `DENSITY_DISSIPATION` / `VELOCITY_DISSIPATION` | 4 / 2.87 | fumul se stinge în ≈ 2 s |
+| `PRESSURE` / `PRESSURE_ITERATIONS` | 0.43 / 20 | |
+| `CURL` | 0 | fără vârtejuri suplimentare |
+| `SPLAT_RADIUS` / `SPLAT_FORCE` | 0.1 (÷ 100, corectat cu aspectul) / 5000 | |
+| Culoare | `rgb(197, 252, 252)` × 0.15, constantă | `COLORFUL: true`, dar `generateColor()` întoarce mereu aceeași culoare; la pornire 5–24 splat-uri aleatoare cu culoarea × 10 |
+| `SHADING` | da | |
+| `BLOOM` | da: 8 iterații, rezoluție 256, intensitate 0.1, prag 0.6, soft knee 0.7 | |
+| `SUNRAYS` | da: rezoluție 196, weight 0.7 | |
+| Dithering | `LDR_LLL1_0.png` (64 × 64, blue noise), **folosit** de bloom | în repaus lasă o granulație fină pe toată pagina: luminanță 13–26 (medie 15.7) față de 13 fără canvas |
+| `TRANSPARENT` / `BACK_COLOR` | nu / `#0d0d0d` | canvas opac, culoarea = `ink` |
+| Context | WebGL2 (fallback WebGL1), `alpha`, fără depth/stencil/antialias, `premultipliedAlpha`, DPR complet (2 la 1440, 2.625 pe Pixel 7) | |
+| Canvas | `.canvas-outer`: `position: fixed`, `inset: 0`, 100vw × 100vh, **`z-index: -1`**; canvas-ul `fixed`, `top/left 0`, `100vw × 100%` | opacitate 1, `mix-blend-mode: normal`, `pointer-events: auto` (body-ul primește evenimentele) |
+| Intrări | `mouseover`/`mousemove` pe body (fum la simpla mișcare, fără click), `touchstart`/`touchmove` pe body | `preventDefault()` în handler-e, ignorat (ascultători pasivi implicit pe body), deci scroll-ul merge |
+
+### Implementare
+- **Componentă:** `src/components/ui/Fluid.astro`, inclusă o dată în `BaseLayout`: gazdă goală `fixed inset-x-0 top-0 z-fluid h-lvh pointer-events-none`, `aria-hidden`, `transition:persist="fluid"`. Canvas-ul (`aria-hidden`, `pointer-events-none`, `block size-full`) îl creează `fluid.ts`.
+- **Poziție:** ca în original, `z-index: -1` în contextul rădăcinii: sub conținut, peste fundalul `body` (`bg-ink`). Haloul, grila hero și cardurile rămân deasupra.
+- **Transparent peste `bg-ink`**, în loc de opac cu `BACK_COLOR`: `c + ink × (1 − a)` dă exact aceleași valori ca desenarea `BACK_COLOR` + blending-ul `ONE, ONE_MINUS_SRC_ALPHA` din original, iar culoarea de fundal rămâne una singură (`ink`).
+- **Tokeni (§2):** `--color-fluid`, `--fluid-intensity`, `--z-index-fluid`. Parametrii simulării, profilurile de calitate și duratele sunt constante TS (`SIM`, `QUALITY`, `FPS_PROBE`, `MAX_DT` etc. în `fluid.ts`; `LCP_QUIET_MS`, `IDLE_TIMEOUT_MS` în `fluid-loader.ts`).
+- **Textura de dithering:** `src/assets/fluid/LDR_LLL1_0.png` (mutată din rădăcină), importată cu `?url`: build-ul o servește cu hash (`/_astro/LDR_LLL1_0.<hash>.png`), identică byte cu byte cu cea din upstream.
+
+### Calitate pe dispozitiv
+| Profil | Simulare | Dye | DPR maxim | Treapta adaptivă (o singură scădere) |
+|---|---|---|---|---|
+| Desktop (mouse, ≥ 768 px) | 128 | 1024 | 2 | 64 / 512 / DPR 1 |
+| Mobil (< 768 px sau fără `pointer: fine`) | 96 | 512 | 1.5 | 64 / 256 / DPR 1 |
+
+Bloom (256) și sunrays (196) rămân ca în original pe ambele profiluri. Exemple de canvas: iPhone SE 562 × 1000, iPhone 15 589 × 1278, Pixel 7 618 × 1372 (originalul pe Pixel 7: 1081 × 2401).
+
+### Abateri față de original
+- **DPR plafonat** (2 desktop, 1.5 mobil) și **simularea 96 pe mobil** (original 128): cerința pasului; granulația și marginile fumului sunt cu puțin mai moi pe telefon.
+- **Pașii curl/vorticity nu rulează:** cu `CURL = 0` nu adaugă nimic (forța e 0); singurul efect rămas în original era plafonarea vitezei la ±1000, la care mișcările reale nu ajung.
+- **Coordonate `clientX/clientY`** (originalul folosea `pageX/pageY` la touch, corectat cu `scrollY` sub 768 px; rezultatul e același).
+- **Fără dâre false:** mouse-ul care iese din fereastră nu trage o dâră la revenire; mai multe degete au câte un punct propriu (originalul le indexa după poziție).
+- **Explozia de la pornire** rămâne, dar vine după LCP (≈ 2 s după `load` pe homepage), nu la încărcarea scriptului.

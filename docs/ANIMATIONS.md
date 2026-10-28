@@ -273,16 +273,26 @@ Decizie Adi (28.10): halou **static** uniform pe contur (umbra pill-ului din her
 - **Reduced motion:** nu se montează; rămâne cursorul sistemului.
 
 ### `fluid` — fum WebGL la cursor/atingere
-- **Ce face:** canvas WebGL fix pe toată pagina (`pointer-events: none`), în spatele/peste conținut fără să blocheze interacțiunea; mișcarea cursorului sau atingerea lasă fum. Bazat pe **WebGL-Fluid-Simulation** de Pavel Dobryakov (licență MIT; notița de licență se păstrează în `fluid.ts`, verificată de `audit:rules`).
+- **Ce face:** canvas WebGL fix pe toată pagina (`pointer-events: none`), **sub conținut** (`z-fluid` = −1, ca `.canvas-outer` din original), peste fundalul `body`; simpla mișcare a mouse-ului (fără click) sau atingerea lasă fum alb-cyan care se stinge în ≈ 2 s; la pornire, o explozie de 5–24 splat-uri aleatoare, ca în original. Bazat pe **WebGL-Fluid-Simulation** de Pavel Dobryakov (licență MIT; notița de licență se păstrează în `fluid.ts`, verificată de `audit:rules`). Configurația măsurată și profilurile de calitate: **DESIGN.md §10**.
+- **Fișiere:** `fluid-loader.ts` (intrarea din registry: verificările și încărcarea leneșă) + `fluid.ts` (simularea, singurul fișier cu WebGL, chunk separat). Gazda: `ui/Fluid.astro`, persistentă.
+- **Valori:**
+  - simulare: `SIM` în `fluid.ts` (dissipation 4 / 2.87, pressure 0.43 × 20, splat 0.1 / 5000, bloom 8 × 256 / 0.1 / 0.6 / 0.7, sunrays 196 / 0.7), pas maxim `MAX_DT` 0.016666 s;
+  - calitate: desktop sim 128 / dye 1024 / DPR ≤ 2; mobil (< 768 px sau fără `pointer: fine`) sim 96 / dye 512 / DPR ≤ 1.5;
+  - culoare și intensitate: tokenii `--color-fluid` (`#c5fcfc`) și `--fluid-intensity` (0.15), citiți la pornire.
 - **Limite (obligatorii):**
-  - încărcare **după LCP**, cu `requestIdleCallback` (fallback `setTimeout`), prin `import()` dinamic, ca să nu intre în bundle-ul inițial;
-  - rezoluție redusă pe mobil (simulare și dye la rezoluție mică, DPR limitat);
-  - randarea se oprește când nu există mișcare (simularea s-a stins) și când tab-ul e ascuns (`visibilitychange`); repornește la următoarea mișcare;
-  - ascultători touch/pointer **pasivi** (`{ passive: true }`): scroll-ul nu se blochează;
-  - nu pornește la `prefers-reduced-motion`, fără WebGL (`supportsWebGL()`) sau pe dispozitiv slab (`isLowEndDevice()`: `deviceMemory ≤ 2` sau `hardwareConcurrency ≤ 2`, doar când valoarea e definită; valoare nedefinită = nu e slab). Pragul de nuclee e 2, nu 4: Safari limitează `hardwareConcurrency` la 4 sau 8 (anti-fingerprinting), deci ≤ 4 ar exclude iPhone-urile.
+  - încărcare **după LCP**: după `load`, se așteaptă ca LCP să se stabilizeze (`LCP_QUIET_MS` = 2 s fără candidați noi, plafon `LCP_MAX_WAIT_MS` = 5 s; pe homepage LCP-ul final e subtitlul hero, ≈ 1.3 s), apoi `requestIdleCallback` (termen 2 s; fallback `setTimeout` 50 ms, fără LCP în browser: 2 s după `load`), apoi `import()` dinamic. Inițializarea cedează firul principal între etape și compilează shader-ele cu `KHR_parallel_shader_compile` (fără extensie: câte un program per task), deci fără long tasks;
+  - rezoluție redusă pe mobil (vezi „Valori”);
+  - **adaptiv:** primele 3 ferestre de 1 s de animație (după 10 cadre de încălzire, pauzele nu contează) toate sub 45 fps → o singură scădere de rezoluție (sim 64, dye 512 / 256 pe mobil, DPR 1); încă 3 ferestre sub 45 fps → efectul se oprește complet pentru sesiune (`sessionStorage` `bolders:fluid-off`). O fereastră ≥ 45 fps încheie verificarea;
+  - randarea se oprește când nu mai e mișcare și fumul s-a stins: limita superioară a intensității dye-ului (toate splat-urile adunate, apoi disiparea pe fiecare pas), înmulțită cu amplificarea sunrays-ului în repaus (≈ 6.2), sub ½ nivel de culoare. Ultimul cadru rămâne pe ecran (granulația fină a originalului). Se oprește și cu tab-ul ascuns (`visibilitychange`); repornește la următoarea mișcare;
+  - ascultători **pasivi**: `pointermove` (mouse/pen) și `touchstart`/`touchmove`/`touchend`/`touchcancel` pe `window`, fără `preventDefault`. Touch, nu pointer events: `pointercancel` ar opri fumul exact când începe scroll-ul nativ. Lenis și scroll-ul nativ nu sunt afectate;
+  - resize cu debounce 200 ms; realocă framebuffer-ele doar dacă se schimbă mărimea în pixeli. Gazda are `h-lvh`, deci bara de adresă de pe mobil nu schimbă nimic;
+  - `webglcontextlost` (cu `preventDefault`, ca browserul să poată restaura) oprește bucla; `webglcontextrestored` reconstruiește programele, texturile și framebuffer-ele în același canvas;
+  - View Transitions: gazda e `transition:persist`, deci canvas-ul, contextul WebGL și ascultătorii se creează o singură dată pe sesiune;
+  - nu pornește la `prefers-reduced-motion`, fără WebGL (`supportsWebGL()`) sau pe dispozitiv slab (`isLowEndDevice()`: `deviceMemory ≤ 2` sau `hardwareConcurrency ≤ 2`, doar când valoarea e definită; valoare nedefinită = nu e slab). Pragul de nuclee e 2, nu 4: Safari limitează `hardwareConcurrency` la 4 sau 8 (anti-fingerprinting), deci ≤ 4 ar exclude iPhone-urile. Formate half-float nerandabile sau shader-e eșuate: fără canvas, fără erori.
 - **Proprietăți:** canvas-ul în sine nu se animă prin CSS; doar conținutul randat de WebGL.
+- **Coexistență:** cursorul custom (`mix-blend-difference`, `z-cursor`) se inversează și peste fum, ca în original; `smoke-text` rămâne deasupra (conținut). Ascultătorii nu se intersectează (fiecare pe evenimentele lui, pasivi).
 - **Mobil:** activ (atingere), cu limitele de mai sus.
-- **Reduced motion:** nu se montează.
+- **Reduced motion:** nu se montează; activat în sesiune, `matchMedia` oprește tot (canvas scos, context eliberat cu `WEBGL_lose_context`, ascultători scoși); dezactivat, pornește din nou.
 
 ## Ce NU se preia din original
 

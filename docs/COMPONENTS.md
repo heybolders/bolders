@@ -205,3 +205,15 @@ Cursorul custom (DESIGN.md §9, ANIMATIONS.md „`cursor`”). Fără props. **I
 - `data-anim="cursor"`, `transition:persist="cursor"`, `aria-hidden`, `pointer-events-none`, `z-cursor`, `mix-blend-difference`; ascuns (`opacity-0`) până la prima mișcare a mouse-ului.
 - Stările de hover vin din `data-cursor` pe primitive: `Button` pune `data-cursor="button"`, `TextLink` pune `data-cursor="link"` (pe toate variantele). Un element interactiv nou primește starea doar dacă trece prin aceste primitive.
 
+## Fluid
+
+Fumul WebGL de pe toată pagina (DESIGN.md §10, ANIMATIONS.md „`fluid`”). Fără props. **Inclus o singură dată, în `BaseLayout`**; nu se folosește în secțiuni.
+
+```astro
+<Fluid />
+```
+
+- Gazdă goală: `data-anim="fluid"`, `transition:persist="fluid"`, `aria-hidden`, `pointer-events-none`, `fixed inset-x-0 top-0 h-lvh`, `z-fluid` (sub conținut, peste fundalul `body`).
+- Canvas-ul îl adaugă `src/scripts/animations/fluid.ts` după LCP, doar cu WebGL, fără reduced motion și pe dispozitive care nu sunt slabe. Fără JS sau fără WebGL rămâne un `div` gol.
+- Secțiunile nu au nevoie de nimic ca fumul să apară în spatele lor: e suficient să nu aibă fundal opac. Un fundal propriu (card, panou) acoperă fumul, ca în original.
+

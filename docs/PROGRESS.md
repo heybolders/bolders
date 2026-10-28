@@ -175,7 +175,7 @@
 - Pe mobil, panoul footerului e mai înalt decât jumătatea wordmark-ului (linkurile legale pe două rânduri), deci acoperă literele de la mijloc în jos și se întinde sub ele; proporția e fidelă doar de la `md` în sus.
 - Auditul de texte acoperă markup-ul `.astro`. Textele setate din TS nu sunt verificate automat; momentan nu există niciunul în `src/scripts/`.
 
-## Etapa: Reactivare efecte din original 🔄 (înainte de Storytelling)
+## Etapa: Reactivare efecte din original ✅ (2026-10-28, înainte de Storytelling; iconițele 3D amânate)
 
 Decizii confirmate de Adi (28.10):
 - Se reactivează: fum WebGL la cursor/atingere pe toată pagina (și pe mobil), cursor custom, glow pe butoane. Se adaugă halouri de lumină difuză în spatele textelor (omise la recreare). Hero: „să strălucești!” cu fum în loop, în locul respirației 700 → 200 → 700.
@@ -184,7 +184,7 @@ Decizii confirmate de Adi (28.10):
 - Rămân eliminate: poze stock, preloader cu procent, contoare animate.
 - Regulă: nimic din original nu se elimină fără confirmarea lui Adi.
 
-Pași: 1 fundația ✅ · 2 halouri (static) ✅ · 3 glow pe butoane (static, haloul pill-ului) ✅ · 4 `smoke-text` ✅ · 5 `cursor` ✅ · 6 `fluid` (WebGL). Iconițe 3D: amânate.
+Pași: 1 fundația ✅ · 2 halouri (static) ✅ · 3 glow pe butoane (static, haloul pill-ului) ✅ · 4 `smoke-text` ✅ · 5 `cursor` ✅ · 6 `fluid` (WebGL) ✅. Iconițe 3D: amânate (fișierele de la Adi).
 
 ### Pasul 1 din 6: fundația ✅ (2026-10-28)
 Fără niciun efect vizual implementat; site-ul arată identic.
@@ -283,7 +283,7 @@ Făcut la cererea lui Adi înaintea pasului 3 (`glow`), care rămâne de făcut.
 #### Capturile automate scoase din git
 - `.screenshots/` (rădăcină) + `test-results/` + `playwright-report/` în `.gitignore`.
 - 175 de fișiere mutate (nimic șters de pe disc, istoricul neatins), cu prefixul folderului de capturi înlocuit: `reference/screenshots/etapa-*` → `.screenshots/etapa-*`, `reference/inspiratie/live/*` → `.screenshots/etapa-1/inspiratie-live/*`. Căile `reference/screenshots/etapa-*` și `live/…` din secțiunile de mai sus se citesc acum din `.screenshots/` (doar local). ANIMATIONS.md actualizat.
-- Rămân în git: `src/`, `public/`, imaginile manuale direct din `reference/inspiratie/`, referințele din Etapa 1 (`reference/media/`, `reference/screenshots/{home,departamente,privacy-policy-and-terms}/`) și `LDR_LLL1_0.png`.
+- Rămân în git: `src/`, `public/`, imaginile manuale direct din `reference/inspiratie/`, referințele din Etapa 1 (`reference/media/`, `reference/screenshots/{home,departamente,privacy-policy-and-terms}/`) și `LDR_LLL1_0.png` (mutată în `src/assets/fluid/` la pasul 6).
 - Regulă permanentă: `.claude/rules/screenshots.md` (capturi, video și output Playwright doar în `.screenshots/<etapa>/<subiect>/`).
 - `audit:rules`: regulă nouă `captura-urmarita` (din `git ls-files`), excepțiile explicite în `TRACKED_MEDIA_ALLOW`. Testată cu o imagine temporară urmărită în `docs/` (prinsă, ieșire 1), apoi scoasă.
 
@@ -386,6 +386,49 @@ Varianta de mai sus (gradient radial sub buton, `.btn::before`) a fost **elimina
 - **Urmărire:** la țintă în **147 ms** (1440) / **149 ms** (1920) după salt, ca înainte.
 - Capturi și video: `.screenshots/etapa-efecte/cursor-v2/` (`nou-{1440,1920}-{acasa,404}-{header,hero,cta404}-{hover,apasat}.png`, `nou-1440-hover-link.png`, `video/*.webm`).
 - `npm run audit:rules` (0 abateri), `npm run check` (0/0/0), `npm run lint`, `npm run format:check`, `npm run build` (cu `ALLOW_PLACEHOLDERS=1`): curate.
+
+### Pasul 6 din 6: fum WebGL pe toată pagina (`fluid`) ✅ (2026-10-28)
+Decizie Adi: fum la cursor și la atingere pe toată pagina, inclusiv pe mobil, fidel originalului. Bază: WebGL-Fluid-Simulation (Pavel Dobryakov, MIT).
+
+#### Sursă și licență
+- Repo-ul oficial verificat pe GitHub: `PavelDoGreat/WebGL-Fluid-Simulation`, licență MIT (Copyright (c) 2017 Pavel Dobryakov), commit `a2d2929`. `splash-effect-8.js` din original e același cod, cu altă configurație și culoare.
+- Port în TypeScript strict, doar părțile folosite: `src/scripts/animations/fluid.ts` (antet MIT complet, verificat de regula `licenta-fluid`). Notă în `THIRD_PARTY_NOTICES.md` (rădăcină).
+- **`LDR_LLL1_0.png` e folosită de original** (dithering-ul bloom-ului; în repaus lasă granulația fină, luminanță 13–26 față de 13 fără canvas) și e identică byte cu byte cu cea din upstream. Mutată cu `git mv` în `src/assets/fluid/`, importată cu `?url` (în build: `/_astro/LDR_LLL1_0.<hash>.png`). Excepția din `TRACKED_MEDIA_ALLOW` scoasă; `.claude/rules/screenshots.md` actualizat.
+
+#### Măsurat pe original (Playwright, `config` citit din pagină)
+Tabelul complet: **DESIGN.md §10**. Pe scurt: sim 128, dye 1024 (512 pe mobil), dissipation 4 / 2.87, pressure 0.43 × 20, curl 0, splat 0.1 / 5000, culoare `rgb(197, 252, 252)` × 0.15 constantă, shading, bloom (8 × 256, 0.1, prag 0.6, knee 0.7), sunrays (196, 0.7), canvas opac `#0d0d0d`, DPR complet. `.canvas-outer` fix, `inset 0`, `z-index: -1`, opacitate 1, `mix-blend-mode: normal`. Explozie de 5–24 splat-uri la pornire.
+
+#### Construit
+- `src/components/ui/Fluid.astro` (gazdă persistentă, `fixed inset-x-0 top-0 z-fluid h-lvh`, `aria-hidden`, `pointer-events-none`) în `BaseLayout`; documentată în `COMPONENTS.md`.
+- `fluid-loader.ts` (intrarea `fluid` din registry): `matchMedia("(prefers-reduced-motion: no-preference)")`, `supportsWebGL()`, `isLowEndDevice()`, flag-ul de sesiune; așteaptă `load` + LCP stabilizat (2 s fără candidați noi, plafon 5 s) + `requestIdleCallback` (fallback `setTimeout`), apoi `import()`.
+- `fluid.ts`: simularea (chunk separat, 7.9 KB gzip, nu importă nimic din chunk-ul principal). Inițializare în etape care cedează firul, shader-e cu `KHR_parallel_shader_compile`; buclă oprită când fumul s-a stins (limită analitică a intensității dye-ului) și cu tab-ul ascuns; ascultători pasivi; resize cu debounce, fără realocare dacă mărimea nu se schimbă; context pierdut/restaurat; FPS adaptiv (o scădere de rezoluție, apoi oprire pentru sesiune).
+- Tokeni: `--z-index-fluid: -1`, `@theme static { --color-fluid: #c5fcfc; --fluid-intensity: 0.15 }` (DESIGN.md §2). Parametrii și duratele: constante TS.
+- Mobil: sim 96 / dye 512 / DPR ≤ 1.5 (desktop 128 / 1024 / ≤ 2); treapta adaptivă 64 / 256 (mobil) sau 64 / 512 (desktop), DPR 1.
+- Documentație: DESIGN.md §2, §6, §10 nou; ANIMATIONS.md „`fluid`” (valori, limite, coexistență); `.claude/rules/animations.md`, `components.md`, `screenshots.md`.
+
+#### Verificare (build cu `ALLOW_PLACEHOLDERS=1`, `astro preview`)
+- **Lighthouse mobil (3 rulări, înainte → după):** Performance 100 → 100; LCP 1667–1672 → 1668–1676 ms; TBT 0 → 0; CLS 0 → 0; FCP 1353–1356 → 1352–1354 ms. Accessibility / Best Practices / SEO: 100. Prima variantă (încărcare la primul candidat LCP) urca LCP-ul simulat la 1803 ms: chunk-ul intra înaintea LCP-ului final (subtitlul hero, ≈ 1.25 s observat); corectat cu fereastra de liniște de 2 s.
+- **Long tasks** (Long Animation Frames + `longtask`, plus trace DevTools `trace-pixel7-cpu4x.json.gz`): 1440 → 0 long tasks; Pixel 7 + CPU 4× → un singur task > 50 ms (70–74 ms, la ≈ 80 ms: boot-ul ClientRouter + BaseLayout, prezent și înainte), **0 de la fluid**; cel mai lung apel din fluid la CPU 4×: 2.4 ms. Fluid se încarcă la ≈ 2.2 s (CPU 4×) / ≈ 3.3 s (Playwright, cu fereastra de liniște).
+- **Bucla în repaus:** rAF-uri pe secundă, înainte → după: în mișcare 244 → 364 (fluid ≈ 120/s), în repaus 244 → 244 (bucla fluid oprită; rămân GSAP și Lenis).
+- **5 navigări** (`/` ↔ `/departamente`, View Transitions): același element canvas, 1 canvas, 2 contexte WebGL în total (detecția din `capabilities.ts` + fumul), heap 3.4–3.7 MB stabil. Fluid adaugă constant +12 ascultători; creșterea de 1–8 ascultători pe navigare e identică în build-ul vechi (preexistentă).
+- **Context pierdut/restaurat** (`WEBGL_lose_context`): restaurat în același canvas, fumul funcționează după.
+- **Mobil (emulare iPhone SE, iPhone 15, Pixel 7):** atingerea produce fum, iar tragerea derulează pagina nativ (scrollY ≈ 302 în timpul gestului); canvas 562 × 1000 / 589 × 1278 / 618 × 1372; fără scroll orizontal; consolă curată.
+- **Excluderi:** reduced motion, WebGL dezactivat (`getContext` → null) și `deviceMemory = 2`: 0 canvas, chunk-ul nu se descarcă, consolă curată. Reduced motion activat în sesiune: canvas scos; dezactivat: revine.
+- **FPS adaptiv** (rAF încetinit la ≈ 25 fps): 2880 × 1800 → 1440 × 900 după ≈ 3 s, apoi oprit după încă ≈ 3 s; flag-ul `bolders:fluid-off` rămâne, la reîncărcare nu mai pornește.
+- Capturi și video: `.screenshots/etapa-efecte/fluid/` (`original-*` / `nou-*` la 1440 în mișcare, după 400 ms și în repaus; `original-pixel7-atingere.png`, `nou-<dispozitiv>-atingere.png`; `video/original-1440.webm`, `video/nou-1440.webm`; scripturile de test în `scripts/`).
+- `npm run audit:rules` (0 abateri), `npm run check` (0/0/0), `npm run lint`, `npm run format:check`, `npm run build` (cu `ALLOW_PLACEHOLDERS=1`): curate.
+
+#### Abateri și motive
+- **Bundle-ul inițial crește cu ≈ 1.3 KB gzip** (55.8 → 57.1 KB; +3.4 KB necomprimat): loader-ul (verificări + așteptarea LCP) și helper-ul `__vitePreload`, pe care Vite îl pune la orice `import()` (`build.modulePreload: false` nu îl scoate în Astro). Simularea (7.9 KB gzip) și textura (7 KB) nu sunt în bundle-ul inițial.
+- **Încărcarea vine ≈ 2 s după `load`**, nu imediat după primul candidat LCP: altfel LCP-ul simulat de Lighthouse creștea cu ≈ 130 ms. Explozia de la pornire apare deci mai târziu decât în original.
+- **Canvas transparent peste `bg-ink`** în loc de opac cu `BACK_COLOR`: rezultat identic matematic, o singură sursă pentru culoarea fundalului.
+- **DPR plafonat și simularea 96 pe mobil**, fără pașii curl/vorticity (`CURL = 0`), coordonate `clientX/Y`, fără dâre la reintrarea mouse-ului: DESIGN.md §10, „Abateri”.
+- **Loader în fișier separat** (`fluid-loader.ts`, înregistrat ca `fluid`): regula „canvas/WebGL doar în `fluid.ts`” plus „bundle inițial fără simulare” cer două fișiere pentru un singur `data-anim`.
+
+#### Neclarități
+- **iPhone în Low Power Mode** limitează rAF la 30 fps: treapta adaptivă scade rezoluția și apoi oprește fumul pentru sesiune. Comportament intenționat (baterie), de confirmat cu Adi.
+- Testat doar în Chromium (emulare); Safari real (iOS) și Firefox nu au fost verificate pe dispozitiv.
+- `splash-effect-8.js` din rădăcină (copia originalului, identică cu `reference/webflow/js/custom-splash-effect-8.js`) a rămas neatins.
 
 ## Etapa 4: consolidare sistem de componente ✅ (2026-10-28)
 Fără nicio schimbare vizuală (verificat pixel cu pixel, vezi mai jos).

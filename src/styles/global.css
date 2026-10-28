@@ -108,6 +108,16 @@
 
   /* deasupra headerului (z-50) și a skip link-ului (z-60); originalul: 100000 */
   --z-index-cursor: 100;
+  /* fumul WebGL (DESIGN §10): sub tot conținutul, peste fundalul body, ca .canvas-outer din original (-1) */
+  --z-index-fluid: -1;
+}
+
+/* fumul WebGL (DESIGN §10): citite din fluid.ts cu getComputedStyle, deci emise chiar fără utilitare */
+@theme static {
+  /* culoarea splat-urilor din splash-effect-8.js (197, 252, 252); niciodată lime */
+  --color-fluid: #c5fcfc;
+  /* factorul cu care culoarea intră în dye (originalul: × 0.15) */
+  --fluid-intensity: 0.15;
 }
 
 /* straturile lui --shadow-glow (DESIGN §8), măsurate pe pill-ul din hero-ul original; fără namespace Tailwind */

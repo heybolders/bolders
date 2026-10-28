@@ -1,0 +1,14 @@
+---
+// Fumul WebGL de pe toată pagina (ANIMATIONS.md „fluid”, DESIGN.md §10). Inclus o singură dată, în BaseLayout,
+// și persistent între pagini: canvas-ul și contextul WebGL se creează o singură dată pe sesiune.
+// Gazda e goală: canvas-ul îl adaugă src/scripts/animations/fluid.ts după LCP, doar cu WebGL, fără reduced motion
+// și pe dispozitive care nu sunt slabe. Fără JS rămâne un div gol. Fix, sub conținut (z-fluid), înălțimea
+// `lvh`: bara de adresă de pe mobil nu schimbă mărimea, deci nu realocă framebuffer-ele. Docs: docs/COMPONENTS.md.
+---
+
+<div
+  data-anim="fluid"
+  transition:persist="fluid"
+  aria-hidden="true"
+  class="pointer-events-none fixed inset-x-0 top-0 z-fluid h-lvh"
+></div>

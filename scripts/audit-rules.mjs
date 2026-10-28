@@ -553,7 +553,6 @@ const TRACKED_MEDIA_ALLOW = [
   /^src\//,
   /^public\//,
   /^reference\/inspiratie\/[^/]+$/,
-  /^LDR_LLL1_0\.png$/,
   // Referințele din Etapa 1 ale site-ului original
   /^reference\/media\//,
   /^reference\/screenshots\/(home|departamente|privacy-policy-and-terms)\//,

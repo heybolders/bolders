@@ -6,6 +6,7 @@ import Footer from "@/components/global/Footer.astro";
 import Header from "@/components/global/Header.astro";
 import Seo from "@/components/global/Seo.astro";
 import Cursor from "@/components/ui/Cursor.astro";
+import Fluid from "@/components/ui/Fluid.astro";
 import TextLink from "@/components/ui/TextLink.astro";
 import { HEADER_TEXT } from "@/content/global";
 
@@ -48,6 +49,7 @@ const { title, description, canonical, noindex = false } = Astro.props;
       <slot />
     </main>
     <Footer />
+    <Fluid />
     <Cursor />
     <script>
       import { startAnimations } from "@/scripts/animations";
