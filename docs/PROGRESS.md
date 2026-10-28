@@ -156,6 +156,9 @@
 #### Header
 - Linkurile din pill: `text-body` 400 → `text-lead` 500. **Măsurat:** erau 16 px, iar originalul are 1.2rem ≈ 19 px / 500, deci erau mai mici, nu mai mari, decât în referință. Varianta aleasă (confirmată de tine): `text-lead` (18 px), tokenul cel mai apropiat. Butonul „Contact” din header: tot `text-lead`, pentru echilibru. Verificat la 992 și 1440: pill-ul încape cu spațiu liber de ambele părți.
 
+#### Logo header
+- Simbolul „b” din header: `h-6` → `h-7` (24 → 28 px înălțime, ≈ 44 × 28 px), în aceeași zonă de click de 56 × 44. Capturi: `reference/screenshots/etapa-4/corecturi/header-logo-{1440,iphone-se}.png`.
+
 #### Buton
 - Punctul e acum un element propriu (`size-2 bg-lime`), iar umplerea pornește de la `circle(0)` din centrul lui. La hover/focus: punctul rămâne lime pe fundal lime (dispare). Apăsat (`:active`): punctul devine `ink`. Toate variantele (`header`, `cta`, `footer`). Verificat cu culoarea calculată: repaus/hover/focus `#aaf22d`, apăsat `#0d0d0d`.
 
@@ -171,5 +174,13 @@
 - Textele `© … Bolders Srl` și linkurile legale sunt acum `text-body` (regula 16 px); în original sunt mai mici.
 - Pe mobil, panoul footerului e mai înalt decât jumătatea wordmark-ului (linkurile legale pe două rânduri), deci acoperă literele de la mijloc în jos și se întinde sub ele; proporția e fidelă doar de la `md` în sus.
 - Auditul de texte acoperă markup-ul `.astro`. Textele setate din TS nu sunt verificate automat; momentan nu există niciunul în `src/scripts/`.
+
+### Etapă separată planificată: reactivarea efectelor din original ⏸️ (pornește doar la cerere, înainte de Storytelling)
+Decizii confirmate (28.10), de aplicat atunci, nu acum:
+- Se reactivează: fum WebGL la cursor/atingere pe toată pagina (și pe mobil), cursor custom, glow pe butoane. Se adaugă halouri de lumină difuză în spatele textelor, care se sting lent. Hero: „să strălucești!” cu efect de fum în loop (literele se șterg stânga → dreapta, apoi se rescriu), în locul respirației 700 → 200 → 700. Excepțiile se documentează în ANIMATIONS.md, DESIGN.md (anti-banal), `.claude/rules/animations.md` și `audit:rules`.
+- Limite pentru fumul WebGL: se încarcă după LCP (`requestIdleCallback`); rezoluție redusă pe mobil; randarea se oprește când nu e mișcare și când tab-ul e ascuns; ascultători touch pasivi (scroll-ul nu se blochează); dezactivat la `prefers-reduced-motion` și fără suport WebGL; nu pornește pe dispozitive slabe (`navigator.deviceMemory ≤ 2` sau `hardwareConcurrency ≤ 4`).
+- Iconițele 3D: amânate; fișierele originale le procură clientul. Nu se ating până atunci.
+- Rămân eliminate: poze stock, preloader cu procent, contoare animate.
+- Regulă nouă: nimic nu se elimină din original fără confirmarea lui Adi.
 
 ### Următoarea secțiune: 2. Storytelling (`data-anim="words-light"`) ⏭️
