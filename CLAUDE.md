@@ -17,8 +17,9 @@ Node: versiunea din `.nvmrc`.
 - `npm run check`: `astro check` (TypeScript strictest + Astro)
 - `npm run lint`: ESLint (typescript-eslint strict + eslint-plugin-astro)
 - `npm run format` / `npm run format:check`: Prettier (pluginuri astro + tailwindcss)
+- `npm run audit:rules`: audit de consistență pe `src/` (`scripts/audit-rules.mjs`; reguli și excepții în `.claude/rules/styling.md`). **Nicio secțiune nu e gata fără audit curat.**
 
-Hook `.claude/hooks/format-lint.sh` (PostToolUse pe Edit/Write): Prettier + ESLint `--fix` pe fișierul modificat, apoi `astro check`.
+Hook-uri PostToolUse pe Edit/Write: `.claude/hooks/format-lint.sh` (Prettier + ESLint `--fix` pe fișierul modificat, apoi `astro check`) și `.claude/hooks/audit-rules.sh` (`audit:rules` când se modifică `src/`).
 
 ## Structură
 

@@ -70,7 +70,7 @@ SplitText `type: "lines"`, `mask: "lines"`, `autoSplit: true`, animația returna
 
 ### Butoane
 - **Original:** hover IX2: fundal `#1d1d1d`, umbra interioară dispare, cursorul se mărește; varianta „glowing” cu halo alb.
-- **Nou:** punctul lime se mărește până umple butonul (clip-path cerc din poziția punctului, 0.4 `expo.out`), textul se inversează la ink. Fără glow. Doar CSS (`transition`), fără `data-anim`.
+- **Nou:** umplerea lime crește din poziția punctului până acoperă butonul (clip-path cerc, 0.4 `expo.out`), textul se inversează la ink; punctul rămâne lime pe fundal lime, deci dispare. La apăsare (`:active`) punctul devine ink. Fără glow. Doar CSS (`transition`), fără `data-anim`.
 - **Reduced motion:** schimbare de culoare instant.
 
 ### Tranziții între pagini
@@ -175,7 +175,7 @@ SplitText `type: "lines"`, `mask: "lines"`, `autoSplit: true`, animația returna
 
 ### 11. Footer — `data-anim="wordmark"`
 - **Original:** wordmark „Bolders” contur + plin cu gradient; IX2 `Footer Gradient Animation` (gradientul urmărește mouse-ul); bară cu blur peste wordmark.
-- **Nou:** wordmark-ul urcă din mască legat de scroll (`yPercent 60 → 0`, scrub, `end bottom bottom`). Fără gradient pe mouse. Meniul rămâne static.
+- **Nou:** wordmark-ul urcă din mască legat de scroll (`yPercent 60 → 0`, scrub, `end bottom bottom`). Gradient orizontal static (fără urmărirea mouse-ului), literele din dreapta în contur; panoul cu blur peste jumătatea de jos rămâne static (DESIGN §2). Meniul rămâne static.
 - **Implementare (Etapa 3):** `start top bottom`, `end bottom bottom`, `scrub: true`; pe mobil `yPercent 40 → 0`. Footerul e persistent: trigger-ul se recalculează la `ScrollTrigger.refresh()` după fiecare navigare.
 - **Sursă:** `inspiratie.md` → `07-footer` (footer-ul actual Bolders: „spațiere și ierarhie mai clară”). Captură: `footer.png`.
 - **Plugin / trigger:** ScrollTrigger scrub.

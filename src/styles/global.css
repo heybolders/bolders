@@ -62,6 +62,10 @@
   --shadow-lime: 4px 2px 6px 0 #49691099;
 
   --blur-nav: 11px;
+  --blur-panel: 30px;
+
+  /* jumătatea de sus a wordmark-ului din footer: același raport ca viewBox-ul SVG (3319 × 750 / 2) */
+  --aspect-wordmark-half: 3319 / 375;
 
   --breakpoint-sm: 30rem;
   --breakpoint-md: 48rem;
@@ -101,9 +105,9 @@
 
 @layer components {
   /*
-   * Button (ANIMATIONS.md „Butoane”): punctul lime este chiar stratul de umplere.
-   * În repaus e un cerc de 0.25rem în dreptul spațiului rezervat pentru punct; la hover/focus
-   * cercul crește din aceeași poziție până acoperă butonul. --btn-pad leagă padding-ul de poziția punctului.
+   * Button (ANIMATIONS.md „Butoane”): umplerea lime crește din poziția punctului din fața textului.
+   * În repaus stratul e un cerc de rază 0 în centrul punctului; la hover/focus acoperă butonul.
+   * --btn-pad leagă padding-ul de poziția punctului (centrul lui = --btn-dot-x).
    */
   .btn {
     --btn-pad: calc(var(--spacing) * 6);
@@ -116,7 +120,7 @@
   }
 
   .btn-fill {
-    clip-path: circle(var(--spacing) at var(--btn-dot-x) 50%);
+    clip-path: circle(0 at var(--btn-dot-x) 50%);
     transition: clip-path 0.4s var(--ease-out-expo);
   }
 
@@ -157,18 +161,21 @@
   }
 }
 
-/*
- * View Transitions: crossfade doar pe <main> (BaseLayout). Headerul are grup propriu deasupra,
- * altfel snapshot-ul lui main s-ar picta peste headerul fix în timpul tranziției.
- */
-::view-transition-group(header) {
-  z-index: 2;
-}
+@layer base {
+  /*
+   * View Transitions: crossfade doar pe <main> (BaseLayout). Headerul are grup propriu deasupra,
+   * altfel snapshot-ul lui main s-ar picta peste headerul fix în timpul tranziției.
+   */
+  ::view-transition-group(header) {
+    z-index: 2;
+  }
 
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-group(*),
-  ::view-transition-old(*),
-  ::view-transition-new(*) {
-    animation: none !important;
+  /* !important dintr-un layer bate !important-ul nelayerizat al routerului Astro */
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+      animation: none !important;
+    }
   }
 }

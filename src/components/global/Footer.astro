@@ -11,26 +11,39 @@ const year = new Date().getFullYear();
 const WORDMARK_VIEWBOX = "70 -735 3319 750";
 ---
 
-<footer transition:persist="footer" class="overflow-clip px-gutter pt-section">
+<footer transition:persist="footer" class="overflow-clip px-gutter pt-section pb-4 md:pb-6">
   <div class="mx-auto max-w-site">
     <div class="grid gap-12 lg:grid-cols-12">
       <nav aria-label={FOOTER_TEXT.navLabel} class="lg:col-span-7">
         {FOOTER_NAV.map((row) => (
-          <ul class="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b border-line py-5 text-h2-sm font-medium md:gap-x-8 md:py-6">
-            {row.map(({ href, label, pending }) => (
-              <li>
-                <a
-                  href={href}
-                  data-nav-link
-                  data-astro-prefetch={pending ? "false" : undefined}
-                  aria-current={ariaCurrent(href)}
-                  class="inline-flex min-h-11 items-center transition-colors hover:text-mist current:text-lime"
-                >
-                  {label}
-                </a>
-              </li>
-            ))}
-          </ul>
+          <div class="border-b border-line py-5 md:py-6">
+            {/*
+              Separatorul stă în spațiul dintre linkuri, la stânga fiecăruia. La începutul unui rând vizual
+              (inclusiv după wrap pe mobil) cade în afara listei și e tăiat de overflow-clip, deci „/” apare
+              doar între două linkuri de pe același rând. px-1 lasă loc inelului de focus.
+            */}
+            <ul class="-mx-1 flex flex-wrap items-center gap-x-6 gap-y-1 overflow-clip px-1 text-h2-sm font-medium md:gap-x-8">
+              {row.map(({ href, label, pending }) => (
+                <li class="relative">
+                  <span
+                    class="absolute inset-y-0 right-full flex w-6 items-center justify-center text-lime md:w-8"
+                    aria-hidden="true"
+                  >
+                    {FOOTER_TEXT.separator}
+                  </span>
+                  <a
+                    href={href}
+                    data-nav-link
+                    data-astro-prefetch={pending ? "false" : undefined}
+                    aria-current={ariaCurrent(href)}
+                    class="inline-flex min-h-11 items-center transition-colors hover:text-mist current:text-lime"
+                  >
+                    {label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
         ))}
       </nav>
 
@@ -39,44 +52,86 @@ const WORDMARK_VIEWBOX = "70 -735 3319 750";
     </div>
 
     {/*
-      SVG cu viewBox pe conturul literelor (Manrope 700, tracking −0.04em, măsurat la 1000px):
-      scalează la lățimea exactă a containerului la orice ecran, fără JS; înălțimea vine din viewBox, deci fără CLS.
+      Wordmark + panou: grilă cu trei rânduri. Rândul 1 are exact jumătatea de sus a wordmark-ului
+      (aspect-wordmark-half, același raport ca viewBox-ul), wordmark-ul acoperă rândurile 1–2, iar panoul
+      pornește din rândul 2, deci începe la mijlocul înălțimii literelor la orice lățime, fără JS.
+      Rândul 3 prelungește panoul sub linia de bază, ca baza literelor să nu iasă pe la colțurile rotunjite.
     */}
-    <div data-anim="wordmark" class="mt-section overflow-clip" aria-hidden="true">
-      <svg data-anim-item viewBox={WORDMARK_VIEWBOX} class="block h-auto w-full" focusable="false">
-        <defs>
-          <linearGradient id="wordmark-gradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="currentColor" class="text-paper" />
-            <stop offset="1" stop-color="currentColor" class="text-line" />
-          </linearGradient>
-        </defs>
-        <text font-size="1000" fill="url(#wordmark-gradient)" class="font-bold tracking-display">
-          {FOOTER_TEXT.wordmark}
-        </text>
-      </svg>
-    </div>
+    <div class="mt-section grid grid-cols-1">
+      <div
+        data-anim="wordmark"
+        class="col-start-1 row-span-2 row-start-1 self-start overflow-clip"
+        aria-hidden="true"
+      >
+        {/*
+          SVG cu viewBox pe conturul literelor (Manrope 700, tracking −0.04em, măsurat la 1000px):
+          scalează la lățimea exactă a containerului la orice ecran, fără JS; înălțimea vine din viewBox, deci fără CLS.
+          Gradient orizontal static: umplerea pleacă albă din stânga și se stinge spre dreapta,
+          unde rămâne doar conturul literelor.
+        */}
+        <svg
+          data-anim-item
+          viewBox={WORDMARK_VIEWBOX}
+          class="block h-auto w-full"
+          focusable="false"
+        >
+          <defs>
+            <linearGradient id="wordmark-fill" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="currentColor" class="text-paper" />
+              <stop offset="0.45" stop-color="currentColor" class="text-mist" stop-opacity="0.75" />
+              <stop offset="0.8" stop-color="currentColor" class="text-line" stop-opacity="0" />
+            </linearGradient>
+            <linearGradient id="wordmark-stroke" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0.4" stop-color="currentColor" class="text-mist" stop-opacity="0" />
+              <stop offset="0.75" stop-color="currentColor" class="text-mist" stop-opacity="0.6" />
+              <stop offset="1" stop-color="currentColor" class="text-mist" stop-opacity="0.35" />
+            </linearGradient>
+          </defs>
+          <text
+            font-size="1000"
+            fill="url(#wordmark-fill)"
+            stroke="url(#wordmark-stroke)"
+            stroke-width="1.5"
+            vector-effect="non-scaling-stroke"
+            class="font-bold tracking-display"
+          >
+            {FOOTER_TEXT.wordmark}
+          </text>
+        </svg>
+      </div>
 
-    <div class="flex flex-col gap-4 border-t border-line py-6 text-tag text-paper-muted md:flex-row md:items-center md:justify-between">
-      <p>
-        © {year} {SITE.company}
-      </p>
-      <nav aria-label={FOOTER_TEXT.legalLabel}>
-        <ul class="flex flex-wrap gap-x-6 gap-y-2">
-          {LEGAL_NAV.map(({ href, label, pending }) => (
-            <li>
-              <a
-                href={href}
-                data-nav-link
-                data-astro-prefetch={pending ? "false" : undefined}
-                aria-current={ariaCurrent(href)}
-                class="inline-flex min-h-11 items-center transition-colors hover:text-paper current:text-lime"
-              >
-                {label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      <div class="col-start-1 row-start-1 aspect-wordmark-half"></div>
+      <div class="col-start-1 row-start-3 h-8"></div>
+
+      <div class="relative z-10 col-start-1 row-span-2 row-start-2 flex flex-col justify-end rounded-card border border-line bg-ink-soft/60 p-5 backdrop-blur-panel md:rounded-panel md:p-8">
+        <div class="flex flex-col gap-4 text-body text-paper-muted md:flex-row md:items-center md:justify-between">
+          <div class="flex flex-col gap-x-8 gap-y-2 md:flex-row md:items-center">
+            <p>
+              © {year} {SITE.company}
+            </p>
+            <nav aria-label={FOOTER_TEXT.legalLabel}>
+              <ul class="flex flex-wrap gap-x-6">
+                {LEGAL_NAV.map(({ href, label, pending }) => (
+                  <li>
+                    <a
+                      href={href}
+                      data-nav-link
+                      data-astro-prefetch={pending ? "false" : undefined}
+                      aria-current={ariaCurrent(href)}
+                      class="inline-flex min-h-11 items-center transition-colors hover:text-paper current:text-lime"
+                    >
+                      {label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </div>
+
+          {/* TODO(continut): iconițele sociale, după ce primim conturile reale Bolders */}
+          <div data-slot="social" class="flex gap-3"></div>
+        </div>
+      </div>
     </div>
   </div>
 </footer>

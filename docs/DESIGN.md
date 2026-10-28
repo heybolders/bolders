@@ -18,7 +18,7 @@ Referințe vizuale: `reference/screenshots/`, `reference/inspiratie/` (+ `live/`
 | `--white` | `#ffffff` | text principal |
 | `--white-transparent` | `#ffffffc9` | text secundar |
 | — | `rgba(255,255,255,.7)` | paragrafe (`text-color-secondary`) |
-| `--accent` | `#aaf22d` | accent lime: link activ în meniu, punctul din butoane, eticheta CTA |
+| `--accent` | `#aaf22d` | accent lime: link activ în meniu, punctul din butoane, eticheta CTA, separatorul „/” din meniul footerului |
 | `--light-green` | `#9eeb21` | variantă accent (hover) |
 | `--transparent-green` | `#49691099` | umbră verde pe carduri |
 | `--shadow` | `#ddd6d633` | umbra pill-ului din hero |
@@ -142,6 +142,9 @@ Mobile-first, cu prefixul `--color-` etc., ca să genereze utilitarele standard.
   --shadow-lime: 4px 2px 6px 0 #49691099;
 
   --blur-nav: 11px;
+  --blur-panel: 30px;       /* panoul footerului (overlay-urile originale, blur 30px) */
+
+  --aspect-wordmark-half: 3319 / 375; /* jumătatea de sus a wordmark-ului (raportul viewBox / 2) */
 
   --breakpoint-sm: 30rem;   /* 480  (Webflow ≤479) */
   --breakpoint-md: 48rem;   /* 768  (≤767) */
@@ -166,10 +169,12 @@ Corespondența cu scara din §1: `text-tag` = Tag, `text-body` = Body, `text-lea
 
 Cazuri în care utilitarele nu ajung și se scrie CSS în `@layer components` din `global.css` (fără valori arbitrare în markup):
 
-- `.btn`, `.btn-lg`, `.btn-fill` (componenta `ui/Button.astro`): punctul lime este chiar stratul de umplere. `--btn-pad` (6 sau 8 × `--spacing`) dă atât padding-ul lateral, cât și poziția punctului (`--btn-dot-x = --btn-pad + --spacing`). Repaus: `clip-path: circle(--spacing at --btn-dot-x 50%)` (punct de 0.5rem); hover/focus-visible: `circle(150% …)`, 0.4s `--ease-out-expo`; textul trece la `ink`. Reduced motion: fără tranziție. Variante: `header` (compact, `ink-soft/50` + blur nav), `cta` (mare, `text-lead`), `footer` (mare, lățime plină sub `sm`, poate fi `<button type="submit">`).
+- `.btn`, `.btn-lg`, `.btn-fill` (componenta `ui/Button.astro`): punctul lime (`size-2`, element propriu) stă în fața textului; umplerea lime crește din centrul lui. `--btn-pad` (6 sau 8 × `--spacing`) dă atât padding-ul lateral, cât și poziția punctului (`--btn-dot-x = --btn-pad + --spacing`). Repaus: `clip-path: circle(0 at --btn-dot-x 50%)`; hover/focus-visible: `circle(150% …)`, 0.4s `--ease-out-expo`; textul trece la `ink`, punctul rămâne lime pe fundal lime, deci dispare. Apăsat (`:active`): punctul devine `ink`. Toate variantele. Reduced motion: fără tranziție. Variante: `header` (compact, `ink-soft/50` + blur nav), `cta` (mare, `text-lead`), `footer` (mare, lățime plină sub `sm`, poate fi `<button type="submit">`).
 - `.line-mask`: masca SplitText a `line-reveal`, cu `padding-block: .12em .2em` și margine negativă egală (zona de clip mai mare, layout neschimbat).
 - `@custom-variant current` (`[aria-current="page"]`): `current:text-lime` pentru linkul paginii curente.
-- Wordmark footer (Etapa 4): `<svg>` cu `<text>` Manrope 700, `tracking-display`, `font-size` 1000 și `viewBox="70 -735 3319 750"` = conturul literelor „Bolders” măsurat cu fontul real (stânga 70, dreapta 3389, ascendent 735, descendent 15). SVG-ul are `w-full h-auto`, deci literele ating exact marginile containerului la orice lățime, fără JS la resize și fără CLS (înălțimea vine din raportul viewBox-ului). Gradient vertical `paper → line` prin `linearGradient` (`stop-color="currentColor"` + `text-paper` / `text-line`). Decorativ, `aria-hidden`. Dacă se schimbă fontul, textul sau tracking-ul, viewBox-ul se remăsoară.
+- Wordmark footer (Etapa 4): `<svg>` cu `<text>` Manrope 700, `tracking-display`, `font-size` 1000 și `viewBox="70 -735 3319 750"` = conturul literelor „Bolders” măsurat cu fontul real (stânga 70, dreapta 3389, ascendent 735, descendent 15). SVG-ul are `w-full h-auto`, deci literele ating exact marginile containerului la orice lățime, fără JS la resize și fără CLS (înălțimea vine din raportul viewBox-ului). **Gradient orizontal static, ca în original** (corecturi Etapa 4): umplerea `paper → mist/75% → transparent` de la stânga la dreapta, plus un contur (`stroke`, 1.5 px `non-scaling-stroke`) `mist` care apare spre dreapta, deci „B o l” sunt pline, „e r s” rămân în contur. Culorile vin din tokeni (`stop-color="currentColor"` + `text-*`). Decorativ, `aria-hidden`. Dacă se schimbă fontul, textul sau tracking-ul, viewBox-ul și `--aspect-wordmark-half` se remăsoară.
+- Panoul footerului (corecturi Etapa 4): grilă cu trei rânduri peste wordmark. Rândul 1 = jumătatea de sus a wordmark-ului (`aspect-wordmark-half`), deci panoul începe exact la mijlocul înălțimii literelor la orice lățime, fără JS; rândul 3 (`h-8`) prelungește panoul sub linia de bază. Panoul: `rounded-card` (mobil) / `rounded-panel`, `border-line`, `bg-ink-soft/60`, `backdrop-blur-panel`. Conține © anul + Bolders Srl, linkurile legale (`text-body`, ținte de 44 px) și locul gol pentru iconițele sociale (`data-slot="social"`).
+- Separatorul „/” din meniul footerului: `span` lime poziționat în spațiul (`gap`) din stânga fiecărui link; lista are `overflow-clip`, deci separatorul primului link de pe fiecare rând vizual (inclusiv după wrap pe mobil) cade în afara listei și nu se vede. Rezultat: „/” doar între linkuri de pe același rând, niciodată la capăt.
 - `.hero-pending [data-hero-part]` (Etapa 4): `opacity: 0` cât timp scriptul inline din Hero ține hero-ul ascuns pentru intrare (ANIMATIONS.md, „hero-syllables”). Fără JS clasa nu există.
 - `.hero-grid` (Etapa 4): `mask-image` radial pe fundalul cu liniile de construcție, ca liniile să se stingă spre margini.
 - Fundalul hero (`home/HeroGrid.astro`): verticalele sunt marginile reale ale coloanelor din `container-site` (4 pe mobil, 12 de la `md`), `border-dashed border-line`. Construcția lui „b” (cerc + 2 diagonale paralele la ≈ 56°, a doua tangentă la cerc + 3 orizontale: vârful tijei, umărul, linia de bază) stă într-un pătrat de 4 coloane pe mobil și 6 coloane (4–9) de la `md`, deci tangentele verticale ale cercului cad pe linii de coloană. SVG desenat de la zero (nu e copiat fișierul din `reference/media`), `vector-effect: non-scaling-stroke`, `stroke-line`. Fără WebGL, fără canvas.
@@ -180,16 +185,17 @@ Cazuri în care utilitarele nu ajung și se scrie CSS în `@layer components` di
 
 **Subiect:** agenție mică româno-austriacă (web, marketing, branding), condusă de fondator, pentru antreprenori și IMM-uri care vor „să strălucească” online. Prima sarcină a site-ului: încredere și o discuție inițiată („Hai să discutăm!”).
 
-**Ce rămâne neschimbat (identitate):** fundal ink `#0d0d0d`, Manrope, accentul lime, simbolul „b”, wordmark-ul uriaș „Bolders” din footer, pill-ul „Construim viitorul tău digital!”, punctul lime din butoane, textele.
+**Ce rămâne neschimbat (identitate):** fundal ink `#0d0d0d`, Manrope, accentul lime, simbolul „b”, wordmark-ul uriaș „Bolders” din footer, separatorul „/” lime din meniul footerului, pill-ul „Construim viitorul tău digital!”, punctul lime din butoane, textele.
 
 **Decizii Etapa 4:**
-- **Meniul footerului fără separator „/”**: elementele sunt despărțite doar de spațiu (`gap`), rândurile de linii `line`. Separatorul nu mai face parte din identitate.
+- **Separatorul „/” lime redevine element de identitate** (corecturi Etapa 4, revine asupra deciziei din hero): în meniul footerului stă între linkurile de pe același rând, nu după ultimul link din rând.
+- **Footerul urmează originalul:** wordmark cu gradient orizontal și literele din dreapta în contur, panou rotunjit cu blur peste jumătatea de jos a literelor.
 - **Logo-ul rămâne fără cerc**: în header și oriunde apare, simbolul „b” din `brand/logo.svg` stă singur, fără cercul de contur din original. Cercul apare doar ca linie de construcție în fundalul hero-ului.
 
 **Ce se schimbă:**
 
 1. **Un singur moment îndrăzneț: tipografia ca obiect.** Contrastul vine din *greutatea* aceluiași font, nu din al doilea font. Display-ul se scrie cu Manrope 200 (ExtraLight) la dimensiuni foarte mari, iar cuvintele-cheie în același rând cu 700. Varianta studiors (serif italic + grotesk) devine la noi „Manrope subțire + Manrope gros”. Silabele din „st·ră·lu·ce·ști!” rămân semnătura hero-ului, cu mască (`overflow: clip` pe linie).
-2. **Lime-ul e semnal, nu decor.** Apare numai acolo unde ceva e activ sau acționabil: punctul din butoane, linkul curent, pasul curent din metodă, progresul formularului. Maximum ~3% din suprafața unui ecran. Fără titluri lime și fără fundaluri lime.
+2. **Lime-ul e semnal, nu decor.** Apare numai acolo unde ceva e activ sau acționabil: punctul din butoane, linkul curent, pasul curent din metodă, progresul formularului. Singura excepție decorativă e separatorul „/” din meniul footerului (identitate din original). Maximum ~3% din suprafața unui ecran. Fără titluri lime și fără fundaluri lime.
 3. **Hero centrat, secțiunile editoriale asimetrice.** Hero-ul rămâne **centrat**, ca în original: pill, titlu, subtitlu, buton, în această ordine, toate centrate pe axa paginii. Titlul display ocupă lățimea containerului, iar pe mobil se rupe pe silabe la ≥ 3.25rem. Restul secțiunilor folosesc o grilă de 12 coloane în `container-site`: titlurile pornesc din coloana 1, textul de susținere stă decalat în coloanele 7–12 (cf. `sectiune sub hero.png`). Contrastul dintre hero-ul centrat și secțiunile aliniate la stânga e intenționat.
 4. **Liniile de construcție ale lui „b” ca motiv structural.** Liniile subțiri `line` din fundalul hero-ului și din `resurse/card-bolders-linii-constructie.svg` devin o grilă de fundal vizibilă doar în hero și în metodă, aliniată la coloanele reale. Nu e textură decorativă: arată grila pe care stă conținutul.
 5. **Ierarhie de raze, nu una singură:** pill pentru tot ce se apasă, `panel` (2rem) pentru suprafețele mari (formular, cardurile departamentelor), `media` (0.5rem) pentru capturile de proiect. Testimonialele devin citate tipografice pe fundal ink, fără card.
@@ -229,7 +235,7 @@ Verificare față de bilet: paleta ink + lime este identitatea existentă (impus
 
 - Gradient mov / albastru-mov, „aurora”, mesh gradients, blob-uri colorate
 - Carduri cu glow, bordură luminoasă sau `box-shadow` neon (inclusiv „glowing button” din Webflow)
-- Glassmorphism ca stil general (blur rămâne doar pe nav)
+- Glassmorphism ca stil general (blur rămâne doar pe nav și pe panoul footerului, ambele din original)
 - Iconițe 3D (inclusiv cele existente: glob, puzzle, mail, calendar, monede), emoji ca iconițe, iconițe svgrepo generice
 - Poze stock, portrete generate AI, mockup-uri de device generice, fotografii cu oameni care arată la laptop
 - Grile de carduri identice cu aceeași rază și aceeași umbră gri

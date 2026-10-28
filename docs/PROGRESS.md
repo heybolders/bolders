@@ -131,4 +131,45 @@
 - Pe conexiuni lente, prima vizită vede hero-ul static. Dacă intrarea completă e mai importantă decât LCP, bugetul de 1 s se poate mări (fiecare secundă se adaugă direct la LCP).
 - La revenire în aceeași sesiune hero-ul apare cu un crossfade de 0.4 s, inclusiv la reload.
 
+### Corecturi după review-ul hero-ului + audit de consistență ✅ (2026-10-28)
+
+#### Audit de consistență (`npm run audit:rules`)
+- `scripts/audit-rules.mjs`, fără dependențe noi. Verifică în `src/`: valori arbitrare Tailwind (`x-[..]`, `[prop:val]`, `x-(--var)`), `style=` inline, `<style>` în componente, culori hex/rgb/hsl și `px` în afara `global.css`, importuri GSAP/Lenis în afara `src/scripts/animations/`, importuri relative, texte hardcodate în markup (noduri text, inclusiv din `.map()`, și `aria-label`/`alt`/`title`/`placeholder`), CSS din `global.css` în afara layerelor cu nume și clase din `global.css` nedocumentate în `.claude/rules/styling.md`. Comentariile sunt ignorate. Testat pe un fișier cu abateri intenționate (toate cele 18 prinse), apoi șters.
+- **Abateri găsite pe codul existent (header, footer, button, hero, layout):**
+  - `global.css`: `::view-transition-group(header)` și `@media (prefers-reduced-motion)` pentru `::view-transition-*` erau în afara unui layer → mutate în `@layer base` (`!important` dintr-un layer bate în continuare `!important`-ul nelayerizat al routerului).
+  - `global.css`: 6 clase custom fără documentare (`.btn`, `.btn-lg`, `.btn-fill`, `.line-mask`, `.hero-pending`, `.hero-grid`) → lista exactă a excepțiilor, cu motivul fiecăreia, în `.claude/rules/styling.md`.
+  - `BaseLayout.astro`: `#0d0d0d` în `<meta name="theme-color">` → excepție documentată (meta-ul cere o culoare literală), în allowlist-ul scriptului.
+  - Fals pozitiv eliminat din script: `<!doctype html>` citit ca text.
+  - Restul regulilor (valori arbitrare, inline, `<style>`, px, GSAP, aliasuri, texte) erau deja respectate.
+- Hook nou `.claude/hooks/audit-rules.sh` în `.claude/settings.json` (PostToolUse, rulează la orice modificare în `src/`). Regula de finalizare în `.claude/rules/quality.md` și `CLAUDE.md`: nicio secțiune nu e gata fără audit curat.
+
+#### Mobile-first
+- Reguli noi în `.claude/rules/quality.md` („Mobile-first” + „Finalizare”): 375 întâi, ținte ≥ 44×44, text de conținut ≥ 16 px, hover niciodată singura cale, fără scroll orizontal, verificare pe iPhone SE / iPhone 15 / Pixel 7 emulate + 768 / 1440 / 1920.
+- Pill-ul din hero trece de la `text-tag` (14 px pe mobil) la `text-body` la toate lățimile; linkurile legale din footer de la `text-tag` la `text-body`.
+
+#### Footer (ca în `footer.png`)
+- Wordmark pe toată lățimea, cu gradient orizontal static (alb în stânga → stins spre dreapta) și literele din dreapta („e r s”) în contur (`stroke` `mist`, 1.5 px `non-scaling-stroke`).
+- Panou `rounded-panel` (mobil `rounded-card`), `bg-ink-soft/60`, `backdrop-blur-panel`, care începe la mijlocul înălțimii literelor la orice lățime (grilă cu rândul 1 = `aspect-wordmark-half`, fără JS) și se prelungește sub linia de bază. În panou: © anul + Bolders Srl, linkurile legale, locul gol pentru iconițele sociale (`data-slot="social"`). Bara veche de sub wordmark a fost înlocuită de panou. Fără Stripe/Wise.
+- Separatorul „/” lime revine, **doar între linkurile de pe același rând**: e poziționat în `gap`-ul din stânga fiecărui link, iar lista are `overflow-clip`, deci la începutul oricărui rând vizual (inclusiv după wrap pe mobil) nu se vede. DESIGN.md: separatorul redevine element de identitate (decizia din hero e anulată), rolurile lime actualizate.
+- Tokeni noi (DESIGN §2 → `@theme`): `--blur-panel: 30px` (din overlay-urile originale), `--aspect-wordmark-half: 3319 / 375`. Lista anti-banal: blur permis pe nav și pe panoul footerului (ambele din original).
+
+#### Header
+- Linkurile din pill: `text-body` 400 → `text-lead` 500. **Măsurat:** erau 16 px, iar originalul are 1.2rem ≈ 19 px / 500, deci erau mai mici, nu mai mari, decât în referință. Varianta aleasă (confirmată de tine): `text-lead` (18 px), tokenul cel mai apropiat. Butonul „Contact” din header: tot `text-lead`, pentru echilibru. Verificat la 992 și 1440: pill-ul încape cu spațiu liber de ambele părți.
+
+#### Buton
+- Punctul e acum un element propriu (`size-2 bg-lime`), iar umplerea pornește de la `circle(0)` din centrul lui. La hover/focus: punctul rămâne lime pe fundal lime (dispare). Apăsat (`:active`): punctul devine `ink`. Toate variantele (`header`, `cta`, `footer`). Verificat cu culoarea calculată: repaus/hover/focus `#aaf22d`, apăsat `#0d0d0d`.
+
+#### Verificare
+- Playwright, dispozitive emulate (`isMobile` + `hasTouch`): iPhone SE 375×667, iPhone 15 393×852, Pixel 7 412×915, plus 768, 992, 1440, 1920: fără scroll orizontal, nicio țintă < 44 px, niciun text vizibil < 16 px, consola curată. Reduced motion: wordmark static (`transform: none`).
+- Capturi: `reference/screenshots/etapa-4/corecturi/` (`<dispozitiv>-hero.png`, `<dispozitiv>-footer.png`, `iphone-se-footer-reduced-motion.png`, `buton-{repaus,hover,focus,activ}.png`, `buton-header-hover.png`).
+- Comparație cu `footer.png`: aceeași compoziție (meniu pe rânduri cu „/” lime între linkuri, wordmark cu gradient orizontal și contur la dreapta, panou rotunjit cu blur peste jumătatea de jos). Diferențe intenționate: fără News, fără Stripe/Wise și „Privacy Policy and Terms”, iconițe sociale goale, formularul de contact rămâne pentru Etapa 6.
+- **Performanță (build, Slow 4G + CPU 4×, 375 mobil, cache rece):** baseline măsurat în aceeași sesiune pe `efca8f6` LCP 1423 ms / CLS 0; după corecturi LCP 1429 și 1431 ms / CLS 0. Diferența de 6–8 ms vine din CSS-ul puțin mai mare (render-blocking) și e în marja de variație dintre rulări.
+- `npm run audit:rules` (0 abateri), `npm run build` (fără `ALLOW_PLACEHOLDERS`), `npm run check` (0/0/0), `npm run lint`, `npm run format:check`: curate.
+
+#### Neclarități
+- **„Starea activă” a butonului** interpretată ca `:active` (apăsat). Dacă e vorba de butonul paginii curente (ex. „Contact” din header pe `/contact`), se adaugă `current:` pe punct.
+- Textele `© … Bolders Srl` și linkurile legale sunt acum `text-body` (regula 16 px); în original sunt mai mici.
+- Pe mobil, panoul footerului e mai înalt decât jumătatea wordmark-ului (linkurile legale pe două rânduri), deci acoperă literele de la mijloc în jos și se întinde sub ele; proporția e fidelă doar de la `md` în sus.
+- Auditul de texte acoperă markup-ul `.astro`. Textele setate din TS nu sunt verificate automat; momentan nu există niciunul în `src/scripts/`.
+
 ### Următoarea secțiune: 2. Storytelling (`data-anim="words-light"`) ⏭️

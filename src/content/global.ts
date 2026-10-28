@@ -32,6 +32,8 @@ export const HEADER_TEXT = {
 
 export const FOOTER_TEXT = {
   wordmark: "Bolders",
+  /** între linkurile de pe același rând din meniul footerului, ca în original */
+  separator: "/",
   // TODO(continut): etichete de accesibilitate
   navLabel: "Navigație footer",
   legalLabel: "Informații legale",
