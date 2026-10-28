@@ -184,7 +184,7 @@ Decizii confirmate de Adi (28.10):
 - Rămân eliminate: poze stock, preloader cu procent, contoare animate.
 - Regulă: nimic din original nu se elimină fără confirmarea lui Adi.
 
-Pași: 1 fundația ✅ · 2 halouri (static) ✅ · 3 `glow` · 4 `smoke-text` ✅ · 5 `cursor` · 6 `fluid` (WebGL). Iconițe 3D: amânate.
+Pași: 1 fundația ✅ · 2 halouri (static) ✅ · 3 glow pe butoane (static) ✅ · 4 `smoke-text` ✅ · 5 `cursor` · 6 `fluid` (WebGL). Iconițe 3D: amânate.
 
 ### Pasul 1 din 6: fundația ✅ (2026-10-28)
 Fără niciun efect vizual implementat; site-ul arată identic.
@@ -289,6 +289,35 @@ Făcut la cererea lui Adi înaintea pasului 3 (`glow`), care rămâne de făcut.
 
 #### Neclarități
 - Titlul hero pe 3 rânduri pe mobil (vezi mai sus).
+
+### Pasul 3 din 6: glow pe butoane (static) ✅ (2026-10-28)
+**Decizie Adi (28.10):** glow = lumină difuză **statică** sub buton, mereu vizibilă, pe toate butoanele, la toate rezoluțiile (inclusiv mobil). **Dunga de lumină care se rotește pe border e eliminată definitiv.** Fără animație, fără `data-anim`, fără JS.
+
+#### Referința (Playwright pe bolders1.webflow.io, 375 și 1440)
+- Butonul „glowing” (`.glowing-wrapper-button`, 320 × 63 px la 1440, 227 × 60 la 375, border `3px #fcfafa1a`) e într-un wrapper cu `overflow: hidden`. Straturi: **dunga** (`conic-gradient` alb .5 pe un arc de ≈ 110°, inel de 1 px, rotație 2.5 s linear), același conic în interior (opacitate .12 + `blur(8px)`, plus un strat cu mască SVG invalidă, deci nemascat) și **`::after`**: `radial-gradient(85% 120% at 50% 120%, alb .12 → 0)`, opacitate 0 în repaus și .7 la hover.
+- Pe pixeli (media a 10 cadre pe un ciclu, cu și fără straturile de lumină): **în afara pill-ului diferența e 0** la ambele lățimi; în interior ≈ +1…3 / 255 (media rotației), pe border vârfuri de ≈ +14. Originalul nu are deci lumină sub buton; singura lumină difuză statică e gradientul de la bază (`::after`), refăcut acum mereu vizibil și lăsat să iasă sub buton.
+- Valorile complete: DESIGN.md §8.
+
+#### Construit
+- **Tokeni** (DESIGN.md §2 → `@theme`): `--color-glow` (= `paper`); în `@theme static`: `--glow-opacity` 0.12, `--glow-reach` 140%.
+- **`.btn::before`** (`@layer components`, `global.css`, excepție în `.claude/rules/styling.md`): `absolute`, `inset: 0 0 calc(-1 * --glow-reach)`, `radial-gradient(closest-side, --color-glow, transparent)`, `opacity: --glow-opacity`, `z-index: -20` (sub umplerea lime), `pointer-events: none`. Centrul la 120% din înălțimea butonului, raza verticală 120% (ca în original), raza orizontală 50% din lățime. Fără `filter`, fără `box-shadow`.
+- **`Button.astro`:** `overflow-clip` scos (tăia pseudo-elementul), `rounded-pill` pe `.btn-fill`, ca umplerea lime să rămână în pill. Hover (umplerea din punct) și `:active` (punct ink) neschimbate; glow-ul nu se schimbă la hover (în interior e acoperit de umplere, sub buton rămâne identic).
+- **Aplicat pe:** toate butoanele din `ui/Button.astro`, toate variantele: `header` („Contact”, vizibil de la `lg`), `cta` („Hai să discutăm!” din hero, butonul de pe pagina 404), `footer` (încă nefolosit, formularul din Etapa 6).
+- **Curățenie:** nu exista modul `glow.ts`, nici înregistrare sau `data-anim="glow"` în componente. `glow` scos din tabelul `data-anim` și din „Efecte reactivate” (ANIMATIONS.md), DESIGN.md §1/§2/§6 + §8 nou, `.claude/rules/animations.md`. `audit-rules.mjs`: nu avea excepții pentru glow animat; mesajul regulii `box-shadow-animat` nu mai pomenește glow-ul animat; regulă nouă **`glow-static`** (respinge `data-anim="glow"` și `src/scripts/animations/glow.ts`), testată cu fișiere temporare (ambele prinse), apoi șterse.
+
+#### Verificare (build cu `ALLOW_PLACEHOLDERS=1`, `astro preview`)
+- iPhone SE, iPhone 15, Pixel 7 (emulare reală), 768, 1440, 1920, pe `/` și 404: **fără scroll orizontal** (`scrollWidth === clientWidth`), consola curată. Butoane: 225 × 56 px (cta), 140 × 44 px (header): ținte ≥ 44 px, neschimbate. `::before`: `pointer-events: none`, `elementFromPoint` la 10 px sub buton nu mai cade pe buton (zona de click e neschimbată).
+- Contrast: la linia textului glow-ul adaugă ≈ 5% alb peste `ink-soft` (≈ 10% la marginea de jos); `paper` rămâne > 12:1, punctul lime e neschimbat. Peste halou (hero) diferența e la fel de mică.
+- Capturi: `.screenshots/etapa-efecte/glow/` (`nou-<dispozitiv>-viewport.png`, `-btn.png`, `-btn-hover.png`, `-header-btn.png`, `-404.png`; originalul: `original-1440-*`, `original-375-*`).
+- `npm run audit:rules` (0 abateri), `npm run check` (0/0/0), `npm run lint`, `npm run format:check`, `npm run build` (cu `ALLOW_PLACEHOLDERS=1`): curate.
+
+#### Abateri și motive
+- **Mereu vizibil și sub buton** (original: doar în pill, doar la hover): decizia lui Adi.
+- **Raza orizontală 50% în loc de 85%:** lumina nu depășește lățimea butonului, deci fără scroll orizontal pe mobil (butonul `footer` e pe toată lățimea sub `sm`).
+- **Fără conicul rotativ** (border și interior): eliminat definitiv, decizie Adi.
+
+#### Neclarități
+- Butonul din header primește și el glow (cerința: „toate butoanele”), deși „Contact” din navbarul original nu avea. De confirmat cu Adi dacă rămâne.
 
 ### Următoarea secțiune: 2. Storytelling (`data-anim="words-light"`) ⏭️
 

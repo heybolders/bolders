@@ -66,7 +66,8 @@ Scalare fluidă: `html { font-size: calc(.8127rem + .2081vw) }` sub 1440 px, `ca
 
 - Tag hero: `2px 2px 14px 6px #ddd6d633`
 - Card verde: `4px 2px 6px 0 #49691099`
-- Buton „glowing”: `0 0 60px #ffffff4d, 0 0 20px #ffffff80, 0 0 5px #ffffff80` (**reactivat**, vezi §6; se reface ca pseudo-element cu gradient, nu ca `box-shadow` animat)
+- Buton meniu (hover, ascuns în original): `0 0 60px #ffffff4d, 0 0 20px #ffffff80, 0 0 5px #ffffff80`. Nu se preia.
+- Buton „glowing” (`.glowing-wrapper-button`): dungă de lumină care se rotește pe border + gradient radial alb la bază. **Glow-ul se reface static, dunga e eliminată** (decizie Adi, 28.10), vezi §8.
 - Blur: nav `backdrop-filter: blur(11px)`, overlay-uri `blur(10px)` și `blur(30px)`
 
 ### Breakpoint-uri Webflow (desktop-first)
@@ -104,6 +105,7 @@ Mobile-first, cu prefixul `--color-` etc., ca să genereze utilitarele standard.
   --color-transparent: transparent;
   --color-current: currentColor;
   --color-halo: var(--color-paper-dim); /* vârful luminii originale (centerbackground.png), ≈ 20% alb */
+  --color-glow: var(--color-paper);      /* glow static sub buton (§8): alb, niciodată lime */
 
   /* --font-sans: în `@theme inline { --font-sans: var(--font-manrope); }` – Fonts API din Astro
      generează un nume de familie cu hash și un fallback cu metrici ajustate, deci nu se scrie "Manrope" literal */
@@ -162,6 +164,12 @@ Mobile-first, cu prefixul `--color-` etc., ca să genereze utilitarele standard.
 
   --default-transition-duration: 200ms;
 }
+
+/* glow static sub buton (§8): fără namespace Tailwind, folosiți doar de .btn::before */
+@theme static {
+  --glow-opacity: 0.12; /* vârful gradientului radial din original (alb .12) */
+  --glow-reach: 140%;   /* cât coboară lumina sub buton: centrul la 120% din înălțime, raza verticală 120% */
+}
 ```
 
 Duratele GSAP stau în modulul de animații (`docs/ANIMATIONS.md`), nu în CSS: `fast 0.2`, `base 0.5`, `slow 0.9`, `slower 1.4`.
@@ -172,7 +180,7 @@ Corespondența cu scara din §1: `text-tag` = Tag, `text-body` = Body, `text-lea
 
 Cazuri în care utilitarele nu ajung și se scrie CSS în `@layer components` din `global.css` (fără valori arbitrare în markup):
 
-- `.btn`, `.btn-lg`, `.btn-fill` (componenta `ui/Button.astro`): punctul lime (`size-2`, element propriu) stă în fața textului; umplerea lime crește din centrul lui. `--btn-pad` (6 sau 8 × `--spacing`) dă atât padding-ul lateral, cât și poziția punctului (`--btn-dot-x = --btn-pad + --spacing`). Repaus: `clip-path: circle(0 at --btn-dot-x 50%)`; hover/focus-visible: `circle(150% …)`, 0.4s `--ease-out-expo`; textul trece la `ink`, punctul rămâne lime pe fundal lime, deci dispare. Apăsat (`:active`): punctul devine `ink`. Toate variantele. Reduced motion: fără tranziție. Variante: `header` (compact, `ink-soft/50` + blur nav), `cta` (mare, `text-lead`), `footer` (mare, lățime plină sub `sm`, poate fi `<button type="submit">`).
+- `.btn`, `.btn-lg`, `.btn-fill` (componenta `ui/Button.astro`): punctul lime (`size-2`, element propriu) stă în fața textului; umplerea lime crește din centrul lui. `--btn-pad` (6 sau 8 × `--spacing`) dă atât padding-ul lateral, cât și poziția punctului (`--btn-dot-x = --btn-pad + --spacing`). Repaus: `clip-path: circle(0 at --btn-dot-x 50%)`; hover/focus-visible: `circle(150% …)`, 0.4s `--ease-out-expo`; textul trece la `ink`, punctul rămâne lime pe fundal lime, deci dispare. Apăsat (`:active`): punctul devine `ink`. Toate variantele. Reduced motion: fără tranziție. Glow static: `.btn::before` (§8); din cauza lui butonul nu mai are `overflow-clip`, iar `.btn-fill` are `rounded-pill`. Variante: `header` (compact, `ink-soft/50` + blur nav), `cta` (mare, `text-lead`), `footer` (mare, lățime plină sub `sm`, poate fi `<button type="submit">`).
 - `.line-mask`: masca SplitText a `line-reveal`, cu `padding-block: .12em .2em` și margine negativă egală (zona de clip mai mare, layout neschimbat).
 - `@custom-variant current` (`[aria-current="page"]`): `current:text-lime` pentru linkul paginii curente.
 - Wordmark footer (Etapa 4): `<svg>` cu `<text>` Manrope 700, `tracking-display`, `font-size` 1000 și `viewBox="70 -735 3319 750"` = conturul literelor „Bolders” măsurat cu fontul real (stânga 70, dreapta 3389, ascendent 735, descendent 15). SVG-ul are `w-full h-auto`, deci literele ating exact marginile containerului la orice lățime, fără JS la resize și fără CLS (înălțimea vine din raportul viewBox-ului). **Gradient orizontal static, ca în original** (corecturi Etapa 4): umplerea `paper → mist/75% → transparent` de la stânga la dreapta, plus un contur (`stroke`, 1.5 px `non-scaling-stroke`) `mist` care apare spre dreapta, deci „B o l” sunt pline, „e r s” rămân în contur. Culorile vin din tokeni (`stop-color="currentColor"` + `text-*`). Decorativ, `aria-hidden`. Dacă se schimbă fontul, textul sau tracking-ul, viewBox-ul și `--aspect-wordmark-half` se remăsoară.
@@ -281,7 +289,7 @@ Excepțiile reactivate din original (fum WebGL, cursor custom, glow pe butoane, 
 |---|---|---|---|
 | Fum la cursor/atingere pe toată pagina (inclusiv mobil) | `splash-effect-8.js` (fluid WebGL pe canvas fix) | `fluid` | reactivat, pasul 6 |
 | Cursor custom | `.cursor-element` (IX2 `MOUSE_MOVE`) | `cursor` | reactivat, pasul 5 |
-| Glow pe butoane | butonul „glowing” | `glow` | reactivat, pasul 3 |
+| Glow pe butoane | butonul „glowing” | — (decor static, §8) | ✅ pasul 3 (28.10): **static, mereu vizibil, toate butoanele** (decizie Adi); dunga rotativă de pe border eliminată |
 | Halouri de lumină difuză în spatele textelor | fundalul hero (omis la recreare) | — (decor static, §7) | ✅ pasul 2 (28.10): **static, ca în original** (decizie Adi, pentru performanță) |
 | Fum pe „să strălucești!” (în loop) | silabele din hero (intrare cu blur, buclă) | `smoke-text` | ✅ pasul 4 (28.10): valorile măsurate pe original, pe litere; a înlocuit respirația 700 → 200 → 700 |
 | Iconițe 3D (glob, puzzle, mail, calendar, monede) | secțiunile homepage | — | **amânate, fișiere de la Adi** |
@@ -290,7 +298,7 @@ Rămân eliminate (confirmat de Adi): poze stock, preloader cu procent, contoare
 
 Constrângeri vizuale:
 - **Lime rămâne semnal** (max. ~3% din suprafața unui ecran). Glow-ul și halourile nu sunt lime.
-- Halourile sunt **statice** (fără animație, fără `data-anim`), vezi §7.
+- Halourile și glow-ul butoanelor sunt **statice** (fără animație, fără `data-anim`), vezi §7 și §8.
 - Glow-ul și halourile folosesc **doar tokeni din `@theme`** (culori, blur, raze). Valorile originale (`#ffffff4d`, `#ffffff80`, `#ddd6d633`) se mapează la tokeni noi, adăugați întâi aici, la pasul respectiv.
 - Comportamentul fiecărui efect (proprietăți animate, mobil, reduced motion, limite de performanță): `ANIMATIONS.md`, „Efecte reactivate”.
 
@@ -322,3 +330,36 @@ Decizie Adi (28.10): haloul e **static, exact ca în original**, pentru performa
 | Departamente: lista de servicii (Branding, Webdesign…) | a doua `.overlay` (≈ 3680 px, fixă) | titlurile departamentelor | 0.4 | `mobile={false}`, câte unul la câteva titluri, alternând `left`/`right` |
 
 Pe mobil originalul păstrează aceleași fundaluri; la noi, în secțiunile lungi, haloul suplimentar primește `mobile={false}` (mai puține halouri pe mobil).
+
+## 8. Buton: glow static
+
+Decizie Adi (28.10): glow-ul e o **lumină difuză statică sub buton**, mereu vizibilă, pe toate butoanele (`ui/Button.astro`, toate variantele), la toate rezoluțiile, inclusiv mobil. **Dunga de lumină care se rotește pe border e eliminată definitiv.** Fără animație, fără `data-anim`, fără JS. `npm run audit:rules` (regula `glow-static`) respinge `data-anim="glow"` și un modul `src/scripts/animations/glow.ts`.
+
+### Originalul (măsurat cu Playwright pe bolders1.webflow.io, 375 și 1440, 28.10)
+Butonul „glowing” (`.botton-wrapper.glowing-wrapper-active` > `.glowing-wrapper-button`: „Hai să discutăm!”, „Spre toate Serviciile”, „Vezi toate proiectele”, „Trimite mesajul”). Pill 320 × 63 px la 1440 (`width: 20rem`), 227 × 60 px la 375 (`15rem`), border `3px solid #fcfafa1a`, fără fundal propriu. Wrapper-ul are `overflow: hidden`, deci **nimic nu iese din pill**.
+
+| Strat | Ce e | Culoare / opacitate | Dimensiune, formă, poziție |
+|---|---|---|---|
+| `::after` (lumina de bază) | `radial-gradient(85% 120% at 50% 120%, …)` | alb `.12` → `0`; opacitate 0 în repaus, `.7` la hover (tranziție 1 s) | elipsă cu raze 85% din lățime × 120% din înălțime, centrul la **120% din înălțime** (sub marginea de jos, cu 20% din înălțime); cutie = butonul + 2 px pe fiecare latură; tăiat de pill |
+| `.glowing-wrapper-borders` (dunga de pe border) | `conic-gradient` alb `.5` → 0 pe 60°, 0 până la 310°, → `.5` la 360° (arc luminos ≈ 110°) | `.5` vârf; inel de 1 px (`padding .06rem`, mască `xor`) | pătrat 403 × 403 px la 1440, centrat; **rotație continuă 2.5 s linear** |
+| `.glowing-wrapper-glow` | același conic | opacitate `.12`, `blur(8px)` | același pătrat rotativ, tăiat de pill |
+| `.glowing-wrapper-mask` | același conic | opacitate 1 (masca SVG din original e invalidă, deci nu se aplică) | idem |
+
+Măsurat pe pixeli (media a 10 cadre pe un ciclu, cu și fără straturile de lumină): **în afara pill-ului diferența e 0** la ambele lățimi (lumina nu iese din buton); în interior ≈ +1…3 niveluri din 255 (media rotației), pe border vârfuri de ≈ +14 când trece arcul.
+
+**Concluzie:** singura lumină difuză statică din original e gradientul radial de la bază (`::after`): alb, vârf `.12`, centrul la 120% din înălțimea butonului, raza verticală 120%. Pe ea o reface glow-ul nou, mereu vizibilă și lăsată să iasă sub buton.
+
+### Implementare
+- **`.btn::before`** în `@layer components` din `global.css` (excepție documentată în `.claude/rules/styling.md`): `content: ""`, `absolute`, `inset: 0 0 calc(-1 * --glow-reach)` (cutie de lățimea butonului, 240% din înălțimea lui), `radial-gradient(closest-side, --color-glow, transparent)`, `opacity: --glow-opacity`, `z-index: -20` (sub umplerea lime `-z-10`, în contextul `isolate` al butonului), `pointer-events: none`. Pseudo-elementul nu intră în arborele de accesibilitate.
+- **Geometrie:** centrul elipsei la 120% din înălțimea butonului, raza verticală 120% (ca în original); raza orizontală 50% din lățime (original 85%), ca lumina să nu depășească lățimea butonului: fără scroll orizontal la 375, unde butonul din footer e pe toată lățimea. Gradient liniar până la 0 la marginea cutiei (fără muchie).
+- **Tokeni (§2):** `--color-glow` (= `paper`), `--glow-opacity` 0.12, `--glow-reach` 140%.
+- **Fără `filter`, fără `box-shadow`, fără animație.** Nu schimbă layout-ul (absolut), nu mărește zona de click (`pointer-events: none`).
+- **Hover / activ:** neschimbate (umplerea lime din punct, punctul ink la `:active`). Glow-ul nu se schimbă la hover: în interior e acoperit de umplere, sub buton rămâne identic.
+- **`overflow-clip` scos de pe buton** (tăia pseudo-elementul); umplerea lime are acum `rounded-pill`, deci rămâne în forma pill-ului.
+- **Contrast:** în interior glow-ul adaugă cel mult ≈ 5% alb la linia textului (≈ 10% la marginea de jos); `paper` pe `ink-soft` luminat rămâne peste 12:1, punctul lime neschimbat.
+
+### Abateri față de original (motiv)
+- Glow mereu vizibil și ieșit sub buton (original: în pill, doar la hover): decizia lui Adi.
+- Raza orizontală 50% în loc de 85%: fără depășirea lățimii butonului (scroll orizontal pe mobil).
+- Fără dunga rotativă de pe border și fără conicul din interior: eliminate definitiv (decizie Adi, 28.10).
+

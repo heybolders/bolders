@@ -3,6 +3,7 @@ import type { HTMLAttributes } from "astro/types";
 
 // Pill cu punct lime; efectul de umplere e doar CSS (.btn / .btn-fill în global.css).
 // Punctul rămâne lime: la hover/focus se pierde în umplerea lime, la apăsare (:active) devine ink.
+// Glow-ul static e .btn::before (global.css): fără overflow-clip pe buton, ca lumina să iasă sub el.
 // header: compact, peste blur · cta: mare, în pagini · footer: lățime plină pe mobil (formular, Etapa 6)
 type Variant = "header" | "cta" | "footer";
 
@@ -22,7 +23,7 @@ const variants: Record<Variant, string> = {
 };
 
 const classes = [
-  "btn group relative isolate inline-flex items-center justify-center gap-3 overflow-clip rounded-pill border border-line font-medium text-paper",
+  "btn group relative isolate inline-flex items-center justify-center gap-3 rounded-pill border border-line font-medium text-paper",
   variants[variant],
   className,
 ];
@@ -30,7 +31,7 @@ const classes = [
 
 {href ? (
   <a href={href} class:list={classes}>
-    <span class="btn-fill absolute inset-0 -z-10 bg-lime" aria-hidden="true" />
+    <span class="btn-fill absolute inset-0 -z-10 rounded-pill bg-lime" aria-hidden="true" />
     <span class="size-2 shrink-0 rounded-pill bg-lime group-active:bg-ink" aria-hidden="true" />
     <span class="transition-colors duration-400 group-hover:text-ink group-focus-visible:text-ink motion-reduce:transition-none">
       <slot />
@@ -38,7 +39,7 @@ const classes = [
   </a>
 ) : (
   <button type={type} class:list={classes}>
-    <span class="btn-fill absolute inset-0 -z-10 bg-lime" aria-hidden="true" />
+    <span class="btn-fill absolute inset-0 -z-10 rounded-pill bg-lime" aria-hidden="true" />
     <span class="size-2 shrink-0 rounded-pill bg-lime group-active:bg-ink" aria-hidden="true" />
     <span class="transition-colors duration-400 group-hover:text-ink group-focus-visible:text-ink motion-reduce:transition-none">
       <slot />

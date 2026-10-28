@@ -34,7 +34,6 @@ Capturile stărilor originale: `reference/screenshots/<pagina>/scroll-1440|375/`
 | `data-anim="marquee"` | bandă de mesaje, viteză legată de scroll | CTA final |
 | `data-anim="wordmark"` | wordmark-ul „Bolders” se ridică din mască | footer |
 | `data-anim="smoke-text"` | literele se dizolvă în fum stânga → dreapta și se rescriu, în loop | „strălucești!” (hero; „să” rămâne fix) |
-| `data-anim="glow"` | strălucire pe buton (pseudo-element cu gradient) | butoane |
 | `data-anim="cursor"` | cursor custom care urmărește mouse-ul | global, doar `pointer: fine` |
 | `data-anim="fluid"` | fum WebGL la cursor/atingere | global (canvas fix) |
 | `data-anim="parallax"` | deplasare verticală ușoară (max. 10%) | imaginea din echipă |
@@ -74,8 +73,8 @@ SplitText `type: "lines"`, `mask: "lines"`, `autoSplit: true`, animația returna
 - **Nou:** **reactivate** (confirmat de Adi, 28.10): `data-anim="cursor"` și `data-anim="fluid"`, vezi „Efecte reactivate”.
 
 ### Butoane
-- **Original:** hover IX2: fundal `#1d1d1d`, umbra interioară dispare, cursorul se mărește; varianta „glowing” cu halo alb.
-- **Nou:** umplerea lime crește din poziția punctului până acoperă butonul (clip-path cerc, 0.4 `expo.out`), textul se inversează la ink; punctul rămâne lime pe fundal lime, deci dispare. La apăsare (`:active`) punctul devine ink. Doar CSS (`transition`). Glow-ul original se reactivează separat, cu `data-anim="glow"` (pasul 3).
+- **Original:** hover IX2: fundal `#1d1d1d`, umbra interioară dispare, cursorul se mărește; varianta „glowing”: dungă de lumină rotativă pe border (2.5 s, loop) + gradient alb la bază, aprins la hover.
+- **Nou:** umplerea lime crește din poziția punctului până acoperă butonul (clip-path cerc, 0.4 `expo.out`), textul se inversează la ink; punctul rămâne lime pe fundal lime, deci dispare. La apăsare (`:active`) punctul devine ink. Doar CSS (`transition`). Glow-ul e **static** (CSS, `.btn::before`, fără `data-anim`), vezi DESIGN.md §8; dunga rotativă de pe border e eliminată.
 - **Reduced motion:** schimbare de culoare instant.
 
 ### Tranziții între pagini
@@ -224,7 +223,7 @@ SplitText `type: "lines"`, `mask: "lines"`, `autoSplit: true`, animația returna
 
 ## Efecte reactivate (confirmat de Adi, 28.10)
 
-Ordinea implementării: 1 fundația (documentație, reguli, audit, `capabilities.ts`) · 2 halouri (static, fără `data-anim`, vezi DESIGN.md §7) · 3 `glow` · 4 `smoke-text` · 5 `cursor` · 6 `fluid`. Iconițele 3D: amânate până la fișierele originale.
+Ordinea implementării: 1 fundația (documentație, reguli, audit, `capabilities.ts`) · 2 halouri (static, fără `data-anim`, vezi DESIGN.md §7) · 3 glow pe butoane (static, fără `data-anim`, vezi DESIGN.md §8) · 4 `smoke-text` · 5 `cursor` · 6 `fluid`. Iconițele 3D: amânate până la fișierele originale.
 
 Toate pornesc din modulul central și verifică `capabilities.ts` (`prefersReducedMotion()`, `hasFinePointer()`, `supportsWebGL()`, `isLowEndDevice()`). Fără JS sau la reduced motion, pagina arată ca acum (efectele lipsesc, conținutul rămâne vizibil).
 
@@ -250,11 +249,8 @@ Toate pornesc din modulul central și verifică `capabilities.ts` (`prefersReduc
 - **Mobil:** identic (valorile în em scad cu titlul).
 - **Reduced motion:** nu se montează: fără split, text static complet.
 
-### `glow` — strălucire pe butoane
-- **Ce face:** reface butonul „glowing” din original: un pseudo-element cu gradient radial în spatele butonului, care se aprinde la hover/focus (și discret în repaus, după original).
-- **Proprietăți animate:** doar `opacity` și `transform` ale pseudo-elementului. **Fără animare de `box-shadow`.** Culori din tokeni.
-- **Mobil:** fără dependență de hover: glow-ul de repaus e vizibil, starea de hover nu e necesară pentru acces.
-- **Reduced motion:** glow static, fără tranziție.
+### Glow pe butoane ✅ (pasul 3): static, fără `data-anim`
+Decizie Adi (28.10): lumină difuză **statică** sub buton, mereu vizibilă, pe toate butoanele și la toate rezoluțiile. **Nu e animație**: nu există `data-anim="glow"` și nici `glow.ts` (`audit:rules`, regula `glow-static`). Dunga de lumină care se rotește pe border în original e eliminată definitiv. Valori și implementare: DESIGN.md §8.
 
 ### `cursor` — cursor custom
 - **Ce face:** punct care urmărește mouse-ul cu întârziere ușoară (ca în original) și se mărește pe elementele interactive.
@@ -277,4 +273,4 @@ Toate pornesc din modulul central și verifică `capabilities.ts` (`prefersReduc
 
 ## Ce NU se preia din original
 
-`Scrolling through panels` (rotații 3D), animațiile Instagram din template, Lottie (înlocuit cu SVG), jQuery, SplitType (înlocuit cu SplitText), finsweet attributes. Fumul, cursorul, glow-ul și bucla de pe „să strălucești!” au fost reactivate (vezi „Efecte reactivate”).
+`Scrolling through panels` (rotații 3D), dunga de lumină rotativă de pe border-ul butoanelor „glowing”, animațiile Instagram din template, Lottie (înlocuit cu SVG), jQuery, SplitType (înlocuit cu SplitText), finsweet attributes. Fumul, cursorul, glow-ul (static) și bucla de pe „să strălucești!” au fost reactivate (vezi „Efecte reactivate”).

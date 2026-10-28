@@ -292,7 +292,8 @@ const CHECKS = [
   },
   {
     rule: "box-shadow-animat",
-    message: "box-shadow animat (glow-ul se face cu opacity/transform pe pseudo-element)",
+    message:
+      "box-shadow animat (nicio umbră nu se animă; glow-ul butoanelor e static, .btn::before)",
     applies: () => true,
     patterns: [
       /\bboxShadow\b/g,
@@ -320,6 +321,14 @@ const CHECKS = [
     message: 'haloul e static (DESIGN.md §7): fără data-anim="halo"',
     applies: () => true,
     patterns: [/data-anim\s*=\s*["'`]halo["'`]/g, /\[data-anim=["']?halo\b/g],
+    code: true,
+  },
+  {
+    // glow-ul pe butoane e static (decizie Adi, 28.10): fără data-anim și fără modul de animație
+    rule: "glow-static",
+    message: 'glow-ul e static (DESIGN.md §8): fără data-anim="glow"',
+    applies: () => true,
+    patterns: [/data-anim\s*=\s*["'`]glow["'`]/g, /\[data-anim=["']?glow\b/g],
     code: true,
   },
   {
@@ -457,6 +466,20 @@ function auditStaticHalo() {
 }
 
 auditStaticHalo();
+
+function auditStaticGlow() {
+  const file = `${ANIMATIONS_DIR}glow.ts`;
+  if (!existsSync(join(ROOT, file))) return;
+  violations.push({
+    file,
+    line: 1,
+    rule: "glow-static",
+    message: "glow-ul e static (DESIGN.md §8): fără modul de animație glow.ts",
+    snippet: file,
+  });
+}
+
+auditStaticGlow();
 
 /**
  * Capturile automate stau în .screenshots/ (ignorat de git, .claude/rules/screenshots.md).

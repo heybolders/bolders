@@ -28,6 +28,7 @@ Permis **doar** în `src/styles/global.css`, **doar** în layere cu nume (`@laye
 |---|---|---|
 | `.btn` | components | variabile locale `--btn-pad` / `--btn-dot-x`: padding-ul și poziția punctului derivă din aceeași valoare |
 | `.btn-lg` | components | suprascrie `--btn-pad` pentru butoanele mari |
+| `.btn::before` | components | glow static sub buton (DESIGN.md §8): pseudo-element cu `radial-gradient(closest-side, …)` din tokeni, `inset` în procente din `--glow-reach`; ar cere valori arbitrare |
 | `.btn-fill` | components | `clip-path: circle(… at var(--btn-dot-x) 50%)` cu tranziție; ar cere valori arbitrare |
 | `.line-mask` | components | `padding-block` / `margin-block` în `em` (0.12em / 0.2em) pentru masca SplitText |
 | `.no-kerning` | components | `font-kerning: none` (fără utilitar Tailwind) pe cuvântul cu `smoke-text`: lățimea nu se schimbă când SplitText împarte literele |
@@ -43,4 +44,4 @@ Alte excepții din `global.css`, fără clase: `::view-transition-group(header)`
 
 ## Audit
 
-`npm run audit:rules` (`scripts/audit-rules.mjs`) verifică în `src/`: valori arbitrare Tailwind, `style=` inline, `<style>` în componente, culori hex/rgb/hsl și `px` în afara `global.css`, importuri GSAP/Lenis în afara `src/scripts/animations/`, importuri relative (fără `@/`), texte hardcodate în markup (noduri text și `aria-label`/`alt`/`title`/`placeholder`), CSS în afara layerelor și clase din `global.css` nedocumentate aici; plus excepțiile efectelor reactivate (`.claude/rules/animations.md`): `filter`/`blur` doar în `smoke-text.ts`, `box-shadow` animat nicăieri, canvas/WebGL doar în `fluid.ts` (+ detecția din `capabilities.ts`), notița de licență MIT obligatorie în `fluid.ts`, haloul static (`halo-static`: fără `data-anim="halo"` și fără `halo.ts`). Rulează în hook-ul PostToolUse; **nicio secțiune nu e gata fără audit curat.**
+`npm run audit:rules` (`scripts/audit-rules.mjs`) verifică în `src/`: valori arbitrare Tailwind, `style=` inline, `<style>` în componente, culori hex/rgb/hsl și `px` în afara `global.css`, importuri GSAP/Lenis în afara `src/scripts/animations/`, importuri relative (fără `@/`), texte hardcodate în markup (noduri text și `aria-label`/`alt`/`title`/`placeholder`), CSS în afara layerelor și clase din `global.css` nedocumentate aici; plus excepțiile efectelor reactivate (`.claude/rules/animations.md`): `filter`/`blur` doar în `smoke-text.ts`, `box-shadow` animat nicăieri, canvas/WebGL doar în `fluid.ts` (+ detecția din `capabilities.ts`), notița de licență MIT obligatorie în `fluid.ts`, haloul static (`halo-static`: fără `data-anim="halo"` și fără `halo.ts`), glow-ul static (`glow-static`: fără `data-anim="glow"` și fără `glow.ts`). Rulează în hook-ul PostToolUse; **nicio secțiune nu e gata fără audit curat.**

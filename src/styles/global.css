@@ -21,6 +21,8 @@
   --color-current: currentColor;
   /* halo static (DESIGN §7): vârful luminii din fundalul original, ≈ 20% alb = paper-dim; niciodată lime */
   --color-halo: var(--color-paper-dim);
+  /* glow static sub buton (DESIGN §8): lumina albă a `::after`-ului din original; niciodată lime */
+  --color-glow: var(--color-paper);
 
   /* scară fluidă cu nume proprii; scara implicită Tailwind nu există */
   --text-*: initial;
@@ -87,6 +89,14 @@
   --default-transition-duration: 200ms;
 }
 
+/* glow static sub buton (DESIGN §8): fără namespace Tailwind, folosiți doar de `.btn::before` */
+@theme static {
+  /* vârful gradientului radial din original (alb .12) */
+  --glow-opacity: 0.12;
+  /* cât coboară lumina sub buton, din înălțimea lui: centrul la 120%, raza verticală 120% */
+  --glow-reach: 140%;
+}
+
 /* `inline`: --font-manrope e generată de Fonts API din Astro (familie + fallback optimizat) */
 @theme inline {
   --font-sans: var(--font-manrope);
@@ -123,6 +133,23 @@
 
   .btn-lg {
     --btn-pad: calc(var(--spacing) * 8);
+  }
+
+  /*
+   * Glow static (DESIGN.md §8): gradientul radial alb de la baza butonului din original, mereu vizibil,
+   * fără animație și fără filter. Excepție: pseudo-element cu gradient din tokeni (ar cere valori arbitrare).
+   * Elipsa ocupă lățimea butonului (fără scroll orizontal) și coboară sub el cu --glow-reach.
+   * Stă sub umplerea lime (-z-10): la hover interiorul e acoperit, partea de sub buton nu se schimbă.
+   * pointer-events: none: zona de click rămâne cea a butonului.
+   */
+  .btn::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 calc(-1 * var(--glow-reach));
+    z-index: -20;
+    pointer-events: none;
+    background-image: radial-gradient(closest-side, var(--color-glow), transparent);
+    opacity: var(--glow-opacity);
   }
 
   .btn-fill {
