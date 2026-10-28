@@ -1,6 +1,7 @@
 ---
 import HeroGrid from "@/components/home/HeroGrid.astro";
 import Button from "@/components/ui/Button.astro";
+import Halo from "@/components/ui/Halo.astro";
 import { HERO, HERO_TITLE } from "@/content/acasa";
 
 // Animația: data-anim="hero-syllables" (ANIMATIONS.md, Homepage §1). Fără JS totul e vizibil.
@@ -31,6 +32,11 @@ import { HERO, HERO_TITLE } from "@/content/acasa";
   data-anim="hero-syllables"
   class="relative isolate flex min-h-svh items-center overflow-clip px-gutter pt-24 pb-16 md:pt-28"
 >
+  {/*
+    Ca în original: lumina stă pe linia titlului (titlul e la 44–48% din înălțime), deasupra centrului
+    blocului de conținut, și sub grilă (în original era fundalul secțiunii, cu liniile peste ea).
+  */}
+  <Halo position="center" />
   <HeroGrid />
 
   <div class="mx-auto flex w-full max-w-site flex-col items-center text-center">

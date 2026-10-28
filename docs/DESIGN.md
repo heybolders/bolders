@@ -103,6 +103,7 @@ Mobile-first, cu prefixul `--color-` etc., ca să genereze utilitarele standard.
   --color-lime-shade: #49691099; /* --transparent-green */
   --color-transparent: transparent;
   --color-current: currentColor;
+  --color-halo: var(--color-paper-dim); /* vârful luminii originale (centerbackground.png), ≈ 20% alb */
 
   /* --font-sans: în `@theme inline { --font-sans: var(--font-manrope); }` – Fonts API din Astro
      generează un nume de familie cu hash și un fallback cu metrici ajustate, deci nu se scrie "Manrope" literal */
@@ -130,6 +131,8 @@ Mobile-first, cu prefixul `--color-` etc., ca să genereze utilitarele standard.
   --spacing: 0.25rem;
   --spacing-gutter: clamp(1.25rem, 0.8rem + 2vw, 2.5rem); /* padding-global */
   --spacing-section: clamp(4rem, 2.5rem + 6vw, 8rem);     /* padding-section-large */
+  --spacing-halo: 32rem;    /* diametrul haloului pe mobil (raza vizibilă originală ≈ 255px la 375) */
+  --spacing-halo-lg: 60rem; /* diametrul de la md (≈ 475px rază la 1440) */
   --container-site: 81rem;  /* container-large */
   --container-prose: 45rem;
 
@@ -158,6 +161,11 @@ Mobile-first, cu prefixul `--color-` etc., ca să genereze utilitarele standard.
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
   --default-transition-duration: 200ms;
+}
+
+/* variabile citite doar din JS; `static`, altfel Tailwind le elimină ca nefolosite */
+@theme static {
+  --halo-duration: 14s; /* ciclul haloului (stingere + aprindere), citit de halo.ts */
 }
 ```
 
@@ -262,7 +270,7 @@ Excepțiile reactivate din original (fum WebGL, cursor custom, glow pe butoane, 
 | Fum la cursor/atingere pe toată pagina (inclusiv mobil) | `splash-effect-8.js` (fluid WebGL pe canvas fix) | `fluid` | reactivat, pasul 6 |
 | Cursor custom | `.cursor-element` (IX2 `MOUSE_MOVE`) | `cursor` | reactivat, pasul 5 |
 | Glow pe butoane | butonul „glowing” | `glow` | reactivat, pasul 3 |
-| Halouri de lumină difuză în spatele textelor | fundalul hero (omis la recreare) | `halo` | nou adăugat, pasul 2 |
+| Halouri de lumină difuză în spatele textelor | fundalul hero (omis la recreare) | `halo` | ✅ pasul 2 (28.10) |
 | Fum pe „să strălucești!” (în loop) | silabele din hero (intrare cu blur, buclă) | `smoke-text` | reactivat, pasul 4; înlocuiește respirația 700 → 200 → 700 |
 | Iconițe 3D (glob, puzzle, mail, calendar, monede) | secțiunile homepage | — | **amânate, fișiere de la Adi** |
 

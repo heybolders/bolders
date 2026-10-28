@@ -1,3 +1,4 @@
+import { halo } from "@/scripts/animations/halo";
 import { heroSyllables } from "@/scripts/animations/hero-syllables";
 import { lineReveal } from "@/scripts/animations/line-reveal";
 import { nav } from "@/scripts/animations/nav";
@@ -6,6 +7,7 @@ import { wordmark } from "@/scripts/animations/wordmark";
 
 // Numele permise sunt cele din docs/ANIMATIONS.md; câte un fișier per data-anim.
 export const registry: Record<string, AnimationFactory> = {
+  halo,
   "hero-syllables": heroSyllables,
   "line-reveal": lineReveal,
   nav,

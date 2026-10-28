@@ -184,7 +184,7 @@ Decizii confirmate de Adi (28.10):
 - Rămân eliminate: poze stock, preloader cu procent, contoare animate.
 - Regulă: nimic din original nu se elimină fără confirmarea lui Adi.
 
-Pași: 1 fundația ✅ · 2 `halo` · 3 `glow` · 4 `smoke-text` · 5 `cursor` · 6 `fluid` (WebGL). Iconițe 3D: amânate.
+Pași: 1 fundația ✅ · 2 `halo` ✅ · 3 `glow` · 4 `smoke-text` · 5 `cursor` · 6 `fluid` (WebGL). Iconițe 3D: amânate.
 
 ### Pasul 1 din 6: fundația ✅ (2026-10-28)
 Fără niciun efect vizual implementat; site-ul arată identic.
@@ -204,5 +204,23 @@ Fără niciun efect vizual implementat; site-ul arată identic.
 #### Neclarități / de verificat la pașii următori
 - Valorile `blur()` din `smoke-text` se scriu în `rem`/`em`: regula `px` rămâne valabilă și acolo.
 - Tokenii pentru glow și halouri (din `#ffffff4d`, `#ffffff80`, `#ddd6d633`) se adaugă în DESIGN.md §2 la pașii 2–3.
+
+### Pasul 2 din 6: halouri de lumină (`data-anim="halo"`) ✅ (2026-10-28)
+- **Referința (Playwright pe bolders1.webflow.io):** haloul original e imaginea `centerbackground.png` ca fundal `cover` pe hero, pe fundalul fix din „Fii Bolders” + testimoniale (opacitate .4, .5 pe mobil) și pe cardul CTA (.88); pe Departamente și pe lista de servicii. Static (fără apariție/stingere, fără mișcare), neutru-rece, vârf ≈ 20% alb efectiv, rază ≈ 475 px la 1440 și ≈ 255 px la 375, centrat pe linia titlului. Valorile complete și tabelul „unde apare” sunt în ANIMATIONS.md, `halo`.
+- **Tokeni** (DESIGN.md §2 → `@theme`): `--color-halo` (= `paper-dim`), `--spacing-halo` 32rem / `--spacing-halo-lg` 60rem, `--halo-duration` 14s în `@theme static` (citit doar din JS; fără `static`, Tailwind l-ar elimina).
+- **`src/components/ui/Halo.astro`:** decorativ (`aria-hidden`, `pointer-events-none`), `absolute -z-10`, gradient doar din utilitare (`bg-radial from-halo via-halo/50 via-18% to-transparent to-70%`, profilul originalului), fără `filter`. Props `position` (`center`/`top`/`bottom`/`left`/`right`), `mobile` (false = ascuns sub md), `class`.
+- **`src/scripts/animations/halo.ts`** (înregistrat în `registry.ts`): opacitate 1 → 0.35 și înapoi + derivă și scalare foarte lente, perioade diferite, decalaj de fază per halou (raportul de aur) și direcții alternate. Pauză în afara ecranului (ScrollTrigger) și cu tab-ul ascuns (`visibilitychange`); `will-change` doar cât rulează. Reduced motion: static, `opacity-60`. Pornește de la opacitatea plină, deci fără flash.
+- **Hero:** `<Halo position="center" />` înaintea grilei (sub linii, ca în original); cade pe linia titlului (titlul e la 44–48% din înălțime), deasupra centrului blocului de conținut.
+- **Verificare:** iPhone SE, iPhone 15, Pixel 7 (emulare reală, DPR, touch), 768, 1440, 1920: fără scroll orizontal (`scrollWidth === clientWidth`), consolă curată, capturi în `.playwright-mcp/halo-*.png`. Pauză/reluare testate (tab ascuns simulat, scroll în afara ecranului cu spațiu temporar), `will-change` `auto` în pauză. Reduced motion: opacitate 0.6, fără transform. View Transitions: `/` → `/agentie` → înapoi, haloul repornește, fără erori. **Slow 4G + CPU 4× (Pixel 7, build):** LCP 1435 ms față de 1423 ms la baseline (HEAD, aceeași sesiune; diferența e zgomot), CLS 0.00 în ambele. Contrast: `paper-muted` ≈ 6.3:1 în centrul haloului la opacitate maximă (≈ 9.6:1 fără), peste AA; `paper` > 10:1.
+- `npm run audit:rules` (0 abateri), `npm run check` (0/0/0), `npm run lint`, `npm run format:check`, `npm run build` (fără `ALLOW_PLACEHOLDERS`): curate.
+
+#### Abateri și motive
+- **Animația nu există în original** (lumina e statică acolo). Apariția/stingerea în buclă și deriva au fost cerute explicit la pasul 2; restul (culoare, intensitate maximă, dimensiune, poziție, profil) reproduce originalul. Opacitatea maximă (1) = intensitatea originalului.
+- **Poziția în hero:** originalul e centrat pe secțiune, ceea ce înseamnă pe linia titlului, nu pe centrul blocului de conținut. Am folosit ancora `center`, care la noi cade tot pe titlu (titlul e puțin deasupra centrului secțiunii), plus deriva. Nu am deplasat-o artificial față de original.
+- **z-index fără token:** Tailwind v4 nu are namespace de tema pentru `z-index`; haloul folosește `-z-10` în contextul `isolate` al secțiunii, ca `HeroGrid`, iar ordinea față de grilă vine din DOM.
+- **Culoarea:** neutră (`paper-dim`), nu ușor rece ca `rgba(160,168,174)` din original: cerința a fost o culoare din paleta existentă; diferența de ton e sub pragul vizibil la 20% alfa.
+
+#### Neclarități
+- Fundalul fix (`background-attachment: fixed`) din „Fii Bolders”/testimoniale devine halouri locale în spatele titlurilor, nu un strat fix pe toată secțiunea; de confirmat cu Adi la construirea secțiunii 4.
 
 ### Următoarea secțiune: 2. Storytelling (`data-anim="words-light"`) ⏭️
