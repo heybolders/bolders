@@ -1,13 +1,14 @@
 ---
-// Lumină difuză decorativă în spatele textelor (ANIMATIONS.md, „halo”): gradient radial static din tokeni,
-// animat doar prin opacity/transform de modulul central. Părintele trebuie să fie `relative isolate overflow-clip`:
-// haloul e mai lat decât ecranul pe mobil, iar clip-ul pe secțiune (nu pe body) oprește scroll-ul orizontal.
-// Centrul haloului stă în punctul de ancoră; DOM: înaintea celorlalte straturi decorative, ca să rămână sub ele.
+// Lumină difuză statică în spatele textelor (DESIGN.md §7): gradient radial din tokeni, la intensitatea
+// originalului, fără animație (decizie Adi, pentru performanță). Părintele trebuie să fie
+// `relative isolate overflow-clip`: haloul e mai lat decât ecranul pe mobil, iar clip-ul pe secțiune
+// (nu pe body) oprește scroll-ul orizontal. Centrul haloului stă în punctul de ancoră; în DOM se pune
+// înaintea celorlalte straturi decorative, ca să rămână sub ele.
 type Position = "center" | "top" | "bottom" | "left" | "right";
 
 interface Props {
   position?: Position;
-  /** false: haloul lipsește sub md (ANIMATIONS.md: „mai puține halouri pe mobil”) */
+  /** false: haloul lipsește sub md (mai puține halouri pe mobil) */
   mobile?: boolean;
   class?: string;
 }
@@ -23,20 +24,13 @@ const positions: Record<Position, string> = {
 };
 ---
 
+{/* profil apropiat de lumina originală: 50% la un sfert din rază, 0 la marginea elementului (70% din colț) */}
 <div
-  data-anim="halo"
-  data-anim-desktop-only={mobile ? undefined : ""}
   aria-hidden="true"
   class:list={[
-    "pointer-events-none absolute -z-10 size-halo -translate-x-1/2 -translate-y-1/2 md:size-halo-lg",
+    "pointer-events-none absolute -z-10 size-halo -translate-x-1/2 -translate-y-1/2 bg-radial from-halo via-halo/50 via-18% to-transparent to-70% md:size-halo-lg",
     positions[position],
     !mobile && "max-md:hidden",
     className,
   ]}
->
-  {/* profil apropiat de lumina originală: 50% la un sfert din rază, 0 la marginea elementului (70% din colț) */}
-  <div
-    data-anim-item
-    class="size-full bg-radial from-halo via-halo/50 via-18% to-transparent to-70% motion-reduce:opacity-60"
-  ></div>
-</div>
+></div>

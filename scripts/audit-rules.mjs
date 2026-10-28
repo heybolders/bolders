@@ -1,7 +1,7 @@
 // Audit de consistență pentru src/ (.claude/rules/styling.md, code-style.md, content.md).
 // Rulare: `npm run audit:rules`. Iese cu 1 dacă găsește abateri.
 // Excepțiile permise sunt listate în ALLOW și documentate în .claude/rules/styling.md.
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 
 const ROOT = process.cwd();
@@ -314,6 +314,14 @@ const CHECKS = [
     code: true,
   },
   {
+    // haloul e decor static, ca în original (decizie Adi, 28.10): fără data-anim și fără modul de animație
+    rule: "halo-static",
+    message: 'haloul e static (DESIGN.md §7): fără data-anim="halo"',
+    applies: () => true,
+    patterns: [/data-anim\s*=\s*["'`]halo["'`]/g, /\[data-anim=["']?halo\b/g],
+    code: true,
+  },
+  {
     rule: "import-relativ",
     message: "import relativ (folosește aliasul @/)",
     applies: () => true,
@@ -434,6 +442,20 @@ function auditFluidLicense() {
 }
 
 auditFluidLicense();
+
+function auditStaticHalo() {
+  const file = `${ANIMATIONS_DIR}halo.ts`;
+  if (!existsSync(join(ROOT, file))) return;
+  violations.push({
+    file,
+    line: 1,
+    rule: "halo-static",
+    message: "haloul e static (DESIGN.md §7): fără modul de animație halo.ts",
+    snippet: file,
+  });
+}
+
+auditStaticHalo();
 
 if (violations.length === 0) {
   console.log(`audit:rules: ${files.length} fișiere, 0 abateri.`);

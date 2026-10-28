@@ -19,7 +19,7 @@
   --color-lime-shade: #49691099;
   --color-transparent: transparent;
   --color-current: currentColor;
-  /* halo (DESIGN §6): vârful luminii din fundalul original, ≈ 20% alb = paper-dim; niciodată lime */
+  /* halo static (DESIGN §7): vârful luminii din fundalul original, ≈ 20% alb = paper-dim; niciodată lime */
   --color-halo: var(--color-paper-dim);
 
   /* scară fluidă cu nume proprii; scara implicită Tailwind nu există */
@@ -84,12 +84,6 @@
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
   --default-transition-duration: 200ms;
-}
-
-/* `static`: variabile citite doar din JS (halo.ts); fără static, Tailwind le-ar elimina ca nefolosite */
-@theme static {
-  /* un ciclu complet al haloului (stingere + aprindere); deriva și scalarea au perioade derivate din el */
-  --halo-duration: 14s;
 }
 
 /* `inline`: --font-manrope e generată de Fonts API din Astro (familie + fallback optimizat) */

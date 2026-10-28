@@ -21,12 +21,12 @@ paths:
 
 ## Efecte reactivate (ANIMATIONS.md, „Efecte reactivate”)
 
-- `data-anim` noi: `smoke-text`, `halo`, `glow`, `cursor`, `fluid`. Comportamentul (proprietăți, mobil, reduced motion) e cel din ANIMATIONS.md; un fișier per efect în `src/scripts/animations/`.
+- `data-anim` noi: `smoke-text`, `glow`, `cursor`, `fluid`. Haloul **nu** e `data-anim`: e decor static, ca în original (DESIGN.md §7; `audit:rules`, regula `halo-static`, respinge `data-anim="halo"` și `halo.ts`). Comportamentul (proprietăți, mobil, reduced motion) e cel din ANIMATIONS.md; un fișier per efect în `src/scripts/animations/`.
 - Toate verifică `src/scripts/animations/capabilities.ts` înainte să pornească: `prefersReducedMotion()`, `hasFinePointer()`, `supportsWebGL()`, `isLowEndDevice()`. La reduced motion niciunul nu se montează (sau rămâne static).
 - **Excepții permise, strict limitate** (verificate de `npm run audit:rules`):
   - `filter: blur()` **doar** în `src/scripts/animations/smoke-text.ts`.
   - canvas / WebGL **doar** în `src/scripts/animations/fluid.ts`. Singura altă atingere permisă: detecția de suport din `capabilities.ts` (`supportsWebGL()` creează un canvas temporar, fără randare).
   - Orice altă utilizare de `filter` (inclusiv utilitarele `blur-*`, `drop-shadow-*`), `box-shadow` animat (`boxShadow` în GSAP, `transition-shadow`, tranziții/keyframes pe `box-shadow`) sau canvas rămâne **interzisă**. (`backdrop-blur` din nav și panoul footerului e `backdrop-filter`, static, permis.)
-- `glow` și `halo`: doar `opacity` și `transform` pe pseudo-elemente/elemente cu gradient din tokeni; niciodată lime ca halou.
+- `glow`: doar `opacity` și `transform` pe pseudo-elemente/elemente cu gradient din tokeni; niciodată lime ca glow sau halou.
 - `cursor`: doar cu `pointer: fine`, doar `transform`; cursorul nativ rămâne pe `input`/`textarea`/`select`.
 - `fluid` (WebGL-Fluid-Simulation, Pavel Dobryakov, MIT): notița de licență MIT rămâne în `fluid.ts`; încărcare după LCP (`requestIdleCallback`, fallback `setTimeout`, `import()` dinamic), rezoluție redusă pe mobil, randare oprită fără mișcare și cu tab-ul ascuns, ascultători touch pasivi, oprit la reduced motion, fără WebGL sau pe dispozitiv slab.

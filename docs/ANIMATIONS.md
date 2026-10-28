@@ -34,7 +34,6 @@ Capturile stărilor originale: `reference/screenshots/<pagina>/scroll-1440|375/`
 | `data-anim="marquee"` | bandă de mesaje, viteză legată de scroll | CTA final |
 | `data-anim="wordmark"` | wordmark-ul „Bolders” se ridică din mască | footer |
 | `data-anim="smoke-text"` | literele se dizolvă în fum stânga → dreapta și se rescriu, în loop | „să strălucești!” (hero) |
-| `data-anim="halo"` | gradient radial difuz care apare și se stinge lent | în spatele textelor, zone diferite |
 | `data-anim="glow"` | strălucire pe buton (pseudo-element cu gradient) | butoane |
 | `data-anim="cursor"` | cursor custom care urmărește mouse-ul | global, doar `pointer: fine` |
 | `data-anim="fluid"` | fum WebGL la cursor/atingere | global (canvas fix) |
@@ -227,7 +226,7 @@ SplitText `type: "lines"`, `mask: "lines"`, `autoSplit: true`, animația returna
 
 ## Efecte reactivate (confirmat de Adi, 28.10)
 
-Ordinea implementării: 1 fundația (documentație, reguli, audit, `capabilities.ts`) · 2 `halo` · 3 `glow` · 4 `smoke-text` · 5 `cursor` · 6 `fluid`. Iconițele 3D: amânate până la fișierele originale.
+Ordinea implementării: 1 fundația (documentație, reguli, audit, `capabilities.ts`) · 2 halouri (static, fără `data-anim`, vezi DESIGN.md §7) · 3 `glow` · 4 `smoke-text` · 5 `cursor` · 6 `fluid`. Iconițele 3D: amânate până la fișierele originale.
 
 Toate pornesc din modulul central și verifică `capabilities.ts` (`prefersReducedMotion()`, `hasFinePointer()`, `supportsWebGL()`, `isLowEndDevice()`). Fără JS sau la reduced motion, pagina arată ca acum (efectele lipsesc, conținutul rămâne vizibil).
 
@@ -237,40 +236,6 @@ Toate pornesc din modulul central și verifică `capabilities.ts` (`prefersReduc
 - **Mobil:** identic, derivă și blur mai mici; pauză când hero-ul iese din ecran sau tab-ul e ascuns.
 - **Reduced motion:** text static, fără fum și fără loop.
 - **Accesibilitate:** titlul complet rămâne în `sr-only`; partea animată e `aria-hidden`.
-
-### `halo` — lumină difuză în spatele textelor
-- **Ce face:** gradient radial difuz în spatele unor texte, în zone diferite ale paginii; apare și se stinge lent (secunde, nu fracțiuni), fără să concureze cu textul.
-- **Proprietăți animate:** doar `opacity` și `transform` (scale/translate). Gradientul e static, din tokeni (`@theme`), nu lime.
-- **Mobil:** mai puține halouri, aceeași mișcare lentă.
-- **Reduced motion:** halourile rămân statice, la opacitatea de repaus (sau lipsesc).
-
-#### Originalul (măsurat cu Playwright pe bolders1.webflow.io, 28.10)
-- **Ce e:** nu un element animat, ci imaginea `centerbackground.png` (1920×1500, `reference/media/decor/fundal-glow-centru.png`) pusă ca `background-image` (`cover`, `50% 50%`) pe containerul secțiunii. **Static:** opacitatea, transformul și poziția nu se schimbă (eșantionat 5 s; fără IX2/GSAP pe ea).
-- **Formă și culoare:** o singură pată eliptică aproape circulară, centrată (centroid 49.5% / 49.7% din imagine). Pixelul cel mai luminos: `rgba(160, 168, 174, .37)` (neutru, ușor rece), adică ≈ 20% alb efectiv peste fundal (= `paper-dim`). Profil radial: 100% în centru, ≈ 53% la ¼ din rază, ≈ 22% la ½, ≈ 6% la ¾, 0 la margine.
-- **Dimensiune:** rază vizibilă ≈ 475 px la 1440 (imaginea scalată la 0.75) și ≈ 255 px la 375 (secțiune 601 px înaltă, imagine scalată la 0.4).
-- **Poziție față de text:** centrul luminii cade pe linia titlului (hero: centrul secțiunii = linia dintre „Acum este momentul” și „să strălucești!”), deasupra centrului blocului de conținut (pill → buton), deci nu e centrată pe tot blocul.
-- **Apariție/stingere:** niciuna în original.
-
-#### Implementare (pasul 2)
-- **Componentă:** `src/components/ui/Halo.astro`: `aria-hidden`, `pointer-events-none`, `absolute -z-10`, centrat pe o ancoră (`position`: `center` 50/50, `top` 50/25, `bottom` 50/75, `left` 25/50, `right` 75/50, procente din părinte). `mobile={false}` îl ascunde sub `md` și modulul nu-l mai animă acolo. Părintele: `relative isolate overflow-clip` (clip pe secțiune, nu pe body). În DOM se pune înaintea celorlalte straturi decorative (grila hero), ca să stea sub ele, ca în original.
-- **Gradient:** doar utilitare: `bg-radial from-halo via-halo/50 via-18% to-transparent to-70%` pe un pătrat `size-halo` / `md:size-halo-lg`. `bg-radial` e o elipsă `farthest-corner`; `to-70%` ≈ latura pătratului, deci gradientul ajunge la 0 la marginea elementului (fără muchie vizibilă). Opritorul `via` reproduce profilul original (50% la ¼ din rază). Fără `filter: blur`.
-- **Tokeni:** `--color-halo` (= `paper-dim`), `--spacing-halo` 32rem, `--spacing-halo-lg` 60rem, `--halo-duration` 14s (`@theme static`, citit din JS). DESIGN.md §2.
-- **Animație (`halo.ts`), adăugată față de original (cerută la pasul 2):** pornește de la opacitatea 1 (= lumina statică din original, vizibilă și fără JS, deci fără flash și fără CLS), apoi buclă `sine.inOut` yoyo: opacitate 1 → 0.35 în ½ ciclu (7 s), derivă `xPercent ±4` / `yPercent −2.4` în 1.7 × ½ ciclu, `scale 1 → 1.08` în 1.3 × ½ ciclu. Perioadele diferite fac mișcarea să nu se repete identic. Decalaj între halouri: `delay = (index × 0.618 mod 1) × ½ ciclu`, deriva în direcții alternate. Doar `opacity` și `transform`.
-- **Pauză:** ScrollTrigger pe halou (`top bottom` → `bottom top`) + `visibilitychange`; rulează doar când e în ecran **și** tab-ul e vizibil. `will-change: transform, opacity` doar cât rulează (`auto` în pauză).
-- **Reduced motion:** nu se animă; static, `motion-reduce:opacity-60` (CSS, funcționează și fără JS).
-- **View Transitions:** ciclul central din `index.ts` (ScrollTrigger-ul și tween-urile sunt în contextul elementului; ascultătorul `visibilitychange` e scos de cleanup-ul din `mm.add`).
-- **Contrast:** în cel mai rău punct (centrul haloului la opacitate 1), `paper-muted` are contrast ≈ 6.3:1 (față de ≈ 9.6:1 pe `ink` simplu), deci AA rămâne îndeplinit; textul `paper` rămâne > 10:1.
-
-#### Unde apare haloul în original (de folosit la construirea secțiunilor)
-| Secțiune nouă | Original | Text deasupra | Opacitate în original | `Halo` recomandat |
-|---|---|---|---|---|
-| 1. Hero | `.section_header` (fundal, 1440×901) | pill, „Acum este momentul să strălucești!” | 1 | ✅ `position="center"` (pe linia titlului) |
-| 4. Fii Bolders + testimoniale | `.overlay` în `.section_servici`, `background-attachment: fixed`, întinsă pe toată secțiunea (≈ 2400 px la 1440, ≈ 3080 px la 375) | „Fii Bolders. Fii diferit!”, „Părerile celor care ne-au ales” | 0.4 (0.5 pe mobil) | câte un halou în spatele fiecărui titlu, cu clasa `opacity-40`; fundalul fix din original devine halouri în zone diferite (ex. `left` la titlu, `right` la testimoniale) |
-| 10. CTA final | `.cta_wrapper` (card 1296×528, fundal) | tag „Construim viitorul tău digital!” + titlul CTA | 0.88 | `position="center"` în card (cardul are `overflow-clip`) |
-| Departamente: „Iată de ce clienții aleg Bolders” | `.overlay` în `.section_servici` | titlul secțiunii | 0.4 | ca la secțiunea 4 |
-| Departamente: lista de servicii (Branding, Webdesign…) | a doua `.overlay` (≈ 3680 px, fixă) | titlurile departamentelor | 0.4 | `mobile={false}`, câte unul la câteva titluri, alternând `left`/`right` |
-
-Pe mobil originalul păstrează aceleași fundaluri; la noi, în secțiunile lungi, haloul suplimentar primește `mobile={false}` („mai puține halouri”).
 
 ### `glow` — strălucire pe butoane
 - **Ce face:** reface butonul „glowing” din original: un pseudo-element cu gradient radial în spatele butonului, care se aprinde la hover/focus (și discret în repaus, după original).

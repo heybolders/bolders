@@ -162,11 +162,6 @@ Mobile-first, cu prefixul `--color-` etc., ca să genereze utilitarele standard.
 
   --default-transition-duration: 200ms;
 }
-
-/* variabile citite doar din JS; `static`, altfel Tailwind le elimină ca nefolosite */
-@theme static {
-  --halo-duration: 14s; /* ciclul haloului (stingere + aprindere), citit de halo.ts */
-}
 ```
 
 Duratele GSAP stau în modulul de animații (`docs/ANIMATIONS.md`), nu în CSS: `fast 0.2`, `base 0.5`, `slow 0.9`, `slower 1.4`.
@@ -270,7 +265,7 @@ Excepțiile reactivate din original (fum WebGL, cursor custom, glow pe butoane, 
 | Fum la cursor/atingere pe toată pagina (inclusiv mobil) | `splash-effect-8.js` (fluid WebGL pe canvas fix) | `fluid` | reactivat, pasul 6 |
 | Cursor custom | `.cursor-element` (IX2 `MOUSE_MOVE`) | `cursor` | reactivat, pasul 5 |
 | Glow pe butoane | butonul „glowing” | `glow` | reactivat, pasul 3 |
-| Halouri de lumină difuză în spatele textelor | fundalul hero (omis la recreare) | `halo` | ✅ pasul 2 (28.10) |
+| Halouri de lumină difuză în spatele textelor | fundalul hero (omis la recreare) | — (decor static, §7) | ✅ pasul 2 (28.10): **static, ca în original** (decizie Adi, pentru performanță) |
 | Fum pe „să strălucești!” (în loop) | silabele din hero (intrare cu blur, buclă) | `smoke-text` | reactivat, pasul 4; înlocuiește respirația 700 → 200 → 700 |
 | Iconițe 3D (glob, puzzle, mail, calendar, monede) | secțiunile homepage | — | **amânate, fișiere de la Adi** |
 
@@ -278,6 +273,35 @@ Rămân eliminate (confirmat de Adi): poze stock, preloader cu procent, contoare
 
 Constrângeri vizuale:
 - **Lime rămâne semnal** (max. ~3% din suprafața unui ecran). Glow-ul și halourile nu sunt lime.
+- Halourile sunt **statice** (fără animație, fără `data-anim`), vezi §7.
 - Glow-ul și halourile folosesc **doar tokeni din `@theme`** (culori, blur, raze). Valorile originale (`#ffffff4d`, `#ffffff80`, `#ddd6d633`) se mapează la tokeni noi, adăugați întâi aici, la pasul respectiv.
 - Comportamentul fiecărui efect (proprietăți animate, mobil, reduced motion, limite de performanță): `ANIMATIONS.md`, „Efecte reactivate”.
 
+## 7. Halouri de lumină (decor static)
+
+Decizie Adi (28.10): haloul e **static, exact ca în original**, pentru performanță. Fără animație, fără `data-anim`, fără `will-change` și fără listeneri. `npm run audit:rules` (regula `halo-static`) respinge `data-anim="halo"` și un modul `src/scripts/animations/halo.ts`.
+
+### Originalul (măsurat cu Playwright pe bolders1.webflow.io, 28.10)
+- **Ce e:** imaginea `centerbackground.png` (1920×1500, `reference/media/decor/fundal-glow-centru.png`) pusă ca `background-image` (`cover`, `50% 50%`) pe containerul secțiunii. Static: opacitatea, transformul și poziția nu se schimbă (fără IX2/GSAP).
+- **Formă și culoare:** o singură pată eliptică aproape circulară, centrată (centroid 49.5% / 49.7% din imagine). Pixelul cel mai luminos: `rgba(160, 168, 174, .37)` (neutru, ușor rece), adică ≈ 20% alb efectiv peste fundal (= `paper-dim`). Profil radial: 100% în centru, ≈ 53% la ¼ din rază, ≈ 22% la ½, ≈ 6% la ¾, 0 la margine.
+- **Dimensiune:** rază vizibilă ≈ 475 px la 1440 (imaginea scalată la 0.75) și ≈ 255 px la 375 (secțiune 601 px înaltă, imagine scalată la 0.4).
+- **Poziție față de text:** centrul luminii cade pe linia titlului (hero: centrul secțiunii = linia dintre „Acum este momentul” și „să strălucești!”), deasupra centrului blocului de conținut (pill → buton).
+
+### Implementare
+- **Componentă:** `src/components/ui/Halo.astro`: un singur `div` `aria-hidden`, `pointer-events-none`, `absolute -z-10`, centrat pe o ancoră (`position`: `center` 50/50, `top` 50/25, `bottom` 50/75, `left` 25/50, `right` 75/50, procente din părinte). `mobile={false}` îl ascunde sub `md`. Părintele: `relative isolate overflow-clip` (clip pe secțiune, nu pe body). În DOM se pune înaintea celorlalte straturi decorative (grila hero), ca să stea sub ele, ca în original.
+- **Gradient:** doar utilitare: `bg-radial from-halo via-halo/50 via-18% to-transparent to-70%` pe un pătrat `size-halo` / `md:size-halo-lg`. `bg-radial` e o elipsă `farthest-corner`; `to-70%` ≈ latura pătratului, deci gradientul ajunge la 0 la marginea elementului (fără muchie vizibilă). Opritorul `via` reproduce profilul original (50% la ¼ din rază). Fără `filter: blur`.
+- **Tokeni (§2):** `--color-halo` (= `paper-dim`, intensitatea originalului), `--spacing-halo` 32rem, `--spacing-halo-lg` 60rem.
+- **z-index:** Tailwind v4 nu are namespace de temă pentru `z-index`; `-z-10` în contextul `isolate` al secțiunii, ca `HeroGrid`; ordinea față de grilă vine din DOM.
+- **Contrast:** în cel mai rău punct (centrul haloului), `paper-muted` are ≈ 6.3:1 (față de ≈ 9.6:1 pe `ink` simplu), peste AA; `paper` > 10:1.
+- **Culoarea:** neutră (`paper-dim`), nu ușor rece ca originalul: cerința a fost o culoare din paleta existentă; diferența de ton e sub pragul vizibil la 20% alfa.
+
+### Unde apare haloul în original (de folosit la construirea secțiunilor)
+| Secțiune nouă | Original | Text deasupra | Opacitate în original | `Halo` recomandat |
+|---|---|---|---|---|
+| 1. Hero | `.section_header` (fundal, 1440×901) | pill, „Acum este momentul să strălucești!” | 1 | ✅ `position="center"` (pe linia titlului) |
+| 4. Fii Bolders + testimoniale | `.overlay` în `.section_servici`, `background-attachment: fixed`, întinsă pe toată secțiunea (≈ 2400 px la 1440, ≈ 3080 px la 375) | „Fii Bolders. Fii diferit!”, „Părerile celor care ne-au ales” | 0.4 (0.5 pe mobil) | câte un halou în spatele fiecărui titlu, cu clasa `opacity-40`; fundalul fix din original devine halouri în zone diferite (ex. `left` la titlu, `right` la testimoniale) |
+| 10. CTA final | `.cta_wrapper` (card 1296×528, fundal) | tag „Construim viitorul tău digital!” + titlul CTA | 0.88 | `position="center"` în card (cardul are `overflow-clip`) |
+| Departamente: „Iată de ce clienții aleg Bolders” | `.overlay` în `.section_servici` | titlul secțiunii | 0.4 | ca la secțiunea 4 |
+| Departamente: lista de servicii (Branding, Webdesign…) | a doua `.overlay` (≈ 3680 px, fixă) | titlurile departamentelor | 0.4 | `mobile={false}`, câte unul la câteva titluri, alternând `left`/`right` |
+
+Pe mobil originalul păstrează aceleași fundaluri; la noi, în secțiunile lungi, haloul suplimentar primește `mobile={false}` (mai puține halouri pe mobil).
