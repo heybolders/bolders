@@ -9,7 +9,8 @@ interface NavigatorWithDeviceMemory extends Navigator {
 }
 
 const LOW_END_MEMORY_GB = 2;
-const LOW_END_CORES = 4;
+// Safari limitează hardwareConcurrency la 4 sau 8 (anti-fingerprinting): un prag de 4 ar exclude iPhone-urile
+const LOW_END_CORES = 2;
 
 export function prefersReducedMotion(): boolean {
   return window.matchMedia(MEDIA_CONDITIONS.reduceMotion).matches;
@@ -42,7 +43,7 @@ export function supportsWebGL(): boolean {
 }
 
 /**
- * Dispozitiv slab: `deviceMemory ≤ 2` GB sau `hardwareConcurrency ≤ 4`, doar când valoarea e definită.
+ * Dispozitiv slab: `deviceMemory ≤ 2` GB sau `hardwareConcurrency ≤ 2`, doar când valoarea e definită.
  * O valoare lipsă nu înseamnă dispozitiv slab: Safari și Firefox nu expun deviceMemory, iar iPhone-urile
  * nu trebuie excluse doar pentru că API-ul lipsește.
  */

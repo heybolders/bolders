@@ -264,7 +264,7 @@ Toate pornesc din modulul central și verifică `capabilities.ts` (`prefersReduc
   - rezoluție redusă pe mobil (simulare și dye la rezoluție mică, DPR limitat);
   - randarea se oprește când nu există mișcare (simularea s-a stins) și când tab-ul e ascuns (`visibilitychange`); repornește la următoarea mișcare;
   - ascultători touch/pointer **pasivi** (`{ passive: true }`): scroll-ul nu se blochează;
-  - nu pornește la `prefers-reduced-motion`, fără WebGL (`supportsWebGL()`) sau pe dispozitiv slab (`isLowEndDevice()`: `deviceMemory ≤ 2` sau `hardwareConcurrency ≤ 4`, doar când valoarea e definită).
+  - nu pornește la `prefers-reduced-motion`, fără WebGL (`supportsWebGL()`) sau pe dispozitiv slab (`isLowEndDevice()`: `deviceMemory ≤ 2` sau `hardwareConcurrency ≤ 2`, doar când valoarea e definită; valoare nedefinită = nu e slab). Pragul de nuclee e 2, nu 4: Safari limitează `hardwareConcurrency` la 4 sau 8 (anti-fingerprinting), deci ≤ 4 ar exclude iPhone-urile.
 - **Proprietăți:** canvas-ul în sine nu se animă prin CSS; doar conținutul randat de WebGL.
 - **Mobil:** activ (atingere), cu limitele de mai sus.
 - **Reduced motion:** nu se montează.

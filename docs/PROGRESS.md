@@ -179,7 +179,7 @@
 
 Decizii confirmate de Adi (28.10):
 - Se reactivează: fum WebGL la cursor/atingere pe toată pagina (și pe mobil), cursor custom, glow pe butoane. Se adaugă halouri de lumină difuză în spatele textelor (omise la recreare). Hero: „să strălucești!” cu fum în loop, în locul respirației 700 → 200 → 700.
-- Limitele pentru fumul WebGL: încărcare după LCP (`requestIdleCallback`), rezoluție redusă pe mobil, randare oprită fără mișcare și cu tab-ul ascuns, ascultători touch pasivi, oprit la reduced motion, fără WebGL sau pe dispozitiv slab (`deviceMemory ≤ 2` sau `hardwareConcurrency ≤ 4`, doar dacă valoarea e definită).
+- Limitele pentru fumul WebGL: încărcare după LCP (`requestIdleCallback`), rezoluție redusă pe mobil, randare oprită fără mișcare și cu tab-ul ascuns, ascultători touch pasivi, oprit la reduced motion, fără WebGL sau pe dispozitiv slab (`deviceMemory ≤ 2` sau `hardwareConcurrency ≤ 2`, doar dacă valoarea e definită; pragul de nuclee corectat de la 4 la 2, vezi mai jos).
 - Iconițele 3D: reactivate, dar **amânate** până la fișierele originale de la Adi. Nu se ating până atunci.
 - Rămân eliminate: poze stock, preloader cu procent, contoare animate.
 - Regulă: nimic din original nu se elimină fără confirmarea lui Adi.
@@ -195,11 +195,13 @@ Fără niciun efect vizual implementat; site-ul arată identic.
 - **`src/scripts/animations/capabilities.ts`**, exportat din `index.ts`: `prefersReducedMotion()` (mutat din `conditions.ts`; `nav.ts` și `smooth-scroll.ts` importă de aici), `hasFinePointer()`, `supportsWebGL()` (WebGL2 → WebGL1, rezultat memorat, contextul de test eliberat cu `WEBGL_lose_context`), `isLowEndDevice()` (valoare nedefinită = nu e slab; `hardwareConcurrency` 0 tratat ca necunoscut). Fără `any`.
 - Codul hero-ului rulează încă respirația; se înlocuiește la pasul 4.
 
+#### Corectură (2026-10-28): detecția dispozitivelor slabe
+- `isLowEndDevice()`: pragul `hardwareConcurrency` coborât de la ≤ 4 la **≤ 2**. Safari limitează valoarea la 4 sau 8 (anti-fingerprinting), deci ≤ 4 excludea iPhone-urile. Regula: slab = (`deviceMemory` definit și ≤ 2) SAU (`hardwareConcurrency` definit și ≤ 2); valoare nedefinită = nu e slab. ANIMATIONS.md actualizat.
+
 #### Abateri și motive
 - **`capabilities.ts` atinge canvas/WebGL**, deși regula spune „doar în fluid”: `supportsWebGL()` trebuie să creeze un canvas temporar ca să detecteze suportul. Excepția e limitată la exact cele două linii (allowlist pe text în `audit-rules.mjs`) și documentată în `.claude/rules/animations.md`.
 
 #### Neclarități / de verificat la pașii următori
-- **`hardwareConcurrency` pe iOS:** Safari poate raporta un număr de nuclee redus din motive de confidențialitate. Dacă un iPhone raportează ≤ 4, `isLowEndDevice()` îl exclude, contrar intenției „iPhone-urile nu trebuie excluse”. De verificat pe un iPhone real la pasul 6; dacă e cazul, pragul se aplică doar când `deviceMemory` e definit.
 - Valorile `blur()` din `smoke-text` se scriu în `rem`/`em`: regula `px` rămâne valabilă și acolo.
 - Tokenii pentru glow și halouri (din `#ffffff4d`, `#ffffff80`, `#ddd6d633`) se adaugă în DESIGN.md §2 la pașii 2–3.
 
