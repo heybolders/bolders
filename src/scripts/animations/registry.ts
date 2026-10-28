@@ -1,6 +1,7 @@
 import { heroSyllables } from "@/scripts/animations/hero-syllables";
 import { lineReveal } from "@/scripts/animations/line-reveal";
 import { nav } from "@/scripts/animations/nav";
+import { smokeText } from "@/scripts/animations/smoke-text";
 import type { AnimationFactory } from "@/scripts/animations/types";
 import { wordmark } from "@/scripts/animations/wordmark";
 
@@ -9,5 +10,6 @@ export const registry: Record<string, AnimationFactory> = {
   "hero-syllables": heroSyllables,
   "line-reveal": lineReveal,
   nav,
+  "smoke-text": smokeText,
   wordmark,
 };

@@ -30,6 +30,7 @@ Permis **doar** în `src/styles/global.css`, **doar** în layere cu nume (`@laye
 | `.btn-lg` | components | suprascrie `--btn-pad` pentru butoanele mari |
 | `.btn-fill` | components | `clip-path: circle(… at var(--btn-dot-x) 50%)` cu tranziție; ar cere valori arbitrare |
 | `.line-mask` | components | `padding-block` / `margin-block` în `em` (0.12em / 0.2em) pentru masca SplitText |
+| `.no-kerning` | components | `font-kerning: none` (fără utilitar Tailwind) pe cuvântul cu `smoke-text`: lățimea nu se schimbă când SplitText împarte literele |
 | `.hero-pending` | components | starea ascunsă a hero-ului, pusă de scriptul inline înaintea primului paint (ANIMATIONS.md, „hero-syllables”) |
 | `.hero-grid` | components | `mask-image: radial-gradient(...)` pe liniile de construcție |
 

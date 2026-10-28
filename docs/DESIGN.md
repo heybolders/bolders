@@ -118,7 +118,7 @@ Mobile-first, cu prefixul `--color-` etc., ca să genereze utilitarele standard.
   --text-h2-sm: clamp(1.5rem, 1.2rem + 1vw, 2rem);  --text-h2-sm--line-height: 1.3;
   --text-h2: clamp(2rem, 1.4rem + 2.4vw, 4rem);     --text-h2--line-height: 1.1;
   --text-story: clamp(1.75rem, 1rem + 3.2vw, 3.75rem); --text-story--line-height: 1.25;
-  --text-display: clamp(3.25rem, 1rem + 9vw, 9rem); --text-display--line-height: 0.95;
+  --text-display: clamp(1.75rem, min(8.4vw - 0.375rem, 3.125rem + 2.083vw), 6.5rem); --text-display--line-height: 1.1;
 
   --font-weight-light: 200;
   --font-weight-normal: 400;
@@ -179,10 +179,25 @@ Cazuri în care utilitarele nu ajung și se scrie CSS în `@layer components` di
 - Panoul footerului (corecturi Etapa 4): grilă cu trei rânduri peste wordmark. Rândul 1 = jumătatea de sus a wordmark-ului (`aspect-wordmark-half`), deci panoul începe exact la mijlocul înălțimii literelor la orice lățime, fără JS; rândul 3 (`h-8`) prelungește panoul sub linia de bază. Panoul: `rounded-card` (mobil) / `rounded-panel`, `border-line`, `bg-ink-soft/60`, `backdrop-blur-panel`. Conține © anul + Bolders Srl, linkurile legale (`text-body`, ținte de 44 px) și locul gol pentru iconițele sociale (`data-slot="social"`).
 - Separatorul „/” din meniul footerului: `span` lime poziționat în spațiul (`gap`) din stânga fiecărui link; lista are `overflow-clip`, deci separatorul primului link de pe fiecare rând vizual (inclusiv după wrap pe mobil) cade în afara listei și nu se vede. Rezultat: „/” doar între linkuri de pe același rând, niciodată la capăt.
 - `.hero-pending [data-hero-part]` (Etapa 4): `opacity: 0` cât timp scriptul inline din Hero ține hero-ul ascuns pentru intrare (ANIMATIONS.md, „hero-syllables”). Fără JS clasa nu există.
+- `.no-kerning` (reactivare efecte, pasul 4): `font-kerning: none` pe „strălucești!”, ca împărțirea în litere `inline-block` (SplitText, `smoke-text`) să nu schimbe lățimea cuvântului.
 - `.hero-grid` (Etapa 4): `mask-image` radial pe fundalul cu liniile de construcție, ca liniile să se stingă spre margini.
 - Fundalul hero (`home/HeroGrid.astro`): verticalele sunt marginile reale ale coloanelor din `container-site` (4 pe mobil, 12 de la `md`), `border-dashed border-line`. Construcția lui „b” (cerc + 2 diagonale paralele la ≈ 56°, a doua tangentă la cerc + 3 orizontale: vârful tijei, umărul, linia de bază) stă într-un pătrat de 4 coloane pe mobil și 6 coloane (4–9) de la `md`, deci tangentele verticale ale cercului cad pe linii de coloană. SVG desenat de la zero (nu e copiat fișierul din `reference/media`), `vector-effect: non-scaling-stroke`, `stroke-line`. Fără WebGL, fără canvas.
 
-**Regulă de greutate:** Manrope 200 (`font-light`) se folosește **doar** cu `text-display`, niciodată la o mărime randată sub ~3rem. Sub acest prag, greutatea minimă e 400.
+**`text-display` măsurat pe original** (reactivare efecte, pasul 4, 28.10; `.heading-move` / `.heading-3`, Playwright):
+
+| Lățime | Original font-size | `text-display` | line-height | letter-spacing |
+|---|---|---|---|---|
+| 375 | 27.99 px | 28 px | 110 % | normal |
+| 390 | 28.22 px | 28 px | 110 % | normal |
+| 412 | 28.56 px | 28.6 px | 110 % | normal |
+| 768 | 58.41 px | 58.5 px | 110 % | normal |
+| 1440 | 80 px | 80 px | 110 % | normal |
+| 1920 | 90 px | 90 px | 110 % | normal |
+| 2560 | 103.3 px | 103.3 px | 110 % | normal |
+
+Originalul crește în trepte (breakpoint-urile Webflow): între 479 și 767 rămâne ≈ 32–33 px, apoi sare la 58 px; la 992 are 75.3 px. Tokenul e continuu (`min()` între panta de mobil 412 → 768 și panta de desktop 1440 → 1920), deci coincide în punctele de mai sus și diferă între trepte (600: 44 vs 33 px; 992: 70.7 vs 75.3 px). Hero-ul nu mai folosește `tracking-display` (originalul are letter-spacing normal).
+
+**Regulă de greutate:** Manrope 200 (`font-light`) se folosește **doar** cu `text-display`. Regula „niciodată sub ~3rem” e suspendată pentru hero (decizie Adi, 28.10: greutățile 200/700 rămân, mărimea vine din original): „Acum este momentul” se randează la 28 px pe mobil. Pentru orice alt text, sub ~3rem greutatea minimă e 400.
 
 ## 3. Direcția de modernizare
 
@@ -197,9 +212,9 @@ Cazuri în care utilitarele nu ajung și se scrie CSS în `@layer components` di
 
 **Ce se schimbă:**
 
-1. **Un singur moment îndrăzneț: tipografia ca obiect.** Contrastul vine din *greutatea* aceluiași font, nu din al doilea font. Display-ul se scrie cu Manrope 200 (ExtraLight) la dimensiuni foarte mari, iar cuvintele-cheie în același rând cu 700. Varianta studiors (serif italic + grotesk) devine la noi „Manrope subțire + Manrope gros”. Silabele din „st·ră·lu·ce·ști!” rămân semnătura hero-ului, cu mască (`overflow: clip` pe linie).
+1. **Un singur moment îndrăzneț: tipografia ca obiect.** Contrastul vine din *greutatea* aceluiași font, nu din al doilea font. Display-ul se scrie cu Manrope 200 (ExtraLight) la dimensiuni foarte mari, iar cuvintele-cheie în același rând cu 700. Varianta studiors (serif italic + grotesk) devine la noi „Manrope subțire + Manrope gros”. Silabele din „st·ră·lu·ce·ști!” rămân semnătura hero-ului: intră din mască, apoi literele trec prin fum în loop (`smoke-text`).
 2. **Lime-ul e semnal, nu decor.** Apare numai acolo unde ceva e activ sau acționabil: punctul din butoane, linkul curent, pasul curent din metodă, progresul formularului. Singura excepție decorativă e separatorul „/” din meniul footerului (identitate din original). Maximum ~3% din suprafața unui ecran. Fără titluri lime și fără fundaluri lime.
-3. **Hero centrat, secțiunile editoriale asimetrice.** Hero-ul rămâne **centrat**, ca în original: pill, titlu, subtitlu, buton, în această ordine, toate centrate pe axa paginii. Titlul display ocupă lățimea containerului, iar pe mobil se rupe pe silabe la ≥ 3.25rem. Restul secțiunilor folosesc o grilă de 12 coloane în `container-site`: titlurile pornesc din coloana 1, textul de susținere stă decalat în coloanele 7–12 (cf. `sectiune sub hero.png`). Contrastul dintre hero-ul centrat și secțiunile aliniate la stânga e intenționat.
+3. **Hero centrat, secțiunile editoriale asimetrice.** Hero-ul rămâne **centrat**, ca în original: pill, titlu, subtitlu, buton, în această ordine, toate centrate pe axa paginii. Titlul display are mărimea originalului (28 px pe mobil → 80 px la 1440); pe mobil stă pe două rânduri („Acum este momentul” / „să strălucești!”), cuvântul accentuat nu se rupe. Restul secțiunilor folosesc o grilă de 12 coloane în `container-site`: titlurile pornesc din coloana 1, textul de susținere stă decalat în coloanele 7–12 (cf. `sectiune sub hero.png`). Contrastul dintre hero-ul centrat și secțiunile aliniate la stânga e intenționat.
 4. **Liniile de construcție ale lui „b” ca motiv structural.** Liniile subțiri `line` din fundalul hero-ului și din `resurse/card-bolders-linii-constructie.svg` devin o grilă de fundal vizibilă doar în hero și în metodă, aliniată la coloanele reale. Nu e textură decorativă: arată grila pe care stă conținutul.
 5. **Ierarhie de raze, nu una singură:** pill pentru tot ce se apasă, `panel` (2rem) pentru suprafețele mari (formular, cardurile departamentelor), `media` (0.5rem) pentru capturile de proiect. Testimonialele devin citate tipografice pe fundal ink, fără card.
 6. **Secțiuni noi din inspirație, în identitatea Bolders:** proiecte în slider orizontal cu contor `01 / 04` (pe dark, nu pe crem), metodă fixată în 5 pași (secvență reală, numerotarea e justificată), departamente ca listă mare cu hover (doar pe pagina Departamente), formular în 3 pași, povestea agenției cu text care se așază la scroll.
@@ -230,7 +245,7 @@ Verificare față de bilet: paleta ink + lime este identitatea existentă (impus
 ## 4. Reguli de mișcare
 
 - Se animă **doar** `transform`, `opacity` și `clip-path`. Excepții strict limitate (§6): `filter: blur()` doar în modulul `smoke-text`; canvas/WebGL doar în modulul `fluid`.
-- Fără animații care modifică layout-ul în timpul scroll-ului: `width`, `height`, `margin`, `padding`, `top`/`left`, `font-size`. Excepții documentate în `ANIMATIONS.md`: axa `wght` pe silabele hero (lățime rezervată, fără reflow; dispare la pasul 4 al reactivării, odată cu respirația) și înălțimea acordeonului/descrierilor, declanșate de utilizator, nu de scroll.
+- Fără animații care modifică layout-ul în timpul scroll-ului: `width`, `height`, `margin`, `padding`, `top`/`left`, `font-size`. Excepții documentate în `ANIMATIONS.md`: înălțimea acordeonului/descrierilor, declanșate de utilizator, nu de scroll.
 - Preferință pentru **scrub legat de scroll** și **măști** (`overflow: clip`, `clip-path`) față de apariții simple (fade-in/fade-up la intrarea în viewport).
 - Țintă: **60 fps pe mobil** (testat cu throttling CPU 4× în DevTools). Ce nu ține 60 fps se simplifică sau se dezactivează pe `isMobile`.
 
@@ -266,7 +281,7 @@ Excepțiile reactivate din original (fum WebGL, cursor custom, glow pe butoane, 
 | Cursor custom | `.cursor-element` (IX2 `MOUSE_MOVE`) | `cursor` | reactivat, pasul 5 |
 | Glow pe butoane | butonul „glowing” | `glow` | reactivat, pasul 3 |
 | Halouri de lumină difuză în spatele textelor | fundalul hero (omis la recreare) | — (decor static, §7) | ✅ pasul 2 (28.10): **static, ca în original** (decizie Adi, pentru performanță) |
-| Fum pe „să strălucești!” (în loop) | silabele din hero (intrare cu blur, buclă) | `smoke-text` | reactivat, pasul 4; înlocuiește respirația 700 → 200 → 700 |
+| Fum pe „să strălucești!” (în loop) | silabele din hero (intrare cu blur, buclă) | `smoke-text` | ✅ pasul 4 (28.10): valorile măsurate pe original, pe litere; a înlocuit respirația 700 → 200 → 700 |
 | Iconițe 3D (glob, puzzle, mail, calendar, monede) | secțiunile homepage | — | **amânate, fișiere de la Adi** |
 
 Rămân eliminate (confirmat de Adi): poze stock, preloader cu procent, contoare animate.

@@ -16,7 +16,7 @@ paths:
 - O singură instanță Lenis, legată de `ScrollTrigger.update` și de `gsap.ticker`.
 - Pluginuri permise: `gsap`, `ScrollTrigger`, `SplitText`, `Observer`, `Flip`. Se înregistrează o singură dată, în modul.
 - **Interzis:** Three.js, Lottie, jQuery, SplitType, preloader. Nimic din original nu se elimină fără confirmarea lui Adi (DESIGN.md §6).
-- Animează doar `transform`, `opacity` și `clip-path` (DESIGN.md §4 „Reguli de mișcare”). Axa `wght` doar pe silabele hero, cu lățimea rezervată (fără reflow), până când `smoke-text` înlocuiește respirația. Fără layout thrash (`width`, `height`, `margin`, `top`, `left`, `font-size` animate la scroll).
+- Animează doar `transform`, `opacity` și `clip-path` (DESIGN.md §4 „Reguli de mișcare”). Fără animații pe axa `wght` (respirația hero a fost înlocuită de `smoke-text`). Fără layout thrash (`width`, `height`, `margin`, `top`, `left`, `font-size` animate la scroll).
 - Pe mobil (`< 768px`): maximum o secțiune fixată per pagină; fără efecte care depind de hover.
 
 ## Efecte reactivate (ANIMATIONS.md, „Efecte reactivate”)

@@ -6,6 +6,9 @@ import { DURATION } from "@/scripts/animations/timing";
 import type { AnimationFactory } from "@/scripts/animations/types";
 
 const SESSION_KEY = "bolders:hero-intro";
+/** Emis pe secțiune când titlul e complet pe ecran; `smoke-text` pornește bucla după el. */
+export const HERO_READY_EVENT = "hero:ready";
+const READY_ATTR = "data-hero-ready";
 /** Clasa pusă de scriptul inline din Hero.astro înaintea primului paint. */
 const PENDING_CLASS = "hero-pending";
 
@@ -15,7 +18,6 @@ const AT = {
   syllables: 0.55,
   // subtitlul și butonul: 0.9 după începutul titlului
   after: 1.2,
-  breath: 4,
 } as const;
 const SHORT_DURATION = 0.4;
 
@@ -38,29 +40,26 @@ function markPlayed(): void {
   }
 }
 
-/** O singură respirație 700 → 200 → 700; lățimea e rezervată de copia invizibilă la 700. */
-function breathe(targets: NodeListOf<HTMLElement>, delay: number): void {
-  gsap.fromTo(
-    targets,
-    { fontVariationSettings: "'wght' 700" },
-    {
-      fontVariationSettings: "'wght' 200",
-      duration: DURATION.base,
-      ease: "sine.inOut",
-      stagger: 0.05,
-      repeat: 1,
-      yoyo: true,
-      delay,
-      immediateRender: false,
-      clearProps: "fontVariationSettings",
-    },
-  );
+/** Titlul e complet pe ecran (sau intrarea a fost sărită): atributul acoperă ascultătorii montați după. */
+function markReady(el: HTMLElement): void {
+  el.setAttribute(READY_ATTR, "");
+  el.dispatchEvent(new CustomEvent(HERO_READY_EVENT));
+}
+
+/** Rulează `callback` după intrarea hero-ului; returnează funcția care anulează așteptarea. */
+export function onHeroReady(hero: HTMLElement, callback: () => void): () => void {
+  if (hero.hasAttribute(READY_ATTR)) {
+    callback();
+    return () => undefined;
+  }
+  hero.addEventListener(HERO_READY_EVENT, callback, { once: true });
+  return () => hero.removeEventListener(HERO_READY_EVENT, callback);
 }
 
 /**
- * Pill → „Acum este momentul” (rânduri din mască) → silabele din mască → subtitlu și buton,
- * apoi o singură respirație pe axa wght. Secvența completă rulează o dată pe sesiune;
- * la revenire, un crossfade scurt.
+ * Pill → „Acum este momentul” (rânduri din mască) → silabele din mască → subtitlu și buton.
+ * Secvența completă rulează o dată pe sesiune; la revenire, un crossfade scurt.
+ * După intrare, „strălucești!” trece la `smoke-text` (HERO_READY_EVENT).
  */
 export const heroSyllables: AnimationFactory = (el, { mm }) => {
   const root = document.documentElement;
@@ -68,8 +67,8 @@ export const heroSyllables: AnimationFactory = (el, { mm }) => {
   const line = el.querySelector<HTMLElement>('[data-hero-part="line"]');
   const parts = el.querySelectorAll<HTMLElement>("[data-hero-part]");
   const after = el.querySelectorAll<HTMLElement>('[data-hero-part="after"]');
+  const words = el.querySelectorAll<HTMLElement>('[data-hero-part="word"]');
   const syllables = el.querySelectorAll<HTMLElement>("[data-hero-syllable]");
-  const breath = el.querySelectorAll<HTMLElement>("[data-hero-breath]");
 
   // La încărcarea inițială, intrarea rulează doar dacă scriptul inline ține încă hero-ul ascuns.
   // Dacă bugetul a expirat, textul e deja pe ecran: ascunderea lui acum ar fi un flash.
@@ -85,13 +84,18 @@ export const heroSyllables: AnimationFactory = (el, { mm }) => {
     played = true;
 
     if (!intro) {
-      // hero static: rămâne doar respirația, care nu ascunde nimic
-      breathe(breath, Math.max(DURATION.base, AT.breath - performance.now() / 1000));
+      // hero static: textul e deja pe ecran, fumul poate porni
+      markReady(el);
       return;
     }
 
     if (short) {
-      gsap.from(parts, { opacity: 0, duration: SHORT_DURATION, ease: "power2.out" });
+      gsap.from(parts, {
+        opacity: 0,
+        duration: SHORT_DURATION,
+        ease: "power2.out",
+        onComplete: () => markReady(el),
+      });
       return;
     }
 
@@ -120,6 +124,9 @@ export const heroSyllables: AnimationFactory = (el, { mm }) => {
       });
     }
 
+    // Masca doar cât durează intrarea: clip-path (nu overflow), ca să nu atingă layout-ul, și scos la final,
+    // ca fumul să poată ieși din rând (în sus la reapariție, spre dreapta la dispariție)
+    gsap.set(words, { clipPath: "inset(0)" });
     gsap.from(syllables, {
       // 130: silaba pornește complet sub zona de clip lărgită de .line-mask
       yPercent: 130,
@@ -127,11 +134,13 @@ export const heroSyllables: AnimationFactory = (el, { mm }) => {
       ease: "expo.out",
       stagger: isMobile ? 0.04 : 0.06,
       delay: AT.syllables,
+      onComplete: () => {
+        gsap.set(words, { clearProps: "clipPath" });
+        markReady(el);
+      },
     });
 
     gsap.from(after, { opacity: 0, duration: DURATION.base, ease: "power2.out", delay: AT.after });
-
-    breathe(breath, AT.breath);
   });
 
   // starea inițială e setată sincron mai sus (from() randează imediat), deci se poate scoate masca globală

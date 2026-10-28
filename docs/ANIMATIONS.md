@@ -19,7 +19,7 @@ Capturile stărilor originale: `reference/screenshots/<pagina>/scroll-1440|375/`
 
 | Atribut | Ce face | Unde |
 |---|---|---|
-| `data-anim="hero-syllables"` | pill, titlu, silabe mascate pe rând, subtitlu și buton; o respirație pe axa wght | secțiunea hero |
+| `data-anim="hero-syllables"` | pill, titlu, silabe mascate pe rând, subtitlu și buton; la final emite `hero:ready` pentru `smoke-text` | secțiunea hero |
 | `data-anim="line-reveal"` | rânduri SplitText care urcă din mască | titluri H1/H2 mari |
 | `data-anim="words-light"` | cuvinte de la opacitate .2 la 1, legat de scroll | storytelling, citat lung |
 | `data-anim="title-settle"` | litere împrăștiate care se așază la scroll | titluri între secțiuni, Agenție |
@@ -33,7 +33,7 @@ Capturile stărilor originale: `reference/screenshots/<pagina>/scroll-1440|375/`
 | `data-anim="form-steps"` | tranziție între pașii formularului + bară progres | contact |
 | `data-anim="marquee"` | bandă de mesaje, viteză legată de scroll | CTA final |
 | `data-anim="wordmark"` | wordmark-ul „Bolders” se ridică din mască | footer |
-| `data-anim="smoke-text"` | literele se dizolvă în fum stânga → dreapta și se rescriu, în loop | „să strălucești!” (hero) |
+| `data-anim="smoke-text"` | literele se dizolvă în fum stânga → dreapta și se rescriu, în loop | „strălucești!” (hero; „să” rămâne fix) |
 | `data-anim="glow"` | strălucire pe buton (pseudo-element cu gradient) | butoane |
 | `data-anim="cursor"` | cursor custom care urmărește mouse-ul | global, doar `pointer: fine` |
 | `data-anim="fluid"` | fum WebGL la cursor/atingere | global (canvas fix) |
@@ -93,18 +93,16 @@ SplitText `type: "lines"`, `mask: "lines"`, `autoSplit: true`, animația returna
 
 ### 1. Hero — `data-anim="hero-syllables"`
 - **Original:** IX2 `heading [scroll in - change txt]`. `.heading-move._1…_7` („st · ră · lu · ce · șt · i · !”) intră din `y −100%` cu blur și opacitate, 400 ms `outCirc`, decalaj 100 ms. După 3000 ms ies spre `x 160%` (500 ms) și ciclul se repetă. Fundal: canvas WebGL + grilă de linii. Capturi: `screenshots/home/hero-timeline/`.
-- **Nou:** hero centrat (DESIGN §3). Silabele urcă din mască (`overflow: clip` pe linie, `yPercent 110 → 0`), stagger 0.06, 0.9 `expo.out`, după pill (0.3) și „Acum este momentul” (`line-reveal`). Fără blur. După intrare, „să strălucești!” trece la `data-anim="smoke-text"` (fum în loop, vezi „Efecte reactivate”), care **înlocuiește respirația** 700 → 200 → 700 (confirmat de Adi, 28.10). Până la pasul 4, codul încă rulează respirația descrisă mai jos. Subtitlul și butonul: opacitate 0 → 1, 0.5, delay 0.9.
-- **Fără reflow la respirație:** fiecare silabă e un `inline-grid` cu două straturi în aceeași celulă: o copie invizibilă (`aria-hidden`, `visibility: hidden`) la `wght 700`, care fixează lățimea, și silaba vizibilă centrată peste ea. Se animă doar `font-variation-settings` pe stratul vizibil, în interiorul cutiei deja dimensionate, deci textul din jur nu se mișcă. Lățimea rezervată se verifică la 375 și 1440 (fără salt de rând între 200 și 700).
+- **Nou:** hero centrat (DESIGN §3). Silabele urcă din mască (`clip-path` pe cuvânt cât durează intrarea, `yPercent 130 → 0`), stagger 0.06, 0.9 `expo.out`, după pill (0.3) și „Acum este momentul” (`line-reveal`). Fără blur la intrare. După intrare, „strălucești!” trece la `data-anim="smoke-text"` (fum în loop, vezi „Efecte reactivate”), care **a înlocuit respirația** 700 → 200 → 700 (confirmat de Adi, 28.10; implementat la pasul 4). Subtitlul și butonul: opacitate 0 → 1, 0.5, delay 0.9.
 - **Sursă:** `inspiratie.md` → `01-hero` (hero actual Bolders, „intrarea literelor mai fluidă, cu mască, tipografie mai mare, ritm mai bun pe mobil”). Fișier: `hero.png`.
 - **Plugin:** SplitText (`lines` pentru prima linie), GSAP timeline.
 - **Trigger:** `astro:page-load` (o singură dată pe sesiune la prima vizită; la navigare înapoi, varianta scurtă de 0.4 s).
 - **Mobil:** titlul pe 3–4 rânduri, silabele rămân pe un rând propriu, stagger 0.04.
-- **Reduced motion:** text static complet, fără animație de weight.
-- **Implementare (Etapa 4):** `data-anim="hero-syllables"` stă pe `<section>`, nu pe titlu, pentru că orchestrează și pill-ul, subtitlul și butonul. Ținte: `data-hero-part="pill|line|word|after"`, `data-hero-syllable` (intrare din mască: „să” + cele 7 silabe), `data-hero-breath` (doar cele 7 silabe). Titlul complet e într-un `sr-only` din `h1`, partea vizuală e `aria-hidden`.
-  - Secvența completă: pill `opacity 0 → 1` + `yPercent 40 → 0` (0.5) la 0 s; „Acum este momentul” SplitText `lines` cu mască, `yPercent 130 → 0`, 0.9 `expo.out`, stagger 0.08 (mobil 0.06) la 0.3 s; silabele `yPercent 130 → 0`, 0.9 `expo.out`, stagger 0.06 (mobil 0.04) la 0.55 s; subtitlu și buton `opacity` 0.5 la 1.2 s (0.9 după începutul titlului); respirația la 4 s. Pornirea de la 130 (nu 110) e din același motiv ca la `line-reveal` (masca `.line-mask` lărgită).
-  - Respirația: `font-variation-settings 'wght' 700 → 200 → 700` (yoyo, 0.5 per sens, `sine.inOut`, stagger 0.05), o singură dată. Silabele stau la 700 în repaus (contrastul de greutate cerut), deci „200 → 700” se citește ca undă prin axa de greutate care pleacă de la 700 și revine. Lățimea e rezervată de copia invizibilă la 700: verificat la 375 și 1440 (rândul nu se rupe, textul din jur nu se mișcă).
-  - O dată pe sesiune: `sessionStorage["bolders:hero-intro"]`. La revenire (reload sau navigare înapoi pe `/`): toate părțile `opacity 0 → 1`, 0.4, fără respirație.
-  - **Fără flash și LCP:** modulul ajunge după primul paint pe rețele lente, deci nu poate ascunde singur textul fără flash. Un script inline (`is:inline`, excepție documentată) din `Hero.astro` rulează doar la încărcarea inițială a documentului (`readyState === "loading"`), înaintea primului paint: pune clasa `hero-pending` pe `<html>` (CSS: `[data-hero-part]` la `opacity 0`) și o scoate singur la **1 s de la începutul navigării**. Dacă modulul ajunge înainte, își setează starea inițială sincron (`from()` randează imediat), scoate clasa și rulează intrarea. Dacă bugetul a expirat, textul e deja vizibil: modulul nu-l mai ascunde, rulează doar respirația. La navigarea prin router, `astro:page-load` rulează înaintea primului cadru, deci modulul ascunde și animă direct. Fără JS sau la reduced motion clasa nu se pune.
+- **Reduced motion:** text static complet, fără fum.
+- **Implementare (Etapa 4):** `data-anim="hero-syllables"` stă pe `<section>`, nu pe titlu, pentru că orchestrează și pill-ul, subtitlul și butonul. Ținte: `data-hero-part="pill|line|word|after"`, `data-hero-syllable` (intrare din mască: „să” + cele 7 silabe). Numele accesibil e `aria-label` pe `h1` (pasul 4; înainte era un `sr-only`), partea vizuală e `aria-hidden`, textul rămâne în HTML.
+  - Secvența completă: pill `opacity 0 → 1` + `yPercent 40 → 0` (0.5) la 0 s; „Acum este momentul” SplitText `lines` cu mască, `yPercent 130 → 0`, 0.9 `expo.out`, stagger 0.08 (mobil 0.06) la 0.3 s; silabele `yPercent 130 → 0`, 0.9 `expo.out`, stagger 0.06 (mobil 0.04) la 0.55 s; subtitlu și buton `opacity` 0.5 la 1.2 s (0.9 după începutul titlului). La finalul silabelor, masca (`clip-path: inset(0)` pe cele două cuvinte, pusă din JS) se scoate și secțiunea primește `data-hero-ready` + evenimentul `hero:ready`, după care pornește `smoke-text`. Pornirea de la 130 (nu 110) e din același motiv ca la `line-reveal` (masca `.line-mask` lărgită).
+  - O dată pe sesiune: `sessionStorage["bolders:hero-intro"]`. La revenire (reload sau navigare înapoi pe `/`): toate părțile `opacity 0 → 1`, 0.4, apoi `hero:ready`.
+  - **Fără flash și LCP:** modulul ajunge după primul paint pe rețele lente, deci nu poate ascunde singur textul fără flash. Un script inline (`is:inline`, excepție documentată) din `Hero.astro` rulează doar la încărcarea inițială a documentului (`readyState === "loading"`), înaintea primului paint: pune clasa `hero-pending` pe `<html>` (CSS: `[data-hero-part]` la `opacity 0`) și o scoate singur la **1 s de la începutul navigării**. Dacă modulul ajunge înainte, își setează starea inițială sincron (`from()` randează imediat), scoate clasa și rulează intrarea. Dacă bugetul a expirat, textul e deja vizibil: modulul nu-l mai ascunde și emite direct `hero:ready` (rulează doar fumul). La navigarea prin router, `astro:page-load` rulează înaintea primului cadru, deci modulul ascunde și animă direct. Fără JS sau la reduced motion clasa nu se pune.
   - Resize peste pragul `md`: intrarea nu se repetă (flag în factory).
 
 ### 2. Storytelling — `data-anim="words-light"`
@@ -230,12 +228,27 @@ Ordinea implementării: 1 fundația (documentație, reguli, audit, `capabilities
 
 Toate pornesc din modulul central și verifică `capabilities.ts` (`prefersReducedMotion()`, `hasFinePointer()`, `supportsWebGL()`, `isLowEndDevice()`). Fără JS sau la reduced motion, pagina arată ca acum (efectele lipsesc, conținutul rămâne vizibil).
 
-### `smoke-text` — fum pe „să strălucești!”
-- **Ce face:** după intrarea hero-ului, literele din „să strălucești!” se dizolvă în fum de la stânga la dreapta (stagger pe litere), apoi se rescriu în aceeași ordine; ciclul se repetă (loop). **Doar pe acest text.** Înlocuiește respirația 700 → 200 → 700.
-- **Proprietăți animate:** `opacity`, `filter: blur()` (singura utilizare permisă de `filter`), `transform` (derivă mică în sus/dreapta, `x`/`y`/`scale`). Fără `font-variation-settings`.
-- **Mobil:** identic, derivă și blur mai mici; pauză când hero-ul iese din ecran sau tab-ul e ascuns.
-- **Reduced motion:** text static, fără fum și fără loop.
-- **Accesibilitate:** titlul complet rămâne în `sr-only`; partea animată e `aria-hidden`.
+### `smoke-text` — fum pe „strălucești!” ✅ (pasul 4)
+- **Ce face:** după intrarea hero-ului, literele din „strălucești!” se dizolvă în fum de la stânga la dreapta, apoi revin din ceață în aceeași ordine; pauză cu textul complet, apoi loop. **Doar pe acest cuvânt**; „să” rămâne fix. A înlocuit respirația 700 → 200 → 700.
+- **Măsurat pe original** (Playwright pe bolders1.webflow.io, 1440, stiluri calculate la 50 ms, verificat cu IX2 `a-67` „heading [ scroll in - change txt ]”, evenimentele `e-172`/`e-301`, `loop: true`):
+  - unitatea animată: cele **7 silabe** `.heading-move._1…_7` (st · ră · lu · ce · șt · i · !), 80 px / line-height 110% / 500;
+  - **dispariție:** opacitate 1 → 0, `blur` 0 → **8 px** (0.1em), `x` 0 → **+160 %** din lățimea silabei (st: +120.6 px ≈ 1.5em; !: +40 px), `y` 0, **fără scale**; **500 ms `outCirc`**, decalaj **100 ms** pe silabă;
+  - **reapariție:** salt instant la `y −100 %` (−88 px = un rând), `x 0`, `blur 6 px` (0.075em), opacitate 0; apoi `y → 0`, `blur → 0`, opacitate → 1; **400 ms `outCirc`**, decalaj **100 ms**;
+  - **pauză** cu textul complet: **3000 ms** (de la ultima silabă așezată la prima care pleacă); ciclul complet ≈ **5.1 s** (1.1 s dispariție + 1.0 s reapariție + 3.0 s pauză), măsurat 4.86 s → 9.96 s între două plecări ale primei silabe;
+  - comportamentul descris de Adi se potrivește în ordine și direcție; „se mărește ușor” și „plutește în sus” nu există în original (scale 1, y 0 la dispariție): impresia vine din blur. Am reprodus valorile măsurate, nu descrierea.
+- **Implementare (`src/scripts/animations/smoke-text.ts`):** SplitText `chars` (`aria: "hidden"`) pe cuvânt, la `hero:ready`; timeline GSAP `repeat: -1`, întâi pauza de 3 s (intrarea hero-ului ține locul primei reapariții):
+  - dispariție: `opacity 0`, `x 1.5em`, `filter: blur(0.1em)`, 0.5 `circ.out`, stagger **0.05** pe literă (100 ms pe silabă ≈ 50 ms pe literă; trecerea completă 0.55 s față de 0.6 s);
+  - reset: `x 0`, `yPercent −100`, `blur(0.075em)`;
+  - reapariție: `opacity 1`, `yPercent 0`, `blur(0em)`, 0.4 `circ.out`, stagger 0.05; apoi `filter: none`;
+  - pauză 3 s.
+  - Blur și deplasare în `em`: la 1440 sunt exact valorile originalului (8 px / 120 px); pe mobil scad odată cu titlul (28 px → blur 2.8 px, derivă 42 px).
+- **Fără layout shift:** literele sunt `inline-block` (SplitText), cuvântul are `font-kerning: none` (`.no-kerning`) de la primul paint, deci lățimea nu se schimbă la split (măsurat: 451.91 → 451.94 px la 1440, rotunjire subpixel). Doar `opacity`, `transform`, `filter`.
+- **Fără tăiere:** masca intrării e `clip-path` pus din JS doar cât rulează intrarea (nu `overflow-clip` în markup), deci literele pot urca un rând și pot ieși spre dreapta. Haloul e un strat `absolute -z-10`, nu container; secțiunea are `overflow-clip` doar la marginile ei (fără scroll orizontal la 375).
+- **Performanță:** `will-change: transform, opacity, filter` doar pe durata trecerii (setat la început, `auto` după reapariție și la pauză). Bucla e pe pauză când cuvântul iese din ecran (`IntersectionObserver`) sau tab-ul e ascuns (`visibilitychange`). Pornește după intrare, deci nu atinge LCP.
+- **Accesibilitate:** `aria-label` pe `h1` (titlul complet), partea vizuală și literele generate `aria-hidden`; textul rămâne în HTML.
+- **View Transitions:** split-ul și timeline-ul sunt create în contextul `matchMedia`, deci `astro:before-swap` le revertează (SplitText revine la HTML-ul inițial); `astro:page-load` le recreează.
+- **Mobil:** identic (valorile în em scad cu titlul).
+- **Reduced motion:** nu se montează: fără split, text static complet.
 
 ### `glow` — strălucire pe butoane
 - **Ce face:** reface butonul „glowing” din original: un pseudo-element cu gradient radial în spatele butonului, care se aprinde la hover/focus (și discret în repaus, după original).

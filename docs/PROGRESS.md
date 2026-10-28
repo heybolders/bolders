@@ -184,7 +184,7 @@ Decizii confirmate de Adi (28.10):
 - Rămân eliminate: poze stock, preloader cu procent, contoare animate.
 - Regulă: nimic din original nu se elimină fără confirmarea lui Adi.
 
-Pași: 1 fundația ✅ · 2 halouri (static) ✅ · 3 `glow` · 4 `smoke-text` · 5 `cursor` · 6 `fluid` (WebGL). Iconițe 3D: amânate.
+Pași: 1 fundația ✅ · 2 halouri (static) ✅ · 3 `glow` · 4 `smoke-text` ✅ · 5 `cursor` · 6 `fluid` (WebGL). Iconițe 3D: amânate.
 
 ### Pasul 1 din 6: fundația ✅ (2026-10-28)
 Fără niciun efect vizual implementat; site-ul arată identic.
@@ -224,5 +224,50 @@ Fără niciun efect vizual implementat; site-ul arată identic.
 #### Neclarități
 - **CLS preexistent la 1440:** o deplasare de 0.0037 pe un `SPAN.block` din titlul hero („Acum este momentul” / silabe), intermitentă (≈ 1 din 3 încărcări), prezentă și înainte de halou. Probabil împărțirea SplitText sau swap-ul de font; sub pragul „bun” (0.1), dar nu e 0. De investigat separat, nu ține de halou.
 - Fundalul fix (`background-attachment: fixed`) din „Fii Bolders”/testimoniale devine halouri locale în spatele titlurilor, nu un strat fix pe toată secțiunea; de confirmat cu Adi la construirea secțiunii 4.
+
+### Pasul 4 din 6: fum pe „strălucești!” + mărimea H1 ✅ (2026-10-28)
+Făcut la cererea lui Adi înaintea pasului 3 (`glow`), care rămâne de făcut.
+
+#### Referința (Playwright pe bolders1.webflow.io)
+- Stiluri calculate la 50 ms pe 11 s (1440) + configurația IX2 `a-67` „heading [ scroll in - change txt ]” (`e-172`/`e-301`, `loop: true`). Originalul animă **cele 7 silabe**, nu literele.
+- **Dispariție:** opacitate 1 → 0, blur 0 → **8 px**, `x` → **+160 %** din silabă (st: +120.6 px), `y` 0, **scale 1**; **500 ms `outCirc`**, decalaj **100 ms**.
+- **Reapariție:** de la `y −100 %` (−88 px), blur **6 px**, opacitate 0 → `y 0`, blur 0, opacitate 1; **400 ms `outCirc`**, decalaj **100 ms**.
+- **Pauză** cu textul complet **3.0 s**; ciclu ≈ **5.1 s** (măsurat 4.86 → 9.96 s între două plecări ale primei silabe).
+- Descrierea lui Adi se potrivește în ordine și direcție, dar „se mărește” și „plutește în sus” nu există în original (scale 1, y 0 la dispariție; urcarea se vede doar la reapariție, care vine de sus). Am reprodus valorile măsurate. Detalii în ANIMATIONS.md, `smoke-text`.
+
+#### Construit
+- `src/scripts/animations/smoke-text.ts` (în registry): SplitText `chars` (`aria: "hidden"`), timeline `repeat: -1`: pauză 3 s → dispariție (`opacity 0`, `x 1.5em`, `blur(0.1em)`, 0.5 `circ.out`, stagger 0.05) → reset (`yPercent −100`, `blur(0.075em)`) → reapariție (0.4 `circ.out`, stagger 0.05) → `filter: none`. Stagger 0.05 pe literă = 100 ms pe silabă din original. Blur și derivă în `em` (la 1440 exact 8 px / 120 px). `will-change` doar în timpul trecerii; pauză în afara ecranului (`IntersectionObserver`) și cu tab-ul ascuns; reduced motion: nu se montează.
+- `hero-syllables.ts`: respirația 700 → 200 → 700 ștearsă (cu `data-hero-breath` și copiile invizibile `inline-grid`). Masca intrării e acum `clip-path: inset(0)` pus din JS doar cât rulează intrarea (în loc de `overflow-clip` în markup), ca fumul să poată ieși din rând. La final emite `hero:ready` (+ atributul `data-hero-ready`), după care pornește fumul; și în variantele scurtă și statică.
+- `Hero.astro`: `aria-label` pe `h1` în loc de `sr-only` (textul complet rămâne în HTML, partea vizuală `aria-hidden`), `data-anim="smoke-text"` pe „strălucești!”, „să” separat și fix. Diacriticele sunt precompuse (ă U+0103, ș U+0219), deci SplitText le lasă câte o literă (verificat: `s|t|r|ă|l|u|c|e|ș|t|i|!`, 12 litere).
+- `.no-kerning` (`font-kerning: none`) pe cuvânt: fără ea, split-ul lărgea cuvântul cu 2.2 px (kerning-ul se pierde între literele inline-block) și muta rândul cu 1 px.
+- **Mărimea H1** (`--text-display`): `clamp(3.25rem, 1rem + 9vw, 9rem)` / 0.95 → `clamp(1.75rem, min(8.4vw - 0.375rem, 3.125rem + 2.083vw), 6.5rem)` / **1.1**. Măsurat pe original (font-size / line-height / letter-spacing): 375 **27.99 / 110 % / normal**, 390 **28.22**, 412 **28.56**, 768 **58.41**, 1440 **80**, 1920 **90** (plus 2560: 103.3). Al nostru: 28 / 28 / 28.6 / 58.5 / 80 / 90 / 103.3. Originalul are weight 500 și crește în trepte (breakpoint-urile Webflow: 480–767 ≈ 32–33 px, 992 = 75.3 px); tokenul e continuu, deci între trepte diferă (600: 44 vs 33; 992: 70.7 vs 75.3). Tabelul complet în DESIGN.md §2. Hero-ul nu mai are `tracking-display` (originalul: letter-spacing normal). Greutățile 200 / 700 au rămas.
+
+#### Celelalte utilizări ale `text-display`
+- `StubPage.astro` (H1-ul paginilor stub: Agenție, Departamente, Proiecte, Contact, Întrebări frecvente): același token, deci titlurile scad la 28 px pe mobil / 80 px la 1440; păstrează `font-light` și `tracking-display` (−0.04em).
+- `pages/404.astro`: „404” decorativ (`text-display font-light tracking-display`); scade la fel. H1-ul paginii 404 e `text-h2`, neschimbat.
+- `Footer.astro`: folosește doar `tracking-display` (wordmark-ul SVG), nu `text-display`: neatins (viewBox-ul depinde de tracking).
+
+#### Corectură CLS (cauza deplasării „preexistente” de la pasul 2)
+- `.line-mask` (masca SplitText pe rânduri) are `margin-block` negativ; pe „Acum este momentul” marginea colapsa prin `span.block` până la `mt-8` al H1-ului, deci la split (după încărcarea fontului) tot titlul urca 0.12em (3.4 px la 375; 0.0002–0.0037 CLS, intermitent). `flow-root` pe span-ul cu rândul oprește colapsul. Același mecanism pe H1-ul cu `line-reveal` din `StubPage` și `404` (0.0003–0.0008): `flow-root` pe H1. Rezultat: 0 deplasări pe `/`, `/agentie`, `/contact`, 404 (375 și 1440, CPU 4×).
+
+#### Verificare (build de producție)
+- iPhone SE, iPhone 15, Pixel 7 (emulare reală, CPU 4×), 768, 1440, 1920: **CLS 0** (fără nicio intrare `layout-shift`), fără scroll orizontal, consola curată, „să strălucești!” pe un singur rând la toate (pe mobil titlul are 2 rânduri, „Acum este momentul” pe unul), 12 litere `aria-hidden`.
+- Fluiditate: intervalele de cadru în timpul trecerii (headless, CPU 4× pe mobil): mediană 8.3 ms, maxim 9.4 ms, **0 cadre > 34 ms** pe toate dispozitivele.
+- **LCP (Slow 4G + CPU 4×, iPhone SE, cache rece):** înainte (pe `4c7e44c`, în aceeași sesiune) **1429 ms**; după **1435 / 1433 ms** (diferență în marja dintre rulări). Elementul LCP rămâne subtitlul (H1-ul e mai mic acum). Fumul pornește după intrare, deci nu atinge LCP. CLS 0.
+- Pauză: cu hero-ul scos din ecran în mijlocul trecerii, literele rămân înghețate 1.5 s și pornesc din nou la revenire. View Transitions: `/` → `/agentie` → înapoi: un singur split (12 litere, nu 24), bucla repornește, consola curată. Reduced motion: fără split, text static complet.
+- Capturi: `reference/screenshots/etapa-efecte/smoke-text/` (`<dispozitiv>-text.png`, `-fum-iesire.png`, `-fum-intrare.png`, `iphone-se-reduced-motion.png`).
+- `npm run audit:rules` (0 abateri), `npm run check` (0/0/0), `npm run lint`, `npm run format:check`, `npm run build` (fără `ALLOW_PLACEHOLDERS`): curate.
+
+#### Abateri și motive
+- **Pe litere, nu pe silabe** (cum cere pasul): stagger-ul de 100 ms pe silabă devine 50 ms pe literă, iar derivă de +160 % din silabă devine 1.5em fixă pe literă (media originalului la 80 px); la „i” și „!” deriva e mai mare decât în original (acolo 32 / 40 px).
+- **Blur și derivă în em:** pe mobil scad cu titlul (originalul păstra 8 px și la 28 px). Cerut explicit; ANIMATIONS.md prevedea oricum „derivă și blur mai mici” pe mobil.
+- **Prima trecere începe cu pauza de 3 s**, nu cu reapariția: intrarea hero-ului (din mască) ține locul primei reapariții a originalului.
+- **Regula „Manrope 200 nu sub ~3rem”** e suspendată pentru hero: „Acum este momentul” are 28 px pe mobil (mărimea originalului, greutatea decisă). Notat în DESIGN.md §2.
+- **`flow-root` pe `StubPage`/`404`**: în afara hero-ului, dar aceeași cauză de CLS; o singură clasă.
+
+#### Neclarități
+- Adi a descris o mărire și o urcare la dispariție, care nu există în original. Dacă le vrea totuși, se adaugă ușor (`scale` și `y` la dispariție).
+- Mărimea 28 px pe mobil la weight 200 e mult mai mică decât înainte (52 px); de privit pe telefon.
+- Titlurile stub-urilor au scăzut odată cu tokenul; dacă trebuie să rămână mari, au nevoie de un token separat.
 
 ### Următoarea secțiune: 2. Storytelling (`data-anim="words-light"`) ⏭️
