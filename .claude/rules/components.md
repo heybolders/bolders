@@ -19,7 +19,7 @@ Documentația fiecărei primitive (props, variante, exemple, când se folosește
   - O componentă per fișier, importuri cu `@/`.
 - **Semantica e separată de aspect:** `Heading` primește `as` (h1–h6 sau `p` pentru text decorativ cu aspect de titlu) și `size` separat. Un singur `h1` per pagină.
 - **Atribute `data-*` fără valoare** pe o primitivă se scriu `data-x=""`: trecute prin props, un atribut boolean ajunge în HTML ca `data-x="true"`.
-- `Container size="prose"` primește `measure` egal cu mărimea textului din paragraf: `max-w-prose` e `65ch`, calculat din fontul elementului.
+- `Container size="text"` primește `measure` egal cu mărimea textului din paragraf: `max-w-text` (`--container-text`) e `65ch`, calculat din fontul elementului.
 
 ## Audit (`npm run audit:rules`)
 
@@ -27,4 +27,5 @@ Erori în afara primitivelor:
 - `glow-in-afara-buton`: `shadow-glow`, tokenii `--glow-*` / `--color-glow` / `--shadow-glow` și punctul lime (`size-* … bg-lime`) în afara `ui/Button.astro`, `ui/Pill.astro` (eticheta din hero e sursa glow-ului în original) și `global.css`.
 - `titlu-direct`: `<h1>`…`<h6>` în `src/components/`, `src/layouts/`, `src/pages/` în afara `ui/Heading.astro`.
 - `buton-direct`: `<button>`, `<a>` și clasele `btn`/`btn-lg`/`btn-fill` în afara `ui/Button.astro` (`<a>` e permis și în `ui/TextLink.astro`).
-- `container-direct`: `max-w-site` / `max-w-prose` în afara `ui/Container.astro`.
+- `container-direct`: `max-w-site` / `max-w-text` în afara `ui/Container.astro`.
+- `max-w-prose`: interzis oriunde (utilitarul nativ Tailwind; măsura de lectură e `max-w-text`).

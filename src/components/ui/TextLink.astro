@@ -6,7 +6,8 @@ import type { HTMLAttributes } from "astro/types";
 // legal: linkurile legale · logo: simbolul din header · skip: „Sari la conținut”, vizibil doar la focus
 const VARIANTS = {
   nav: "flex min-h-11 items-center rounded-pill px-6 text-lead font-medium transition-colors hover:text-mist current:text-lime",
-  menu: "block text-h2 font-medium tracking-tight current:text-lime",
+  // py-1.25: text-h2 are ≈ 35 px pe telefoane; cu padding-ul ținta trece de 44 px (≈ 45 px)
+  menu: "block py-1.25 text-h2 font-medium tracking-tight current:text-lime",
   footer: "inline-flex min-h-11 items-center transition-colors hover:text-mist current:text-lime",
   legal: "inline-flex min-h-11 items-center transition-colors hover:text-paper current:text-lime",
   logo: "flex h-11 w-14 items-center justify-center overflow-clip rounded-pill text-paper",

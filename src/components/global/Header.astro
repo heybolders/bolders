@@ -79,7 +79,7 @@ const ariaCurrent = (href: string) => (normalizePath(href) === current ? "page" 
     >
       <ul class="space-y-1">
         {PRIMARY_NAV.map(({ href, label }) => (
-          <li class="-mx-2 overflow-clip px-2 py-1">
+          <li class="-mx-2 overflow-clip px-2">
             <TextLink
               href={href}
               variant="menu"

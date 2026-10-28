@@ -136,7 +136,7 @@ Mobile-first, cu prefixul `--color-` etc., ca să genereze utilitarele standard.
   --spacing-halo: 32rem;    /* diametrul haloului pe mobil (raza vizibilă originală ≈ 255px la 375) */
   --spacing-halo-lg: 60rem; /* diametrul de la md (≈ 475px rază la 1440) */
   --container-site: 81rem;  /* container-large */
-  --container-prose: 45rem;
+  --container-text: 65ch;  /* măsura de lectură (max-w-text); ch se calculează din fontul elementului */
 
   --radius-media: 0.5rem;
   --radius-card: 1.25rem;

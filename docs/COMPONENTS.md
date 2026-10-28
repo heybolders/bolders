@@ -50,7 +50,7 @@ Orice link care nu arată ca un buton. Starea paginii curente vine din `aria-cur
 | Variantă | Unde | Hover / activ |
 |---|---|---|
 | `nav` | pill-ul din header, `text-lead` 500, `min-h-11` | `mist` / `lime` |
-| `menu` | meniul mobil, `text-h2` 500 | – / `lime` |
+| `menu` | meniul mobil, `text-h2` 500, `py-1.25` (≈ 45 px pe telefoane) | – / `lime` |
 | `footer` | meniul din footer (mărimea vine din listă), `min-h-11` | `mist` / `lime` |
 | `legal` | linkurile legale, `min-h-11` | `paper` / `lime` |
 | `logo` | simbolul din header, 56 × 44 | – |
@@ -90,24 +90,24 @@ Semantica (`as`) e separată de aspect (`size`).
 
 | Prop | Tip | Implicit | |
 |---|---|---|---|
-| `size` | `"site" \| "prose"` | `"site"` | |
+| `size` | `"site" \| "text"` | `"site"` | |
 | `fill` | `boolean` | `false` | `h-full` pe ambele niveluri (straturi absolute, ex. `HeroGrid`) |
-| `measure` | `"body" \| "lead"` | `"body"` | doar `prose`: mărimea textului din paragraf |
+| `measure` | `"body" \| "lead"` | `"body"` | doar `text`: mărimea textului din paragraf |
 | `class` | `string` | – | poziționare |
 
 - `site`: două elemente, `px-gutter` (exterior) + `mx-auto w-full max-w-site` (interior). Gutter-ul stă în afara lățimii maxime, deci conținutul are exact `--container-site` la ecranele late.
-- `prose`: un element `max-w-prose` (= `65ch`, calculat din font), fără gutter. `measure` trebuie să fie mărimea textului din `<p>`, altfel lățimea iese din fontul de bază.
+- `text`: un element `max-w-text` (tokenul `--container-text` = `65ch`, calculat din font), fără gutter. `measure` trebuie să fie mărimea textului din `<p>`, altfel lățimea iese din fontul de bază.
 
 ```astro
 <Section spacing="screen">
   <Container>…</Container>
 </Section>
-<Container size="prose" measure="lead" class="mt-8 md:mt-10">
+<Container size="text" measure="lead" class="mt-8 md:mt-10">
   <p class="text-lead text-paper-muted">{HERO.subtitle}</p>
 </Container>
 ```
 
-**Când:** orice conținut aliniat la grila site-ului și orice paragraf cu măsură de lectură. `max-w-site` / `max-w-prose` nu apar în afara lui.
+**Când:** orice conținut aliniat la grila site-ului și orice paragraf cu măsură de lectură. `max-w-site` / `max-w-text` nu apar în afara lui; `max-w-prose` nu se folosește deloc.
 
 ## Section
 

@@ -375,8 +375,25 @@ Fără nicio schimbare vizuală (verificat pixel cu pixel, vezi mai jos).
 - **DOM-ul are wrapper-e în plus** (Container pe două niveluri, `prose` în jurul paragrafelor): gutter-ul trebuie să rămână în afara `max-w-site` ca lățimile să nu se schimbe. Scripturile folosesc doar selectori `data-*`, deci nu sunt afectate.
 
 #### Neclarități (preexistente, neatinse ca să nu existe schimbări vizuale)
-- **Linkurile din meniul mobil au 35 px înălțime** (`text-h2` 32 px × 1.1) la 375–412, sub ținta de 44 px. Corectarea schimbă spațierea meniului; de decis.
-- **`--container-prose: 45rem` nu e folosit:** `max-w-prose` din Tailwind rămâne `65ch` (713.7 px la `text-lead`). Am păstrat `65ch`. Dacă se vrea 45rem (720 px), e o schimbare vizuală minoră.
+- ~~Linkurile din meniul mobil au 35 px înălțime~~ și ~~`--container-prose` nefolosit~~: rezolvate în corecturile de mai jos.
+
+### Corecturi după consolidare: ținte 44 px în meniul mobil + tokenul `--container-text` ✅ (2026-10-28)
+
+#### Ținte în meniul mobil
+- `TextLink` varianta `menu`: `py-1.25` (5 px sus și jos) pe link. `py-1` de pe `<li>` (Header) a fost scos, ca să nu se adune padding-ul: masca animației (`li` cu `overflow-clip`) e acum exact caseta linkului, iar `yPercent: 110` îl ascunde complet, ca înainte.
+- **Înălțimi măsurate** (fiecare link, meniul deschis, cu și fără reduced motion): iPhone SE **45.19 px**, iPhone 15 **45.19 px**, Pixel 7 **45.5 px** (toate 4 linkurile), 768 **54.91 px**. Fontul e neschimbat (32 / 32 / 32.29 / 40.83 px), la fel ordinea, alinierea și animația.
+- Spațierea: pasul dintre linkuri crește cu 2 px (2 × 5 px pe link în loc de 2 × 4 px pe `li`); `space-y-1` neschimbat. Meniul încape fără scroll (overflow 0) pe toate; pe iPhone SE primul link stă la 311 px din 667.
+- Capturi: `.screenshots/consolidare/meniu-44/<dispozitiv>-meniu-deschis.png`.
+
+#### Tokenul de lățime a textului
+- `@theme`: `--container-prose: 45rem` (nefolosit, utilitarul nativ `max-w-prose` = 65ch avea prioritate) → **`--container-text: 65ch`**. `Container`: `size="prose"` → `size="text"`, clasa `max-w-text` (`max-width: var(--container-text)`), deci aceeași lățime randată (713.7 px la `text-lead`).
+- `audit:rules`: regulă nouă `max-w-prose` (eroare oriunde în `src/`); `container-direct` verifică acum `max-w-site` / `max-w-text`. DESIGN.md §2, `docs/COMPONENTS.md`, `.claude/rules/components.md` actualizate.
+- Notă: `.max-w-prose` apare încă în CSS-ul generat pentru că Tailwind scanează și `docs/`, `scripts/` și `.claude/` (la fel `w-[37px]` din exemplele din `styling.md`). Nu e folosit în `src/`.
+
+#### Verificare
+- Pagina principală, meniu închis, iPhone SE / iPhone 15 / Pixel 7 / 768 / 1440 / 1920, cu și fără reduced motion (viewport + full page): **0 pixeli diferiți pe 18 capturi** (`.screenshots/consolidare/meniu-44/acasa-{inainte,dupa}/`).
+- `npm run audit:rules` (0 abateri), `npm run check` (0/0/0), `npm run lint`, `npm run format:check`, `npm run build` (cu `ALLOW_PLACEHOLDERS=1`): curate.
+- Corectură: scripturile de captură copiate în `.screenshots/consolidare/` la consolidare făceau `npm run lint` să eșueze (ESLint nu ignoră folderul); au fost scoase.
 
 ### Următoarea secțiune: 2. Storytelling (`data-anim="words-light"`) ⏭️
 

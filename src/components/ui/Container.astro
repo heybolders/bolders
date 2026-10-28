@@ -4,10 +4,10 @@ import type { HTMLAttributes } from "astro/types";
 // Lățimile maxime ale conținutului. Docs: docs/COMPONENTS.md.
 // site: gutter-ul (px-gutter) pe elementul exterior și max-w-site pe cel interior; gutter-ul stă în afara
 // lățimii maxime, deci conținutul are exact --container-site la ecranele late.
-// prose: măsura de lectură pentru paragrafe, un singur element, fără gutter (îl are deja părintele).
-// max-w-prose e 65ch, calculat din fontul elementului: `measure` îi dă mărimea textului din paragraf,
+// text: măsura de lectură pentru paragrafe, un singur element, fără gutter (îl are deja părintele).
+// max-w-text e 65ch, calculat din fontul elementului: `measure` îi dă mărimea textului din paragraf,
 // altfel lățimea ar ieși din fontul de bază (16 px), nu din cel al textului.
-type Size = "site" | "prose";
+type Size = "site" | "text";
 
 const MEASURES = {
   body: "text-body",
@@ -18,7 +18,7 @@ interface Props extends Omit<HTMLAttributes<"div">, "class"> {
   size?: Size;
   /** înălțimea întreagă a părintelui (straturi decorative absolute, ex. HeroGrid) */
   fill?: boolean;
-  /** prose: mărimea textului din paragraf (aceeași clasă text-* ca pe <p>) */
+  /** text: mărimea textului din paragraf (aceeași clasă text-* ca pe <p>) */
   measure?: keyof typeof MEASURES;
   /** doar poziționare în layout (margin, grid, order) */
   class?: string;
@@ -34,7 +34,7 @@ const { size = "site", fill = false, measure = "body", class: className, ...attr
     </div>
   </div>
 ) : (
-  <div {...attrs} class:list={["max-w-prose", MEASURES[measure], className]}>
+  <div {...attrs} class:list={["max-w-text", MEASURES[measure], className]}>
     <slot />
   </div>
 )}

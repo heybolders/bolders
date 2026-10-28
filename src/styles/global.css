@@ -59,7 +59,8 @@
   --spacing-halo: 32rem;
   --spacing-halo-lg: 60rem;
   --container-site: 81rem;
-  --container-prose: 45rem;
+  /* măsura de lectură: 65ch, calculat din fontul elementului (Container size="text", prop measure) */
+  --container-text: 65ch;
 
   --radius-media: 0.5rem;
   --radius-card: 1.25rem;

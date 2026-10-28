@@ -382,7 +382,15 @@ const CHECKS = [
     rule: "container-direct",
     message: "lățimea maximă a containerului în afara ui/Container.astro",
     applies: (file) => file !== UI.container,
-    patterns: [/(?<![\w-])(?:[\w-]+:)*max-w-(?:site|prose)\b/g],
+    patterns: [/(?<![\w-])(?:[\w-]+:)*max-w-(?:site|text)\b/g],
+    code: true,
+  },
+  {
+    // max-w-prose e utilitarul nativ Tailwind (65ch); măsura de lectură e tokenul --container-text
+    rule: "max-w-prose",
+    message: 'max-w-prose nu se folosește (măsura de lectură: Container size="text", max-w-text)',
+    applies: () => true,
+    patterns: [/(?<![\w-])(?:[\w-]+:)*max-w-prose\b/g],
     code: true,
   },
   {
