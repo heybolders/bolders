@@ -27,6 +27,6 @@ paths:
   - `filter: blur()` **doar** în `src/scripts/animations/smoke-text.ts`.
   - canvas / WebGL **doar** în `src/scripts/animations/fluid.ts`. Singura altă atingere permisă: detecția de suport din `capabilities.ts` (`supportsWebGL()` creează un canvas temporar, fără randare).
   - Orice altă utilizare de `filter` (inclusiv utilitarele `blur-*`, `drop-shadow-*`), `box-shadow` animat (`boxShadow` în GSAP, `transition-shadow`, tranziții/keyframes pe `box-shadow`) sau canvas rămâne **interzisă**. (`backdrop-blur` din nav și panoul footerului e `backdrop-filter`, static, permis.)
-- Glow pe butoane: static (`.btn::before`, gradient radial din tokeni), fără animație și fără schimbare la hover; dunga rotativă de pe border e eliminată. Niciodată lime ca glow sau halou.
+- Glow pe butoane: static (`shadow-glow`, umbra pill-ului din hero, din tokeni), fără animație și fără schimbare la hover; dunga rotativă de pe border e eliminată. Niciodată lime ca glow sau halou.
 - `cursor`: doar cu `pointer: fine`, doar `transform`; cursorul nativ rămâne pe `input`/`textarea`/`select`.
 - `fluid` (WebGL-Fluid-Simulation, Pavel Dobryakov, MIT): notița de licență MIT rămâne în `fluid.ts`; încărcare după LCP (`requestIdleCallback`, fallback `setTimeout`, `import()` dinamic), rezoluție redusă pe mobil, randare oprită fără mișcare și cu tab-ul ascuns, ascultători touch pasivi, oprit la reduced motion, fără WebGL sau pe dispozitiv slab.

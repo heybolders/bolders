@@ -74,7 +74,7 @@ SplitText `type: "lines"`, `mask: "lines"`, `autoSplit: true`, animația returna
 
 ### Butoane
 - **Original:** hover IX2: fundal `#1d1d1d`, umbra interioară dispare, cursorul se mărește; varianta „glowing”: dungă de lumină rotativă pe border (2.5 s, loop) + gradient alb la bază, aprins la hover.
-- **Nou:** umplerea lime crește din poziția punctului până acoperă butonul (clip-path cerc, 0.4 `expo.out`), textul se inversează la ink; punctul rămâne lime pe fundal lime, deci dispare. La apăsare (`:active`) punctul devine ink. Doar CSS (`transition`). Glow-ul e **static** (CSS, `.btn::before`, fără `data-anim`), vezi DESIGN.md §8; dunga rotativă de pe border e eliminată.
+- **Nou:** umplerea lime crește din poziția punctului până acoperă butonul (clip-path cerc, 0.4 `expo.out`), textul se inversează la ink; punctul rămâne lime pe fundal lime, deci dispare. La apăsare (`:active`) punctul devine ink. Doar CSS (`transition`). Glow-ul e **static** (`shadow-glow`, umbra pill-ului din hero, fără `data-anim`), vezi DESIGN.md §8; dunga rotativă de pe border e eliminată.
 - **Reduced motion:** schimbare de culoare instant.
 
 ### Tranziții între pagini
@@ -250,7 +250,7 @@ Toate pornesc din modulul central și verifică `capabilities.ts` (`prefersReduc
 - **Reduced motion:** nu se montează: fără split, text static complet.
 
 ### Glow pe butoane ✅ (pasul 3): static, fără `data-anim`
-Decizie Adi (28.10): lumină difuză **statică** sub buton, mereu vizibilă, pe toate butoanele și la toate rezoluțiile. **Nu e animație**: nu există `data-anim="glow"` și nici `glow.ts` (`audit:rules`, regula `glow-static`). Dunga de lumină care se rotește pe border în original e eliminată definitiv. Valori și implementare: DESIGN.md §8.
+Decizie Adi (28.10): halou **static** uniform pe contur (umbra pill-ului din hero-ul original, `shadow-glow`), mereu vizibil, pe toate butoanele și la toate rezoluțiile. **Nu e animație**: nu există `data-anim="glow"` și nici `glow.ts` (`audit:rules`, regula `glow-static`). Dunga de lumină care se rotește pe border în original e eliminată definitiv. Valori și implementare: DESIGN.md §8.
 
 ### `cursor` — cursor custom
 - **Ce face:** punct care urmărește mouse-ul cu întârziere ușoară (ca în original) și se mărește pe elementele interactive.

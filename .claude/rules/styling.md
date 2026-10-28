@@ -28,7 +28,6 @@ Permis **doar** în `src/styles/global.css`, **doar** în layere cu nume (`@laye
 |---|---|---|
 | `.btn` | components | variabile locale `--btn-pad` / `--btn-dot-x`: padding-ul și poziția punctului derivă din aceeași valoare |
 | `.btn-lg` | components | suprascrie `--btn-pad` pentru butoanele mari |
-| `.btn::before` | components | glow static sub buton (DESIGN.md §8): pseudo-element cu `radial-gradient(closest-side, …)` din tokeni, `inset` în procente din `--glow-reach`; ar cere valori arbitrare |
 | `.btn-fill` | components | `clip-path: circle(… at var(--btn-dot-x) 50%)` cu tranziție; ar cere valori arbitrare |
 | `.line-mask` | components | `padding-block` / `margin-block` în `em` (0.12em / 0.2em) pentru masca SplitText |
 | `.no-kerning` | components | `font-kerning: none` (fără utilitar Tailwind) pe cuvântul cu `smoke-text`: lățimea nu se schimbă când SplitText împarte literele |

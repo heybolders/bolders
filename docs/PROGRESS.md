@@ -184,7 +184,7 @@ Decizii confirmate de Adi (28.10):
 - Rămân eliminate: poze stock, preloader cu procent, contoare animate.
 - Regulă: nimic din original nu se elimină fără confirmarea lui Adi.
 
-Pași: 1 fundația ✅ · 2 halouri (static) ✅ · 3 glow pe butoane (static) ✅ · 4 `smoke-text` ✅ · 5 `cursor` · 6 `fluid` (WebGL). Iconițe 3D: amânate.
+Pași: 1 fundația ✅ · 2 halouri (static) ✅ · 3 glow pe butoane (static, haloul pill-ului) ✅ · 4 `smoke-text` ✅ · 5 `cursor` · 6 `fluid` (WebGL). Iconițe 3D: amânate.
 
 ### Pasul 1 din 6: fundația ✅ (2026-10-28)
 Fără niciun efect vizual implementat; site-ul arată identic.
@@ -317,7 +317,18 @@ Făcut la cererea lui Adi înaintea pasului 3 (`glow`), care rămâne de făcut.
 - **Fără conicul rotativ** (border și interior): eliminat definitiv, decizie Adi.
 
 #### Neclarități
-- Butonul din header primește și el glow (cerința: „toate butoanele”), deși „Contact” din navbarul original nu avea. De confirmat cu Adi dacă rămâne.
+- ~~Butonul din header primește și el glow?~~ Confirmat de Adi (28.10): da.
+
+#### Corectură (2026-10-28): glow = haloul pill-ului din hero ✅
+Varianta de mai sus (gradient radial sub buton, `.btn::before`) a fost **eliminată** la cererea lui Adi: concentra lumina sub buton. Ținta nouă: haloul pill-ului „Construim viitorul tău digital!” din original, uniform pe tot conturul.
+- **Măsurat** (computed style pe `.header_tag-wrapper`, 375 și 1440, identic): `box-shadow: rgba(221, 214, 214, 0.2) 2px 2px 14px 6px` (un singur strat); fundal `rgb(49, 46, 46)`; fără border; `border-radius` 151.3 px (375) / 160 px (1440). Tabel complet în DESIGN.md §8.
+- **Șters:** `.btn::before`, `--glow-reach`, vechiul `--color-glow` (= paper), excepția `.btn::before` din `styling.md`. `Button.astro` revine la `overflow-clip` și la `.btn-fill` fără `rounded-pill` (ca înainte de pasul 3).
+- **Tokeni:** `--color-glow` `#ddd6d6`; `@theme static`: `--glow-offset` 2px, `--glow-blur` 14px, `--glow-spread` 6px, `--glow-opacity` 20%; `--shadow-glow` le compune cu `color-mix` (Tailwind adaugă fallback-ul `#ddd6d633`). `--shadow-tag` (aceeași valoare, nefolosit) înlocuit de `--shadow-glow`.
+- **Aplicat (`shadow-glow`):** toate butoanele din `Button.astro` (header „Contact”, cta din hero și din 404, footer) și pill-ul din `Hero.astro`. Fundal, border, punct, hover și `:active` neschimbate; umbra e identică la hover (verificat în computed style).
+- **Verificare** (build cu `ALLOW_PLACEHOLDERS=1`, `astro preview`): iPhone SE, iPhone 15, Pixel 7, 375, 768, 1440, 1920: `box-shadow` calculat = `rgb(221 214 214 / .2) 2px 2px 14px 6px` pe pill și butoane, fără scroll orizontal, consola curată, ținte neschimbate (56 / 44 px). Capturi cu același crop (element + 30 px) original vs nou: `.screenshots/etapa-efecte/glow-v2/` (`original-{375,1440}-{pill,cta,contact}.png`, `nou-<dispozitiv>-{pill,cta,cta-hover,contact,viewport}.png`). Haloul se vede pe toate laturile, inclusiv sus; fără spot dedesubt.
+- `npm run audit:rules` (0 abateri), `npm run check`, `npm run lint`, `npm run format:check`, `npm run build` (cu `ALLOW_PLACEHOLDERS=1`): curate.
+- **Abatere:** offset-ul 2 px / 2 px e păstrat exact ca în original (cerința „straturile exact ca în original”), deci haloul e cu 2 px mai lat în dreapta-jos; spread-ul de 6 px îl face vizibil și sus.
+- **Notă:** „Contact” e ascuns sub `lg` (meniu mobil), ca și în original, deci la 375 nu există captură pentru el; la 1440 și 1920 da.
 
 ### Următoarea secțiune: 2. Storytelling (`data-anim="words-light"`) ⏭️
 
