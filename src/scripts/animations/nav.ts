@@ -1,11 +1,8 @@
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-import {
-  MEDIA_CONDITIONS,
-  prefersReducedMotion,
-  readConditions,
-} from "@/scripts/animations/conditions";
+import { prefersReducedMotion } from "@/scripts/animations/capabilities";
+import { MEDIA_CONDITIONS, readConditions } from "@/scripts/animations/conditions";
 import { getLenis } from "@/scripts/animations/smooth-scroll";
 import { DURATION } from "@/scripts/animations/timing";
 import type { AnimationFactory } from "@/scripts/animations/types";

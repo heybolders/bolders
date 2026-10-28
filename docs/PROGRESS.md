@@ -175,12 +175,32 @@
 - Pe mobil, panoul footerului e mai înalt decât jumătatea wordmark-ului (linkurile legale pe două rânduri), deci acoperă literele de la mijloc în jos și se întinde sub ele; proporția e fidelă doar de la `md` în sus.
 - Auditul de texte acoperă markup-ul `.astro`. Textele setate din TS nu sunt verificate automat; momentan nu există niciunul în `src/scripts/`.
 
-### Etapă separată planificată: reactivarea efectelor din original ⏸️ (pornește doar la cerere, înainte de Storytelling)
-Decizii confirmate (28.10), de aplicat atunci, nu acum:
-- Se reactivează: fum WebGL la cursor/atingere pe toată pagina (și pe mobil), cursor custom, glow pe butoane. Se adaugă halouri de lumină difuză în spatele textelor, care se sting lent. Hero: „să strălucești!” cu efect de fum în loop (literele se șterg stânga → dreapta, apoi se rescriu), în locul respirației 700 → 200 → 700. Excepțiile se documentează în ANIMATIONS.md, DESIGN.md (anti-banal), `.claude/rules/animations.md` și `audit:rules`.
-- Limite pentru fumul WebGL: se încarcă după LCP (`requestIdleCallback`); rezoluție redusă pe mobil; randarea se oprește când nu e mișcare și când tab-ul e ascuns; ascultători touch pasivi (scroll-ul nu se blochează); dezactivat la `prefers-reduced-motion` și fără suport WebGL; nu pornește pe dispozitive slabe (`navigator.deviceMemory ≤ 2` sau `hardwareConcurrency ≤ 4`).
-- Iconițele 3D: amânate; fișierele originale le procură clientul. Nu se ating până atunci.
+## Etapa: Reactivare efecte din original 🔄 (înainte de Storytelling)
+
+Decizii confirmate de Adi (28.10):
+- Se reactivează: fum WebGL la cursor/atingere pe toată pagina (și pe mobil), cursor custom, glow pe butoane. Se adaugă halouri de lumină difuză în spatele textelor (omise la recreare). Hero: „să strălucești!” cu fum în loop, în locul respirației 700 → 200 → 700.
+- Limitele pentru fumul WebGL: încărcare după LCP (`requestIdleCallback`), rezoluție redusă pe mobil, randare oprită fără mișcare și cu tab-ul ascuns, ascultători touch pasivi, oprit la reduced motion, fără WebGL sau pe dispozitiv slab (`deviceMemory ≤ 2` sau `hardwareConcurrency ≤ 4`, doar dacă valoarea e definită).
+- Iconițele 3D: reactivate, dar **amânate** până la fișierele originale de la Adi. Nu se ating până atunci.
 - Rămân eliminate: poze stock, preloader cu procent, contoare animate.
-- Regulă nouă: nimic nu se elimină din original fără confirmarea lui Adi.
+- Regulă: nimic din original nu se elimină fără confirmarea lui Adi.
+
+Pași: 1 fundația ✅ · 2 `halo` · 3 `glow` · 4 `smoke-text` · 5 `cursor` · 6 `fluid` (WebGL). Iconițe 3D: amânate.
+
+### Pasul 1 din 6: fundația ✅ (2026-10-28)
+Fără niciun efect vizual implementat; site-ul arată identic.
+- **DESIGN.md:** din lista anti-banal (§5) au ieșit WebGL/fum la cursor, cursorul custom, glow-ul pe butoane și iconițele 3D (rămân interzise: glow pe carduri, Three.js/shader-e/canvas în afara `fluid`, magnetic buttons). Secțiune nouă **§6 „Efecte reactivate”** (tabel efect / original / `data-anim` / pas; iconițele 3D „amânate, fișiere de la Adi”), regula „nimic din original nu se elimină fără confirmarea lui Adi”, lime rămâne semnal (~3%), glow și halouri doar din tokeni. §4: excepțiile `filter: blur()` (smoke-text) și canvas/WebGL (fluid).
+- **ANIMATIONS.md:** `data-anim` noi în tabel (`smoke-text`, `halo`, `glow`, `cursor`, `fluid`) și secțiunea „Efecte reactivate”, cu ce face fiecare, proprietăți animate, mobil și reduced motion. Hero: respirația e înlocuită de `smoke-text`. Cursor/splash și butoane: marcate reactivate; „Ce NU se preia” actualizat.
+- **`.claude/rules/animations.md`:** aliniat la ANIMATIONS.md; excepțiile strict limitate (`filter: blur()` doar în `smoke-text.ts`, canvas/WebGL doar în `fluid.ts`, restul interzis, inclusiv `box-shadow` animat).
+- **`audit:rules`:** reguli noi `filter` (proprietatea `filter`, `blur()`, utilitarele `blur-*` / `drop-shadow-*`; `backdrop-blur` static rămâne permis), `box-shadow-animat` (`boxShadow`, `transition-shadow`, tranziții/keyframes pe `box-shadow`), `canvas-webgl` (`<canvas>`, `createElement("canvas")`, `getContext(...)`, tipurile Canvas/WebGL), `licenta-fluid` (dacă `fluid.ts` există, trebuie să conțină „MIT”, „Pavel Dobryakov” și textul „Permission is hereby granted, free of charge”). Allowlist exact: `smoke-text.ts` pentru `filter`, `fluid.ts` pentru canvas. Testat cu fișiere temporare (toate cazurile prinse, excepțiile respectate), apoi șterse.
+- **`src/scripts/animations/capabilities.ts`**, exportat din `index.ts`: `prefersReducedMotion()` (mutat din `conditions.ts`; `nav.ts` și `smooth-scroll.ts` importă de aici), `hasFinePointer()`, `supportsWebGL()` (WebGL2 → WebGL1, rezultat memorat, contextul de test eliberat cu `WEBGL_lose_context`), `isLowEndDevice()` (valoare nedefinită = nu e slab; `hardwareConcurrency` 0 tratat ca necunoscut). Fără `any`.
+- Codul hero-ului rulează încă respirația; se înlocuiește la pasul 4.
+
+#### Abateri și motive
+- **`capabilities.ts` atinge canvas/WebGL**, deși regula spune „doar în fluid”: `supportsWebGL()` trebuie să creeze un canvas temporar ca să detecteze suportul. Excepția e limitată la exact cele două linii (allowlist pe text în `audit-rules.mjs`) și documentată în `.claude/rules/animations.md`.
+
+#### Neclarități / de verificat la pașii următori
+- **`hardwareConcurrency` pe iOS:** Safari poate raporta un număr de nuclee redus din motive de confidențialitate. Dacă un iPhone raportează ≤ 4, `isLowEndDevice()` îl exclude, contrar intenției „iPhone-urile nu trebuie excluse”. De verificat pe un iPhone real la pasul 6; dacă e cazul, pragul se aplică doar când `deviceMemory` e definit.
+- Valorile `blur()` din `smoke-text` se scriu în `rem`/`em`: regula `px` rămâne valabilă și acolo.
+- Tokenii pentru glow și halouri (din `#ffffff4d`, `#ffffff80`, `#ddd6d633`) se adaugă în DESIGN.md §2 la pașii 2–3.
 
 ### Următoarea secțiune: 2. Storytelling (`data-anim="words-light"`) ⏭️

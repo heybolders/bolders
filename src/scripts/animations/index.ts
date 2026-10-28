@@ -7,6 +7,13 @@ import { registry } from "@/scripts/animations/registry";
 import { startSmoothScroll, stopSmoothScroll } from "@/scripts/animations/smooth-scroll";
 import type { Cleanup } from "@/scripts/animations/types";
 
+export {
+  hasFinePointer,
+  isLowEndDevice,
+  prefersReducedMotion,
+  supportsWebGL,
+} from "@/scripts/animations/capabilities";
+
 interface Instance {
   ctx: gsap.Context;
   mm: gsap.MatchMedia;

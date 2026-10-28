@@ -3,7 +3,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import "lenis/dist/lenis.css";
 
-import { prefersReducedMotion } from "@/scripts/animations/conditions";
+import { prefersReducedMotion } from "@/scripts/animations/capabilities";
 
 let lenis: Lenis | null = null;
 

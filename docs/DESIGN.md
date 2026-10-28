@@ -66,7 +66,7 @@ Scalare fluidă: `html { font-size: calc(.8127rem + .2081vw) }` sub 1440 px, `ca
 
 - Tag hero: `2px 2px 14px 6px #ddd6d633`
 - Card verde: `4px 2px 6px 0 #49691099`
-- Buton „glowing”: `0 0 60px #ffffff4d, 0 0 20px #ffffff80, 0 0 5px #ffffff80` (**nu se preia**, vezi lista anti-banal)
+- Buton „glowing”: `0 0 60px #ffffff4d, 0 0 20px #ffffff80, 0 0 5px #ffffff80` (**reactivat**, vezi §6; se reface ca pseudo-element cu gradient, nu ca `box-shadow` animat)
 - Blur: nav `backdrop-filter: blur(11px)`, overlay-uri `blur(10px)` și `blur(30px)`
 
 ### Breakpoint-uri Webflow (desktop-first)
@@ -226,22 +226,24 @@ Verificare față de bilet: paleta ink + lime este identitatea existentă (impus
 
 ## 4. Reguli de mișcare
 
-- Se animă **doar** `transform`, `opacity` și `clip-path`.
-- Fără animații care modifică layout-ul în timpul scroll-ului: `width`, `height`, `margin`, `padding`, `top`/`left`, `font-size`. Excepții documentate în `ANIMATIONS.md`: axa `wght` pe silabele hero (lățime rezervată, fără reflow) și înălțimea acordeonului/descrierilor, declanșate de utilizator, nu de scroll.
+- Se animă **doar** `transform`, `opacity` și `clip-path`. Excepții strict limitate (§6): `filter: blur()` doar în modulul `smoke-text`; canvas/WebGL doar în modulul `fluid`.
+- Fără animații care modifică layout-ul în timpul scroll-ului: `width`, `height`, `margin`, `padding`, `top`/`left`, `font-size`. Excepții documentate în `ANIMATIONS.md`: axa `wght` pe silabele hero (lățime rezervată, fără reflow; dispare la pasul 4 al reactivării, odată cu respirația) și înălțimea acordeonului/descrierilor, declanșate de utilizator, nu de scroll.
 - Preferință pentru **scrub legat de scroll** și **măști** (`overflow: clip`, `clip-path`) față de apariții simple (fade-in/fade-up la intrarea în viewport).
 - Țintă: **60 fps pe mobil** (testat cu throttling CPU 4× în DevTools). Ce nu ține 60 fps se simplifică sau se dezactivează pe `isMobile`.
 
 ## 5. Lista anti-banal (nu folosim niciodată)
 
+Excepțiile reactivate din original (fum WebGL, cursor custom, glow pe butoane, iconițe 3D) au fost scoase din listă și stau în §6.
+
 - Gradient mov / albastru-mov, „aurora”, mesh gradients, blob-uri colorate
-- Carduri cu glow, bordură luminoasă sau `box-shadow` neon (inclusiv „glowing button” din Webflow)
+- Carduri cu glow, bordură luminoasă sau `box-shadow` neon (glow-ul e permis doar pe butoane, §6)
 - Glassmorphism ca stil general (blur rămâne doar pe nav și pe panoul footerului, ambele din original)
-- Iconițe 3D (inclusiv cele existente: glob, puzzle, mail, calendar, monede), emoji ca iconițe, iconițe svgrepo generice
+- Emoji ca iconițe, iconițe svgrepo generice
 - Poze stock, portrete generate AI, mockup-uri de device generice, fotografii cu oameni care arată la laptop
 - Grile de carduri identice cu aceeași rază și aceeași umbră gri
 - Preloader cu procent, ecran de încărcare, intro care blochează conținutul
-- WebGL, Three.js, shader-e, efecte fluide (`splash-effect-8.js` se elimină), canvas decorativ
-- Cursor personalizat care înlocuiește cursorul sistemului, magnetic buttons
+- Three.js, shader-e sau canvas decorativ în afara modulului `fluid` (§6)
+- Magnetic buttons
 - Fade-and-slide-up identic pe fiecare secțiune
 - Etichete ALL CAPS cu tracking mare deasupra fiecărui titlu; meta-uri legate cu „·”; „→” lipit de fiecare buton
 - Accentuarea unui singur cuvânt din titlu cu altă culoare sau italic
@@ -250,3 +252,24 @@ Verificare față de bilet: paleta ink + lime este identitatea existentă (impus
 - Badge-uri de parteneri sau tehnologie (Webflow Partner, Client First etc.)
 - Fonturi suplimentare (Poppins, serif-uri de import) și monospace pentru etichete
 - Parallax pe fiecare imagine, scroll-jacking în afara secțiunilor fixate planificate
+
+## 6. Efecte reactivate din original (confirmat de Adi, 28.10)
+
+**Regulă:** nimic din original nu se elimină fără confirmarea lui Adi. Orice eliminare sau înlocuire a unui element existent pe bolders1.webflow.io se notează în `PROGRESS.md` cu data confirmării.
+
+| Efect | Original | `data-anim` | Stare |
+|---|---|---|---|
+| Fum la cursor/atingere pe toată pagina (inclusiv mobil) | `splash-effect-8.js` (fluid WebGL pe canvas fix) | `fluid` | reactivat, pasul 6 |
+| Cursor custom | `.cursor-element` (IX2 `MOUSE_MOVE`) | `cursor` | reactivat, pasul 5 |
+| Glow pe butoane | butonul „glowing” | `glow` | reactivat, pasul 3 |
+| Halouri de lumină difuză în spatele textelor | fundalul hero (omis la recreare) | `halo` | nou adăugat, pasul 2 |
+| Fum pe „să strălucești!” (în loop) | silabele din hero (intrare cu blur, buclă) | `smoke-text` | reactivat, pasul 4; înlocuiește respirația 700 → 200 → 700 |
+| Iconițe 3D (glob, puzzle, mail, calendar, monede) | secțiunile homepage | — | **amânate, fișiere de la Adi** |
+
+Rămân eliminate (confirmat de Adi): poze stock, preloader cu procent, contoare animate.
+
+Constrângeri vizuale:
+- **Lime rămâne semnal** (max. ~3% din suprafața unui ecran). Glow-ul și halourile nu sunt lime.
+- Glow-ul și halourile folosesc **doar tokeni din `@theme`** (culori, blur, raze). Valorile originale (`#ffffff4d`, `#ffffff80`, `#ddd6d633`) se mapează la tokeni noi, adăugați întâi aici, la pasul respectiv.
+- Comportamentul fiecărui efect (proprietăți animate, mobil, reduced motion, limite de performanță): `ANIMATIONS.md`, „Efecte reactivate”.
+

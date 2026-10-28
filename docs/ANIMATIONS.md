@@ -6,7 +6,8 @@ Capturile stărilor originale: `reference/screenshots/<pagina>/scroll-1440|375/`
 ## Principii
 
 - **Un singur modul central** (`src/scripts/animations/`) citește `data-anim` și pornește animația. Componentele nu importă GSAP direct.
-- Reguli de mișcare: `docs/DESIGN.md` §4 (doar `transform`, `opacity`, `clip-path`; scrub și măști înaintea aparițiilor simple; 60 fps pe mobil).
+- Reguli de mișcare: `docs/DESIGN.md` §4 (doar `transform`, `opacity`, `clip-path`; scrub și măști înaintea aparițiilor simple; 60 fps pe mobil). Excepții strict limitate: `filter: blur()` doar în `smoke-text.ts`, canvas/WebGL doar în `fluid.ts` (vezi „Efecte reactivate”).
+- Nimic din original nu se elimină fără confirmarea lui Adi (DESIGN §6).
 - Un singur moment orchestrat per ecran. Restul secțiunilor primesc animații discrete sau niciuna. Fără fade-up generic pe fiecare secțiune.
 - Pluginuri: `gsap`, `ScrollTrigger`, `SplitText` (gratuit din GSAP 3.13), `Flip` doar dacă e nevoie. Lenis pentru smooth scroll, sincronizat cu `ScrollTrigger.update`.
 - Durate (secunde): `fast 0.2` · `base 0.5` · `slow 0.9` · `slower 1.4`. Easing implicit `expo.out`; `power4.out` la intrări mari; `none` la scrub.
@@ -32,6 +33,11 @@ Capturile stărilor originale: `reference/screenshots/<pagina>/scroll-1440|375/`
 | `data-anim="form-steps"` | tranziție între pașii formularului + bară progres | contact |
 | `data-anim="marquee"` | bandă de mesaje, viteză legată de scroll | CTA final |
 | `data-anim="wordmark"` | wordmark-ul „Bolders” se ridică din mască | footer |
+| `data-anim="smoke-text"` | literele se dizolvă în fum stânga → dreapta și se rescriu, în loop | „să strălucești!” (hero) |
+| `data-anim="halo"` | gradient radial difuz care apare și se stinge lent | în spatele textelor, zone diferite |
+| `data-anim="glow"` | strălucire pe buton (pseudo-element cu gradient) | butoane |
+| `data-anim="cursor"` | cursor custom care urmărește mouse-ul | global, doar `pointer: fine` |
+| `data-anim="fluid"` | fum WebGL la cursor/atingere | global (canvas fix) |
 | `data-anim="parallax"` | deplasare verticală ușoară (max. 10%) | imaginea din echipă |
 | `data-anim="nav"` | header ascuns la scroll în jos, vizibil la scroll în sus; meniu mobil | header global |
 
@@ -66,11 +72,11 @@ SplitText `type: "lines"`, `mask: "lines"`, `autoSplit: true`, animația returna
 
 ### Cursor personalizat și fundalul „splash”
 - **Original:** `.cursor-element` (punct care urmărește mouse-ul, IX2 `MOUSE_MOVE`, smoothing 85; se mărește pe butoane) + `splash-effect-8.js` (fluid WebGL pe canvas fix).
-- **Nou:** **eliminate.** WebGL este interzis, iar cursorul custom e pe lista anti-banal. Rămâne cursorul sistemului.
+- **Nou:** **reactivate** (confirmat de Adi, 28.10): `data-anim="cursor"` și `data-anim="fluid"`, vezi „Efecte reactivate”.
 
 ### Butoane
 - **Original:** hover IX2: fundal `#1d1d1d`, umbra interioară dispare, cursorul se mărește; varianta „glowing” cu halo alb.
-- **Nou:** umplerea lime crește din poziția punctului până acoperă butonul (clip-path cerc, 0.4 `expo.out`), textul se inversează la ink; punctul rămâne lime pe fundal lime, deci dispare. La apăsare (`:active`) punctul devine ink. Fără glow. Doar CSS (`transition`), fără `data-anim`.
+- **Nou:** umplerea lime crește din poziția punctului până acoperă butonul (clip-path cerc, 0.4 `expo.out`), textul se inversează la ink; punctul rămâne lime pe fundal lime, deci dispare. La apăsare (`:active`) punctul devine ink. Doar CSS (`transition`). Glow-ul original se reactivează separat, cu `data-anim="glow"` (pasul 3).
 - **Reduced motion:** schimbare de culoare instant.
 
 ### Tranziții între pagini
@@ -88,7 +94,7 @@ SplitText `type: "lines"`, `mask: "lines"`, `autoSplit: true`, animația returna
 
 ### 1. Hero — `data-anim="hero-syllables"`
 - **Original:** IX2 `heading [scroll in - change txt]`. `.heading-move._1…_7` („st · ră · lu · ce · șt · i · !”) intră din `y −100%` cu blur și opacitate, 400 ms `outCirc`, decalaj 100 ms. După 3000 ms ies spre `x 160%` (500 ms) și ciclul se repetă. Fundal: canvas WebGL + grilă de linii. Capturi: `screenshots/home/hero-timeline/`.
-- **Nou:** hero centrat (DESIGN §3). Silabele urcă din mască (`overflow: clip` pe linie, `yPercent 110 → 0`), stagger 0.06, 0.9 `expo.out`, după pill (0.3) și „Acum este momentul” (`line-reveal`). Fără blur. După intrare, la 4 s, silabele „respiră” o singură dată: weight 200 → 700 pe axa variabilă, stagger 0.05, apoi revin. Fără buclă infinită. Subtitlul și butonul: opacitate 0 → 1, 0.5, delay 0.9.
+- **Nou:** hero centrat (DESIGN §3). Silabele urcă din mască (`overflow: clip` pe linie, `yPercent 110 → 0`), stagger 0.06, 0.9 `expo.out`, după pill (0.3) și „Acum este momentul” (`line-reveal`). Fără blur. După intrare, „să strălucești!” trece la `data-anim="smoke-text"` (fum în loop, vezi „Efecte reactivate”), care **înlocuiește respirația** 700 → 200 → 700 (confirmat de Adi, 28.10). Până la pasul 4, codul încă rulează respirația descrisă mai jos. Subtitlul și butonul: opacitate 0 → 1, 0.5, delay 0.9.
 - **Fără reflow la respirație:** fiecare silabă e un `inline-grid` cu două straturi în aceeași celulă: o copie invizibilă (`aria-hidden`, `visibility: hidden`) la `wght 700`, care fixează lățimea, și silaba vizibilă centrată peste ea. Se animă doar `font-variation-settings` pe stratul vizibil, în interiorul cutiei deja dimensionate, deci textul din jur nu se mișcă. Lățimea rezervată se verifică la 375 și 1440 (fără salt de rând între 200 și 700).
 - **Sursă:** `inspiratie.md` → `01-hero` (hero actual Bolders, „intrarea literelor mai fluidă, cu mască, tipografie mai mare, ritm mai bun pe mobil”). Fișier: `hero.png`.
 - **Plugin:** SplitText (`lines` pentru prima linie), GSAP timeline.
@@ -219,6 +225,50 @@ SplitText `type: "lines"`, `mask: "lines"`, `autoSplit: true`, animația returna
 - **Mobil:** identic.
 - **Reduced motion:** schimbare instant de pas, bara fără tranziție.
 
+## Efecte reactivate (confirmat de Adi, 28.10)
+
+Ordinea implementării: 1 fundația (documentație, reguli, audit, `capabilities.ts`) · 2 `halo` · 3 `glow` · 4 `smoke-text` · 5 `cursor` · 6 `fluid`. Iconițele 3D: amânate până la fișierele originale.
+
+Toate pornesc din modulul central și verifică `capabilities.ts` (`prefersReducedMotion()`, `hasFinePointer()`, `supportsWebGL()`, `isLowEndDevice()`). Fără JS sau la reduced motion, pagina arată ca acum (efectele lipsesc, conținutul rămâne vizibil).
+
+### `smoke-text` — fum pe „să strălucești!”
+- **Ce face:** după intrarea hero-ului, literele din „să strălucești!” se dizolvă în fum de la stânga la dreapta (stagger pe litere), apoi se rescriu în aceeași ordine; ciclul se repetă (loop). **Doar pe acest text.** Înlocuiește respirația 700 → 200 → 700.
+- **Proprietăți animate:** `opacity`, `filter: blur()` (singura utilizare permisă de `filter`), `transform` (derivă mică în sus/dreapta, `x`/`y`/`scale`). Fără `font-variation-settings`.
+- **Mobil:** identic, derivă și blur mai mici; pauză când hero-ul iese din ecran sau tab-ul e ascuns.
+- **Reduced motion:** text static, fără fum și fără loop.
+- **Accesibilitate:** titlul complet rămâne în `sr-only`; partea animată e `aria-hidden`.
+
+### `halo` — lumină difuză în spatele textelor
+- **Ce face:** gradient radial difuz în spatele unor texte, în zone diferite ale paginii; apare și se stinge lent (secunde, nu fracțiuni), fără să concureze cu textul.
+- **Proprietăți animate:** doar `opacity` și `transform` (scale/translate). Gradientul e static, din tokeni (`@theme`), nu lime.
+- **Mobil:** mai puține halouri, aceeași mișcare lentă.
+- **Reduced motion:** halourile rămân statice, la opacitatea de repaus (sau lipsesc).
+
+### `glow` — strălucire pe butoane
+- **Ce face:** reface butonul „glowing” din original: un pseudo-element cu gradient radial în spatele butonului, care se aprinde la hover/focus (și discret în repaus, după original).
+- **Proprietăți animate:** doar `opacity` și `transform` ale pseudo-elementului. **Fără animare de `box-shadow`.** Culori din tokeni.
+- **Mobil:** fără dependență de hover: glow-ul de repaus e vizibil, starea de hover nu e necesară pentru acces.
+- **Reduced motion:** glow static, fără tranziție.
+
+### `cursor` — cursor custom
+- **Ce face:** punct care urmărește mouse-ul cu întârziere ușoară (ca în original) și se mărește pe elementele interactive.
+- **Proprietăți animate:** doar `transform` (translate + scale).
+- **Activ doar pe desktop cu `pointer: fine`** (`hasFinePointer()`); pe touch nu se montează. Cursorul nativ rămâne pe `input`/`textarea`/`select` și pe text editabil (punctul se ascunde acolo). Cursorul sistemului nu se ascunde pe linkuri/butoane fără ca punctul să indice clar starea.
+- **Mobil:** nu există.
+- **Reduced motion:** nu se montează; rămâne cursorul sistemului.
+
+### `fluid` — fum WebGL la cursor/atingere
+- **Ce face:** canvas WebGL fix pe toată pagina (`pointer-events: none`), în spatele/peste conținut fără să blocheze interacțiunea; mișcarea cursorului sau atingerea lasă fum. Bazat pe **WebGL-Fluid-Simulation** de Pavel Dobryakov (licență MIT; notița de licență se păstrează în `fluid.ts`, verificată de `audit:rules`).
+- **Limite (obligatorii):**
+  - încărcare **după LCP**, cu `requestIdleCallback` (fallback `setTimeout`), prin `import()` dinamic, ca să nu intre în bundle-ul inițial;
+  - rezoluție redusă pe mobil (simulare și dye la rezoluție mică, DPR limitat);
+  - randarea se oprește când nu există mișcare (simularea s-a stins) și când tab-ul e ascuns (`visibilitychange`); repornește la următoarea mișcare;
+  - ascultători touch/pointer **pasivi** (`{ passive: true }`): scroll-ul nu se blochează;
+  - nu pornește la `prefers-reduced-motion`, fără WebGL (`supportsWebGL()`) sau pe dispozitiv slab (`isLowEndDevice()`: `deviceMemory ≤ 2` sau `hardwareConcurrency ≤ 4`, doar când valoarea e definită).
+- **Proprietăți:** canvas-ul în sine nu se animă prin CSS; doar conținutul randat de WebGL.
+- **Mobil:** activ (atingere), cu limitele de mai sus.
+- **Reduced motion:** nu se montează.
+
 ## Ce NU se preia din original
 
-`splash-effect-8.js` (WebGL), cursorul custom, glow-ul butoanelor, `Scrolling through panels` (rotații 3D), animațiile Instagram din template, bucla infinită a silabelor din hero, Lottie (înlocuit cu SVG), jQuery, SplitType (înlocuit cu SplitText), finsweet attributes.
+`Scrolling through panels` (rotații 3D), animațiile Instagram din template, Lottie (înlocuit cu SVG), jQuery, SplitType (înlocuit cu SplitText), finsweet attributes. Fumul, cursorul, glow-ul și bucla de pe „să strălucești!” au fost reactivate (vezi „Efecte reactivate”).

@@ -11,6 +11,13 @@ const ANIMATIONS_DIR = "src/scripts/animations/";
 const CODE_EXT = /\.(astro|ts|tsx|mjs|js|css)$/;
 const TEMPLATE_DIRS = ["src/components/", "src/layouts/", "src/pages/"];
 
+// Efecte reactivate (.claude/rules/animations.md, „Excepții permise, strict limitate”)
+const SMOKE_TEXT_FILE = "src/scripts/animations/smoke-text.ts";
+const FLUID_FILE = "src/scripts/animations/fluid.ts";
+const CAPABILITIES_FILE = "src/scripts/animations/capabilities.ts";
+/** Fluid-ul derivă din WebGL-Fluid-Simulation (MIT): notița de licență trebuie să rămână în fișier. */
+const FLUID_LICENSE = ["MIT", "Pavel Dobryakov", "Permission is hereby granted, free of charge"];
+
 /**
  * Excepții punctuale, fiecare cu motiv (aceeași listă în .claude/rules/styling.md).
  * `file` + `rule` + `match` (text exact din linie).
@@ -21,6 +28,19 @@ const ALLOW = [
     rule: "culoare",
     match: '<meta name="theme-color" content="#0d0d0d" />',
     why: "meta theme-color cere o valoare literală (= --color-ink)",
+  },
+  // supportsWebGL(): canvas temporar doar pentru detecție, fără randare
+  {
+    file: CAPABILITIES_FILE,
+    rule: "canvas-webgl",
+    match: 'document.createElement("canvas")',
+    why: "detecția WebGL din capabilities.ts",
+  },
+  {
+    file: CAPABILITIES_FILE,
+    rule: "canvas-webgl",
+    match: 'canvas.getContext("webgl2") ?? canvas.getContext("webgl")',
+    why: "detecția WebGL2 cu fallback WebGL1 din capabilities.ts",
   },
 ];
 
@@ -257,6 +277,43 @@ const CHECKS = [
     code: true,
   },
   {
+    rule: "filter",
+    message: "filter/blur în afara smoke-text.ts (backdrop-blur static e permis)",
+    applies: (file) => file !== SMOKE_TEXT_FILE && !file.startsWith("src/content/"),
+    patterns: [
+      /(?<![\w-])filter\s*:/g,
+      /["']filter["']/g,
+      /\.style\.filter\b/g,
+      /(?<![\w.-])blur\(/g,
+      /(?<![\w-])(?:[\w-]+:)*(?:blur|drop-shadow)(?:-[\w./]+)?(?=[\s"'`])/g,
+    ],
+    code: true,
+  },
+  {
+    rule: "box-shadow-animat",
+    message: "box-shadow animat (glow-ul se face cu opacity/transform pe pseudo-element)",
+    applies: () => true,
+    patterns: [
+      /\bboxShadow\b/g,
+      /(?<![\w-])transition-shadow\b/g,
+      /transition(?:-property)?\s*:[^;{}]*box-shadow/g,
+      /@keyframes[^{]*\{(?:[^{}]*\{[^{}]*\})*?[^{}]*box-shadow/g,
+    ],
+    code: true,
+  },
+  {
+    rule: "canvas-webgl",
+    message: "canvas/WebGL în afara fluid.ts",
+    applies: (file) => file !== FLUID_FILE,
+    patterns: [
+      /<canvas\b/g,
+      /createElement\(\s*["']canvas["']/g,
+      /getContext\(\s*["'](?:webgl2?|experimental-webgl|2d|bitmaprenderer|webgpu)["']/g,
+      /\b(?:WebGL2?RenderingContext|OffscreenCanvas|HTMLCanvasElement|CanvasRenderingContext2D)\b/g,
+    ],
+    code: true,
+  },
+  {
     rule: "import-relativ",
     message: "import relativ (folosește aliasul @/)",
     applies: () => true,
@@ -355,6 +412,28 @@ function auditGlobalCss() {
 }
 
 auditGlobalCss();
+
+function auditFluidLicense() {
+  const path = join(ROOT, FLUID_FILE);
+  let source;
+  try {
+    source = readFileSync(path, "utf8");
+  } catch {
+    return; // modulul fluid nu există încă (pasul 6)
+  }
+  const missing = FLUID_LICENSE.filter((text) => !source.includes(text));
+  if (missing.length > 0) {
+    violations.push({
+      file: FLUID_FILE,
+      line: 1,
+      rule: "licenta-fluid",
+      message: "lipsește notița de licență MIT a WebGL-Fluid-Simulation (Pavel Dobryakov)",
+      snippet: missing.join(" · "),
+    });
+  }
+}
+
+auditFluidLicense();
 
 if (violations.length === 0) {
   console.log(`audit:rules: ${files.length} fișiere, 0 abateri.`);

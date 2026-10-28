@@ -38,7 +38,8 @@ Alte excepții din `global.css`, fără clase: `::view-transition-group(header)`
 ### Excepții în afara `global.css` (allowlist în `scripts/audit-rules.mjs`)
 
 - `src/layouts/BaseLayout.astro`: `<meta name="theme-color" content="#0d0d0d" />`. Meta-ul cere o culoare literală; valoarea = `--color-ink`.
+- `src/scripts/animations/capabilities.ts`: `document.createElement("canvas")` și `canvas.getContext("webgl2") ?? canvas.getContext("webgl")` în `supportsWebGL()`. Canvas temporar doar pentru detecție, fără randare (`.claude/rules/animations.md`).
 
 ## Audit
 
-`npm run audit:rules` (`scripts/audit-rules.mjs`) verifică în `src/`: valori arbitrare Tailwind, `style=` inline, `<style>` în componente, culori hex/rgb/hsl și `px` în afara `global.css`, importuri GSAP/Lenis în afara `src/scripts/animations/`, importuri relative (fără `@/`), texte hardcodate în markup (noduri text și `aria-label`/`alt`/`title`/`placeholder`), CSS în afara layerelor și clase din `global.css` nedocumentate aici. Rulează în hook-ul PostToolUse; **nicio secțiune nu e gata fără audit curat.**
+`npm run audit:rules` (`scripts/audit-rules.mjs`) verifică în `src/`: valori arbitrare Tailwind, `style=` inline, `<style>` în componente, culori hex/rgb/hsl și `px` în afara `global.css`, importuri GSAP/Lenis în afara `src/scripts/animations/`, importuri relative (fără `@/`), texte hardcodate în markup (noduri text și `aria-label`/`alt`/`title`/`placeholder`), CSS în afara layerelor și clase din `global.css` nedocumentate aici; plus excepțiile efectelor reactivate (`.claude/rules/animations.md`): `filter`/`blur` doar în `smoke-text.ts`, `box-shadow` animat nicăieri, canvas/WebGL doar în `fluid.ts` (+ detecția din `capabilities.ts`), notița de licență MIT obligatorie în `fluid.ts`. Rulează în hook-ul PostToolUse; **nicio secțiune nu e gata fără audit curat.**

@@ -15,7 +15,3 @@ export function readConditions(context: gsap.Context): AnimationConditions {
     reduceMotion: c["reduceMotion"] === true,
   };
 }
-
-export function prefersReducedMotion(): boolean {
-  return window.matchMedia(MEDIA_CONDITIONS.reduceMotion).matches;
-}
