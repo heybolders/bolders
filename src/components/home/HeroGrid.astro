@@ -1,4 +1,6 @@
 ---
+import Container from "@/components/ui/Container.astro";
+
 // Fundalul hero-ului (DESIGN §3.4): liniile de construcție ale lui „b” desenate pe grila reală.
 // Verticalele sunt marginile coloanelor din container-site (4 pe mobil, 12 de la md); cercul și
 // diagonalele stau într-un pătrat care acoperă coloane întregi, deci tangentele lui cad pe linii de coloană.
@@ -6,8 +8,8 @@ const COLUMNS = 12;
 ---
 
 <div class="hero-grid pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
-  <div class="h-full px-gutter">
-    <div class="relative mx-auto grid h-full max-w-site grid-cols-4 md:grid-cols-12">
+  <Container fill>
+    <div class="relative grid h-full grid-cols-4 md:grid-cols-12">
       {Array.from({ length: COLUMNS }, (_, index) => (
         <div
           class:list={[
@@ -55,5 +57,5 @@ const COLUMNS = 12;
         </div>
       </div>
     </div>
-  </div>
+  </Container>
 </div>

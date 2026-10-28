@@ -26,7 +26,8 @@ Hook-uri PostToolUse pe Edit/Write: `.claude/hooks/format-lint.sh` (Prettier + E
 - `src/layouts/BaseLayout.astro`: `<html lang="ro">`, SEO, favicon, `<Font />` (preload), `<ClientRouter />`, skip link, Header + `<main>` + Footer, pornirea modulului de animații
 - `src/config/navigation.ts`: sursa unică pentru rute și listele de linkuri (header, meniu mobil, footer); etichetele vin din `src/content/global.ts`
 - `src/components/home/`: secțiunile homepage-ului (`Hero`, `HeroGrid`); textele în `src/content/acasa.ts`
-- `src/components/global/`: `Header`, `Footer` (ambele `transition:persist`), `Seo`, `StubPage`; `src/components/ui/Button.astro`
+- `src/components/global/`: `Header`, `Footer` (ambele `transition:persist`), `Seo`, `StubPage`
+- `src/components/ui/`: primitivele (`Button`, `TextLink`, `Heading`, `Container`, `Section`, `Pill`, `Icon`, `Halo`); secțiunile compun doar primitive, API-ul în `docs/COMPONENTS.md`
 - `src/scripts/navigation/current-page.ts`: `aria-current` sincronizat după navigare (header/footer persistente)
 - URL-uri fără slash final (`/agentie`), build `format: "file"` → `dist/agentie.html`; `site: https://bolders.ro`
 - `src/styles/global.css`: `@import "tailwindcss"` + `@theme` (DESIGN.md §2)
@@ -53,6 +54,8 @@ Hook-uri PostToolUse pe Edit/Write: `.claude/hooks/format-lint.sh` (Prettier + E
 - `animations.md`: modulul central `data-anim`, cleanup, reduced motion
 - `content.md`: texte separate de cod, fără texte inventate
 - `quality.md`: imagini, accesibilitate, verificare vizuală
+- `components.md`: primitivele din `ui/`, convențiile lor și regulile de audit
+- `screenshots.md`: capturile doar în `.screenshots/`
 
 ## Securitate
 

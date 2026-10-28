@@ -1,6 +1,9 @@
 ---
 import { getEntry } from "astro:content";
 
+import Container from "@/components/ui/Container.astro";
+import Heading from "@/components/ui/Heading.astro";
+import Section from "@/components/ui/Section.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 
 // Etapa 3: doar titlul paginii; secțiunile vin la Etapele 4–5.
@@ -16,14 +19,19 @@ const { title, description, titlu } = page.data;
 ---
 
 <BaseLayout title={title} description={description}>
-  <section class="flex min-h-svh items-end px-gutter pt-32 pb-section">
-    <div class="mx-auto w-full max-w-site">
-      <h1
+  <Section spacing="screen">
+    <Container>
+      <Heading
+        as="h1"
+        size="display"
+        weight="light"
+        tracking="display"
+        balance
+        split
         data-anim="line-reveal"
-        class="flow-root text-display font-light tracking-display text-balance"
       >
         {titlu}
-      </h1>
-    </div>
-  </section>
+      </Heading>
+    </Container>
+  </Section>
 </BaseLayout>

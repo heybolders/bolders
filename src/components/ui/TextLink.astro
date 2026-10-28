@@ -1,0 +1,33 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+// Orice link care nu e buton. Docs: docs/COMPONENTS.md. `current:` = aria-current="page" (global.css).
+// nav: pill-ul din header · menu: meniul mobil (mare) · footer: meniul din footer (mărimea vine din listă)
+// legal: linkurile legale · logo: simbolul din header · skip: „Sari la conținut”, vizibil doar la focus
+const VARIANTS = {
+  nav: "flex min-h-11 items-center rounded-pill px-6 text-lead font-medium transition-colors hover:text-mist current:text-lime",
+  menu: "block text-h2 font-medium tracking-tight current:text-lime",
+  footer: "inline-flex min-h-11 items-center transition-colors hover:text-mist current:text-lime",
+  legal: "inline-flex min-h-11 items-center transition-colors hover:text-paper current:text-lime",
+  logo: "flex h-11 w-14 items-center justify-center overflow-clip rounded-pill text-paper",
+  skip: "fixed top-3 left-gutter z-60 -translate-y-24 rounded-pill bg-paper px-6 py-3 font-medium text-ink focus-visible:translate-y-0",
+} as const;
+
+type Variant = keyof typeof VARIANTS;
+
+// același inel ca :focus-visible din layer-ul base, legat explicit de primitivă
+const FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime";
+
+interface Props extends Omit<HTMLAttributes<"a">, "class" | "href"> {
+  href: string;
+  variant?: Variant;
+  /** doar poziționare în layout (margin, grid, order) */
+  class?: string;
+}
+
+const { href, variant = "footer", class: className, ...attrs } = Astro.props;
+---
+
+<a {...attrs} href={href} class:list={[VARIANTS[variant], FOCUS, className]}>
+  <slot />
+</a>

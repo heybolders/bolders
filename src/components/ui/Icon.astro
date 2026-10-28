@@ -1,0 +1,37 @@
+---
+import Logo from "@/assets/brand/logo.svg";
+
+// Iconițe decorative (aria-hidden): numele accesibil îl dă elementul interactiv părinte. Docs: docs/COMPONENTS.md.
+// logo: simbolul „b” din header · menu: cele două linii ale toggle-ului; devin X prin group-aria-expanded,
+// deci părintele trebuie să fie `group` cu aria-expanded (Button variant="icon")
+type Name = "logo" | "menu";
+
+interface Props {
+  name: Name;
+  /** doar poziționare în layout (margin, grid, order) */
+  class?: string;
+}
+
+const { name, class: className } = Astro.props;
+
+const LINE =
+  "absolute inset-x-0 h-0.5 rounded-pill bg-paper transition-transform duration-400 ease-in-out-quint motion-reduce:transition-none";
+---
+
+{name === "logo" && <Logo class:list={["h-7 w-auto", className]} aria-hidden="true" />}
+{name === "menu" && (
+  <span class:list={["relative block h-3 w-6", className]} aria-hidden="true">
+    <span
+      class:list={[
+        LINE,
+        "top-0 group-aria-expanded:translate-y-1.25 group-aria-expanded:rotate-45",
+      ]}
+    />
+    <span
+      class:list={[
+        LINE,
+        "bottom-0 group-aria-expanded:-translate-y-1.25 group-aria-expanded:-rotate-45",
+      ]}
+    />
+  </span>
+)}

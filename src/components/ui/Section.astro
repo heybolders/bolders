@@ -1,0 +1,42 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+// Spațierea verticală a secțiunilor; lățimea și gutter-ul vin din Container. Docs: docs/COMPONENTS.md.
+// default: secțiunile din pagină · screen: ecran întreg, conținutul jos (stub-uri, 404)
+// hero: ecran întreg, conținutul centrat, loc pentru headerul fix · footer: footerul global
+const SPACING = {
+  default: "py-section",
+  screen: "flex min-h-svh items-end pt-32 pb-section",
+  hero: "flex min-h-svh items-center pt-24 pb-16 md:pt-28",
+  footer: "pt-section pb-4 md:pb-6",
+} as const;
+
+type Spacing = keyof typeof SPACING;
+
+interface Props extends Omit<HTMLAttributes<"section">, "class"> {
+  as?: "section" | "footer" | "div";
+  spacing?: Spacing;
+  /** context pentru straturi decorative sub conținut (Halo, HeroGrid): relative + isolate */
+  layers?: boolean;
+  /** taie ce iese din secțiune (halouri, wordmark), ca să nu apară scroll orizontal */
+  clip?: boolean;
+  /** doar poziționare în layout (margin, grid, order) */
+  class?: string;
+}
+
+const {
+  as: Tag = "section",
+  spacing = "default",
+  layers = false,
+  clip = false,
+  class: className,
+  ...attrs
+} = Astro.props;
+---
+
+<Tag
+  {...attrs}
+  class:list={[layers && "relative isolate", clip && "overflow-clip", SPACING[spacing], className]}
+>
+  <slot />
+</Tag>

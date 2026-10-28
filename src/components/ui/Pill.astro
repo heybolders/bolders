@@ -1,0 +1,27 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+// Capsule neinteractive. Docs: docs/COMPONENTS.md.
+// tag: eticheta din hero, cu glow-ul static al originalului (shadow-glow, DESIGN.md §8)
+// glass: capsula translucidă a navigației · bar: bara headerului, capsulă pe mobil, dizolvată de la lg
+const VARIANTS = {
+  tag: "rounded-pill border border-line bg-ink-soft px-6 py-2 text-body text-paper shadow-glow md:px-8 md:py-3",
+  glass: "flex items-center rounded-pill bg-ink-soft/50 p-1 backdrop-blur-nav",
+  bar: "flex items-center justify-between gap-4 rounded-pill border border-line bg-ink-soft/50 p-1 backdrop-blur-nav lg:border-transparent lg:bg-transparent lg:p-0 lg:backdrop-blur-none",
+} as const;
+
+type Variant = keyof typeof VARIANTS;
+
+interface Props extends Omit<HTMLAttributes<"div">, "class"> {
+  as?: "p" | "span" | "div" | "ul";
+  variant?: Variant;
+  /** doar poziționare în layout (margin, grid, order) */
+  class?: string;
+}
+
+const { as: Tag = "p", variant = "tag", class: className, ...attrs } = Astro.props;
+---
+
+<Tag {...attrs} class:list={[VARIANTS[variant], className]}>
+  <slot />
+</Tag>

@@ -1,12 +1,16 @@
 ---
-import Logo from "@/assets/brand/logo.svg";
 import Button from "@/components/ui/Button.astro";
+import Container from "@/components/ui/Container.astro";
+import Icon from "@/components/ui/Icon.astro";
+import Pill from "@/components/ui/Pill.astro";
+import TextLink from "@/components/ui/TextLink.astro";
 import { HEADER_CTA, PRIMARY_NAV, ROUTES, normalizePath } from "@/config/navigation";
 import { HEADER_TEXT } from "@/content/global";
 
 // Persistent între pagini: aria-current se actualizează și pe client (scripts/navigation/current-page.ts).
 const current = normalizePath(Astro.url.pathname);
 const ariaCurrent = (href: string) => (normalizePath(href) === current ? "page" : undefined);
+// data-* fără valoare se scriu ="" pe primitive: trecute prin props, ar ajunge în HTML ca ="true"
 ---
 
 <header
@@ -15,58 +19,57 @@ const ariaCurrent = (href: string) => (normalizePath(href) === current ? "page" 
   transition:name="header"
   class="fixed inset-x-0 top-0 z-50"
 >
-  <div data-nav-bar class="relative z-10 px-gutter pt-3 md:pt-4">
-    <div class="mx-auto flex max-w-site items-center justify-between gap-4 rounded-pill border border-line bg-ink-soft/50 p-1 backdrop-blur-nav lg:border-transparent lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
-      <div class="lg:flex-1">
-        <a
-          href={ROUTES.acasa}
-          data-nav-logo
-          aria-label={HEADER_TEXT.logoLabel}
-          class="flex h-11 w-14 items-center justify-center overflow-clip rounded-pill text-paper"
+  <div data-nav-bar class="relative z-10 pt-3 md:pt-4">
+    <Container>
+      <Pill as="div" variant="bar">
+        <div class="lg:flex-1">
+          <TextLink
+            href={ROUTES.acasa}
+            variant="logo"
+            data-nav-logo=""
+            aria-label={HEADER_TEXT.logoLabel}
+          >
+            <span data-nav-logo-mark class="block">
+              <Icon name="logo" />
+            </span>
+          </TextLink>
+        </div>
+
+        <nav aria-label={HEADER_TEXT.navLabel} class="hidden lg:block">
+          <Pill as="ul" variant="glass">
+            {PRIMARY_NAV.map(({ href, label }) => (
+              <li>
+                <TextLink
+                  href={href}
+                  variant="nav"
+                  data-nav-link=""
+                  aria-current={ariaCurrent(href)}
+                >
+                  {label}
+                </TextLink>
+              </li>
+            ))}
+          </Pill>
+        </nav>
+
+        <div class="hidden justify-end lg:flex lg:flex-1">
+          <Button variant="header" href={HEADER_CTA}>
+            {HEADER_TEXT.cta}
+          </Button>
+        </div>
+
+        <Button
+          variant="icon"
+          data-nav-toggle=""
+          aria-expanded="false"
+          aria-controls="meniu-mobil"
+          aria-label={HEADER_TEXT.menuToggle}
+          class="lg:hidden"
         >
-          <span data-nav-logo-mark class="block">
-            <Logo class="h-7 w-auto" aria-hidden="true" />
-          </span>
-        </a>
-      </div>
-
-      <nav aria-label={HEADER_TEXT.navLabel} class="hidden lg:block">
-        <ul class="flex items-center rounded-pill bg-ink-soft/50 p-1 backdrop-blur-nav">
-          {PRIMARY_NAV.map(({ href, label }) => (
-            <li>
-              <a
-                href={href}
-                data-nav-link
-                aria-current={ariaCurrent(href)}
-                class="flex min-h-11 items-center rounded-pill px-6 text-lead font-medium transition-colors hover:text-mist current:text-lime"
-              >
-                {label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
-
-      <div class="hidden justify-end lg:flex lg:flex-1">
-        <Button variant="header" href={HEADER_CTA}>
-          {HEADER_TEXT.cta}
+          <Icon name="menu" />
         </Button>
-      </div>
-
-      <button
-        type="button"
-        data-nav-toggle
-        aria-expanded="false"
-        aria-controls="meniu-mobil"
-        aria-label={HEADER_TEXT.menuToggle}
-        class="group flex size-11 items-center justify-center rounded-pill lg:hidden"
-      >
-        <span class="relative block h-3 w-6" aria-hidden="true">
-          <span class="absolute inset-x-0 top-0 h-0.5 rounded-pill bg-paper transition-transform duration-400 ease-in-out-quint group-aria-expanded:translate-y-1.25 group-aria-expanded:rotate-45 motion-reduce:transition-none"></span>
-          <span class="absolute inset-x-0 bottom-0 h-0.5 rounded-pill bg-paper transition-transform duration-400 ease-in-out-quint group-aria-expanded:-translate-y-1.25 group-aria-expanded:-rotate-45 motion-reduce:transition-none"></span>
-        </span>
-      </button>
-    </div>
+      </Pill>
+    </Container>
   </div>
 
   <div id="meniu-mobil" data-nav-menu hidden class="fixed inset-0 bg-ink lg:hidden">
@@ -77,15 +80,15 @@ const ariaCurrent = (href: string) => (normalizePath(href) === current ? "page" 
       <ul class="space-y-1">
         {PRIMARY_NAV.map(({ href, label }) => (
           <li class="-mx-2 overflow-clip px-2 py-1">
-            <a
+            <TextLink
               href={href}
-              data-nav-link
-              data-anim-item
+              variant="menu"
+              data-nav-link=""
+              data-anim-item=""
               aria-current={ariaCurrent(href)}
-              class="block text-h2 font-medium tracking-tight current:text-lime"
             >
               {label}
-            </a>
+            </TextLink>
           </li>
         ))}
       </ul>

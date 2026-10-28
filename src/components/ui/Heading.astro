@@ -1,0 +1,75 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+// Semantica (as) e separată de aspect (size): un h2 poate arăta ca display, un text decorativ poate
+// arăta ca titlu fără să fie unul (as="p", ex. „404”). Docs: docs/COMPONENTS.md.
+const SIZES = {
+  display: "text-display",
+  story: "text-story",
+  h2: "text-h2",
+  "h2-sm": "text-h2-sm",
+  h3: "text-h3",
+} as const;
+
+// light (200) doar cu display, peste ~3rem (DESIGN.md §2)
+const WEIGHTS = {
+  light: "font-light",
+  normal: "font-normal",
+  medium: "font-medium",
+  bold: "font-bold",
+} as const;
+
+const TRACKING = {
+  tight: "tracking-tight",
+  display: "tracking-display",
+} as const;
+
+const TONES = {
+  paper: "text-paper",
+  muted: "text-paper-muted",
+} as const;
+
+interface Props extends Omit<HTMLAttributes<"h1">, "class"> {
+  as?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p";
+  size?: keyof typeof SIZES;
+  /** fără valoare: moștenește (ex. hero, unde greutatea e pe rânduri) */
+  weight?: keyof typeof WEIGHTS;
+  tracking?: keyof typeof TRACKING;
+  tone?: keyof typeof TONES;
+  balance?: boolean;
+  /**
+   * textul e împărțit pe rânduri de SplitText (line-reveal): flow-root oprește colapsul marginilor
+   * negative ale măștii (.line-mask) prin titlu, altfel titlul sare la split (CLS)
+   */
+  split?: boolean;
+  /** doar poziționare în layout (margin, grid, order) */
+  class?: string;
+}
+
+const {
+  as: Tag = "h2",
+  size = "h2",
+  weight,
+  tracking,
+  tone,
+  balance = false,
+  split = false,
+  class: className,
+  ...attrs
+} = Astro.props;
+---
+
+<Tag
+  {...attrs}
+  class:list={[
+    split && "flow-root",
+    SIZES[size],
+    weight && WEIGHTS[weight],
+    tracking && TRACKING[tracking],
+    tone && TONES[tone],
+    balance && "text-balance",
+    className,
+  ]}
+>
+  <slot />
+</Tag>

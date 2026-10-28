@@ -1,48 +1,55 @@
 ---
 import type { HTMLAttributes } from "astro/types";
 
-// Pill cu punct lime; efectul de umplere e doar CSS (.btn / .btn-fill în global.css).
+// Randează <a> când primește href, altfel <button>. Docs: docs/COMPONENTS.md.
+// Variantele pill au punctul lime, umplerea din punct (.btn / .btn-fill în global.css) și glow-ul static
+// (shadow-glow, halou pe tot conturul ca pill-ul din hero-ul original, neschimbat la hover/active).
 // Punctul rămâne lime: la hover/focus se pierde în umplerea lime, la apăsare (:active) devine ink.
-// Glow: shadow-glow (halou static pe tot conturul, ca pill-ul din hero-ul original), neschimbat la hover/active.
 // header: compact, peste blur · cta: mare, în pagini · footer: lățime plină pe mobil (formular, Etapa 6)
-type Variant = "header" | "cta" | "footer";
-
-interface Props {
-  variant?: Variant;
-  href?: string;
-  type?: HTMLAttributes<"button">["type"];
-  class?: string;
-}
-
-const { variant = "cta", href, type = "button", class: className } = Astro.props;
-
-const variants: Record<Variant, string> = {
+// icon: fără chenar, punct sau glow; ținta de 44 px pentru o iconiță (toggle-ul meniului)
+const VARIANTS = {
   header: "min-h-11 bg-ink-soft/50 text-lead backdrop-blur-nav",
   cta: "btn-lg min-h-14 bg-ink-soft text-lead",
   footer: "btn-lg min-h-14 w-full bg-ink-soft text-body sm:w-auto",
-};
+  icon: "flex size-11 items-center justify-center rounded-pill",
+} as const;
 
-const classes = [
-  "btn group relative isolate inline-flex items-center justify-center gap-3 overflow-clip rounded-pill border border-line font-medium text-paper shadow-glow",
-  variants[variant],
-  className,
-];
+type Variant = keyof typeof VARIANTS;
+
+const PILL =
+  "btn relative isolate inline-flex items-center justify-center gap-3 overflow-clip rounded-pill border border-line font-medium text-paper shadow-glow";
+// același inel ca :focus-visible din layer-ul base, legat explicit de primitivă
+const FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime";
+
+interface Props extends Omit<HTMLAttributes<"button">, "class" | "type"> {
+  variant?: Variant;
+  href?: string;
+  type?: HTMLAttributes<"button">["type"];
+  /** doar poziționare în layout (margin, grid, order, vizibilitate pe breakpoint) */
+  class?: string;
+}
+
+const { variant = "cta", href, type = "button", class: className, ...attrs } = Astro.props;
+
+const isPill = variant !== "icon";
+const Tag = href ? "a" : "button";
 ---
 
-{href ? (
-  <a href={href} class:list={classes}>
-    <span class="btn-fill absolute inset-0 -z-10 bg-lime" aria-hidden="true" />
-    <span class="size-2 shrink-0 rounded-pill bg-lime group-active:bg-ink" aria-hidden="true" />
-    <span class="transition-colors duration-400 group-hover:text-ink group-focus-visible:text-ink motion-reduce:transition-none">
-      <slot />
-    </span>
-  </a>
-) : (
-  <button type={type} class:list={classes}>
-    <span class="btn-fill absolute inset-0 -z-10 bg-lime" aria-hidden="true" />
-    <span class="size-2 shrink-0 rounded-pill bg-lime group-active:bg-ink" aria-hidden="true" />
-    <span class="transition-colors duration-400 group-hover:text-ink group-focus-visible:text-ink motion-reduce:transition-none">
-      <slot />
-    </span>
-  </button>
-)}
+<Tag
+  {...attrs}
+  href={href}
+  type={href ? undefined : type}
+  class:list={["group", isPill && PILL, VARIANTS[variant], FOCUS, className]}
+>
+  {isPill ? (
+    <>
+      <span class="btn-fill absolute inset-0 -z-10 bg-lime" aria-hidden="true" />
+      <span class="size-2 shrink-0 rounded-pill bg-lime group-active:bg-ink" aria-hidden="true" />
+      <span class="transition-colors duration-400 group-hover:text-ink group-focus-visible:text-ink motion-reduce:transition-none">
+        <slot />
+      </span>
+    </>
+  ) : (
+    <slot />
+  )}
+</Tag>

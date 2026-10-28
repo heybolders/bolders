@@ -1,7 +1,11 @@
 ---
 import HeroGrid from "@/components/home/HeroGrid.astro";
 import Button from "@/components/ui/Button.astro";
+import Container from "@/components/ui/Container.astro";
 import Halo from "@/components/ui/Halo.astro";
+import Heading from "@/components/ui/Heading.astro";
+import Pill from "@/components/ui/Pill.astro";
+import Section from "@/components/ui/Section.astro";
 import { HERO, HERO_TITLE } from "@/content/acasa";
 
 // Animații: data-anim="hero-syllables" + "smoke-text" (ANIMATIONS.md, Homepage §1). Fără JS totul e vizibil.
@@ -28,10 +32,7 @@ import { HERO, HERO_TITLE } from "@/content/acasa";
   })();
 </script>
 
-<section
-  data-anim="hero-syllables"
-  class="relative isolate flex min-h-svh items-center overflow-clip px-gutter pt-24 pb-16 md:pt-28"
->
+<Section data-anim="hero-syllables" spacing="hero" layers clip>
   {/*
     Ca în original: lumina stă pe linia titlului (titlul e la 44–48% din înălțime), deasupra centrului
     blocului de conținut, și sub grilă (în original era fundalul secțiunii, cu liniile peste ea).
@@ -39,56 +40,52 @@ import { HERO, HERO_TITLE } from "@/content/acasa";
   <Halo position="center" />
   <HeroGrid />
 
-  <div class="mx-auto flex w-full max-w-site flex-col items-center text-center">
-    <p
-      data-hero-part="pill"
-      class="rounded-pill border border-line bg-ink-soft px-6 py-2 text-body text-paper shadow-glow md:px-8 md:py-3"
-    >
-      {HERO.pill}
-    </p>
+  <Container>
+    <div class="flex flex-col items-center text-center">
+      <Pill data-hero-part="pill">{HERO.pill}</Pill>
 
-    {/*
+      {/*
       Numele accesibil vine din aria-label; textul rămâne în HTML (SEO), iar partea vizuală, împărțită
       în silabe și apoi în litere de smoke-text, e aria-hidden. Letter-spacing normal, ca în original.
     */}
-    <h1 aria-label={HERO_TITLE} class="mt-8 text-display md:mt-10">
-      <span aria-hidden="true" class="block">
-        {/* flow-root: marginile negative ale măștii SplitText (.line-mask) nu colapsează prin titlu (CLS) */}
-        <span data-hero-part="line" class="flow-root font-bold text-balance">
-          {HERO.title.light}
-        </span>
-        <span class="block font-bold">
-          {/* masca intrării (clip-path) o pune modulul doar cât rulează intrarea */}
-          <span data-hero-part="word" class="line-mask inline-block">
-            <span data-hero-syllable class="inline-block">
-              {HERO.title.bold}
-            </span>
-          </span>{" "}
-          {/* nowrap: cuvântul nu se rupe; fumul (data-anim="smoke-text") rulează pe litere după intrare */}
-          <span
-            data-hero-part="word"
-            data-anim="smoke-text"
-            class="line-mask no-kerning inline-block whitespace-nowrap"
-          >
-            {HERO.title.syllables.map((syllable) => (
+      <Heading as="h1" size="display" aria-label={HERO_TITLE} class="mt-8 md:mt-10">
+        <span aria-hidden="true" class="block">
+          {/* flow-root: marginile negative ale măștii SplitText (.line-mask) nu colapsează prin titlu (CLS) */}
+          <span data-hero-part="line" class="flow-root font-bold text-balance">
+            {HERO.title.light}
+          </span>
+          <span class="block font-bold">
+            {/* masca intrării (clip-path) o pune modulul doar cât rulează intrarea */}
+            <span data-hero-part="word" class="line-mask inline-block">
               <span data-hero-syllable class="inline-block">
-                {syllable}
+                {HERO.title.bold}
               </span>
-            ))}
+            </span>{" "}
+            {/* nowrap: cuvântul nu se rupe; fumul (data-anim="smoke-text") rulează pe litere după intrare */}
+            <span
+              data-hero-part="word"
+              data-anim="smoke-text"
+              class="line-mask no-kerning inline-block whitespace-nowrap"
+            >
+              {HERO.title.syllables.map((syllable) => (
+                <span data-hero-syllable class="inline-block">
+                  {syllable}
+                </span>
+              ))}
+            </span>
           </span>
         </span>
-      </span>
-    </h1>
+      </Heading>
 
-    <p
-      data-hero-part="after"
-      class="mt-8 max-w-prose text-lead text-balance text-paper-muted md:mt-10"
-    >
-      {HERO.subtitle}
-    </p>
+      <Container size="prose" measure="lead" class="mt-8 md:mt-10">
+        <p data-hero-part="after" class="text-lead text-balance text-paper-muted">
+          {HERO.subtitle}
+        </p>
+      </Container>
 
-    <div data-hero-part="after" class="mt-10 md:mt-12">
-      <Button href={HERO.cta.href}>{HERO.cta.label}</Button>
+      <div data-hero-part="after" class="mt-10 md:mt-12">
+        <Button href={HERO.cta.href}>{HERO.cta.label}</Button>
+      </div>
     </div>
-  </div>
-</section>
+  </Container>
+</Section>

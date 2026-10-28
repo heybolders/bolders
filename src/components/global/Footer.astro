@@ -1,4 +1,7 @@
 ---
+import Container from "@/components/ui/Container.astro";
+import Section from "@/components/ui/Section.astro";
+import TextLink from "@/components/ui/TextLink.astro";
 import { FOOTER_NAV, LEGAL_NAV, normalizePath } from "@/config/navigation";
 import { FOOTER_TEXT, SITE } from "@/content/global";
 
@@ -11,8 +14,8 @@ const year = new Date().getFullYear();
 const WORDMARK_VIEWBOX = "70 -735 3319 750";
 ---
 
-<footer transition:persist="footer" class="overflow-clip px-gutter pt-section pb-4 md:pb-6">
-  <div class="mx-auto max-w-site">
+<Section as="footer" spacing="footer" clip transition:persist="footer">
+  <Container>
     <div class="grid gap-12 lg:grid-cols-12">
       <nav aria-label={FOOTER_TEXT.navLabel} class="lg:col-span-7">
         {FOOTER_NAV.map((row) => (
@@ -31,15 +34,15 @@ const WORDMARK_VIEWBOX = "70 -735 3319 750";
                   >
                     {FOOTER_TEXT.separator}
                   </span>
-                  <a
+                  <TextLink
                     href={href}
-                    data-nav-link
+                    variant="footer"
+                    data-nav-link=""
                     data-astro-prefetch={pending ? "false" : undefined}
                     aria-current={ariaCurrent(href)}
-                    class="inline-flex min-h-11 items-center transition-colors hover:text-mist current:text-lime"
                   >
                     {label}
-                  </a>
+                  </TextLink>
                 </li>
               ))}
             </ul>
@@ -113,15 +116,15 @@ const WORDMARK_VIEWBOX = "70 -735 3319 750";
               <ul class="flex flex-wrap gap-x-6">
                 {LEGAL_NAV.map(({ href, label, pending }) => (
                   <li>
-                    <a
+                    <TextLink
                       href={href}
-                      data-nav-link
+                      variant="legal"
+                      data-nav-link=""
                       data-astro-prefetch={pending ? "false" : undefined}
                       aria-current={ariaCurrent(href)}
-                      class="inline-flex min-h-11 items-center transition-colors hover:text-paper current:text-lime"
                     >
                       {label}
-                    </a>
+                    </TextLink>
                   </li>
                 ))}
               </ul>
@@ -133,5 +136,5 @@ const WORDMARK_VIEWBOX = "70 -735 3319 750";
         </div>
       </div>
     </div>
-  </div>
-</footer>
+  </Container>
+</Section>

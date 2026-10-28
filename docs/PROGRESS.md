@@ -330,6 +330,54 @@ Varianta de mai sus (gradient radial sub buton, `.btn::before`) a fost **elimina
 - **Abatere:** offset-ul 2 px / 2 px e păstrat exact ca în original (cerința „straturile exact ca în original”), deci haloul e cu 2 px mai lat în dreapta-jos; spread-ul de 6 px îl face vizibil și sus.
 - **Notă:** „Contact” e ascuns sub `lg` (meniu mobil), ca și în original, deci la 375 nu există captură pentru el; la 1440 și 1920 da.
 
+## Etapa 4: consolidare sistem de componente ✅ (2026-10-28)
+Fără nicio schimbare vizuală (verificat pixel cu pixel, vezi mai jos).
+
+#### Inventar (înainte)
+- Primitive existente: `ui/Button.astro` (doar pill-uri), `ui/Halo.astro`.
+- Construite manual: 7 linkuri cu clase proprii (logo, pill-ul de navigație, meniul mobil, meniul din footer, linkurile legale, skip link-ul din layout), toggle-ul meniului (`<button>` + linii desenate), 3 titluri (`h1` din hero, stub-uri, 404) + „404” decorativ, 6 perechi `px-gutter` / `mx-auto max-w-site` (header, footer, hero, grila hero, stub-uri, 404), 2 paragrafe `max-w-prose`, 3 capsule (pill-ul din hero, bara headerului pe mobil, lista din header), spațieri de secțiune în 4 variante.
+
+#### Primitive (`src/components/ui/`, API complet în `docs/COMPONENTS.md`)
+- **Button**: `<a>` cu `href`, altfel `<button>`; variante `header` / `cta` / `footer` (pill cu punct lime, umplere, glow static, `:active`) + **`icon`** nouă (toggle-ul meniului, fără decor); `focus-visible` + țintă 44 px incluse.
+- **TextLink**: `nav`, `menu`, `footer`, `legal`, `logo`, `skip`.
+- **Heading**: `as` (h1–h6, `p`) separat de `size` (`display`, `story`, `h2`, `h2-sm`, `h3`) + `weight`, `tracking`, `tone`, `balance`, `split` (`flow-root` pentru masca SplitText).
+- **Container**: `site` (gutter exterior + `max-w-site` interior), `prose` (`max-w-prose` cu `measure`), `fill`.
+- **Section**: `as`, `spacing` (`default` / `screen` / `hero` / `footer`), `layers`, `clip`.
+- **Pill**: `tag` (cu glow), `glass`, `bar`.
+- **Icon**: `logo`, `menu`.
+- **Halo**: aliniat la convenții (`POSITIONS` const, `class` documentat).
+- Toate: `interface Props`, valori implicite, variante în obiecte `const`, `class:list`, `class` doar pentru poziționare.
+
+#### Refactorizate
+`Header` (bară, logo, navigație, CTA, toggle, meniul mobil), `Footer`, `Hero`, `HeroGrid`, `StubPage`, `pages/404.astro`, `BaseLayout` (skip link). Textele, ordinea, `data-anim` / `data-*` și comportamentul sunt neschimbate. `global.css` neschimbat: fiecare excepție a fost reverificată și niciuna nu se poate scrie cu utilitare pe tokeni fără valori arbitrare.
+
+#### Reguli și audit
+- `.claude/rules/components.md` (nou), `docs/COMPONENTS.md` (nou); `CLAUDE.md`, `styling.md`, DESIGN.md (§ butoane, §7, §8) aliniate.
+- `audit:rules`, reguli noi: `glow-in-afara-buton`, `titlu-direct`, `buton-direct` (`<button>`, `<a>`, `.btn*`), `container-direct`. Testate pe un fișier cu abateri intenționate și pe versiunile din `HEAD` ale Header/Footer/Hero/StubPage (toate abaterile prinse), apoi șterse. Mesajul `box-shadow-animat` nu mai pomenește `.btn::before` (șters la glow-v2).
+
+#### Ordinea claselor (pasul 4)
+- Context7 (README-ul oficial `prettier-plugin-tailwindcss`): v4 cere `tailwindStylesheet` (cale relativă la config), `prettier-plugin-astro` e în lista de compatibilitate explicită, iar pluginul Tailwind **trebuie să fie ultimul**. `prettier.config.mjs` respecta deja toate trei (instalat în Etapa 2: 0.8.1, peer `prettier ^3`, cu Prettier 3.9.10 / Tailwind 4.3.3 / prettier-plugin-astro 1.1.2).
+- Nimic de instalat; `npm run format` pe tot proiectul nu a schimbat niciun fișier. **Fără commit separat de stil.**
+- Limită: pluginul sortează atributele `class` / `class:list`, nu și șirurile din obiectele `VARIANTS`. Acelea au fost copiate din clase deja sortate.
+
+#### Verificare
+- Build `ALLOW_PLACEHOLDERS=1` + `astro preview`; Playwright: iPhone SE, iPhone 15, Pixel 7 (emulare reală), 768, 1440, 1920; `/`, `/agentie`, 404; cu și fără reduced motion; plus hover, `:active` și focus pe CTA, meniul deschis (mobil, 768) și hover pe „Contact” (1440, 1920). Același viewport și crop înainte și după.
+- **78 de capturi: 0 pixeli diferiți** (`pixelmatch`, prag 0). Metoda e deterministă: două capturi ale build-ului vechi au ieșit identice. O singură rulare a avut 2 pixeli diferiți pe marginea barei cu `backdrop-filter` (768, meniu deschis), 0 în alte 3 rulări: zgomot de randare.
+- Stiluri calculate pe 2960 de elemente (bbox + 32 de proprietăți): singurele diferențe sunt padding-ul, marginile și `max-width` mutate pe wrapper-ele `Container`, cu aceleași bbox-uri.
+- **Diferențe găsite și corectate pe parcurs:** (1) `max-w-prose` e `65ch`, deci pe wrapper (font 16 px) dădea 634 px în loc de 713.7 px; pixelii erau identici doar pentru că textele sunt scurte. Corectat cu `measure`. (2) atributele `data-*` booleene trecute prin props ieșeau `="true"`; se scriu `=""`, deci HTML-ul e identic.
+- Comportament: meniul mobil (`aria-expanded`, `inert`, Escape, focus înapoi pe toggle), navigarea cu View Transitions (un singur header, `aria-current` pe nav / meniu / footer), fumul (12 litere, în mișcare după pauză), umplerea la hover, punctul ink la `:active`, skip link-ul la focus, reduced motion (fără split, fără scroll orizontal), consola curată.
+- Capturi: `.screenshots/consolidare/{inainte,dupa}/` + scripturile (`capture.mjs`, `compare.mjs`, `stylediff.py`, `behavior.mjs`).
+- `npm run audit:rules` (0 abateri), `npm run check` (0/0/0), `npm run lint`, `npm run format:check`, `npm run build` (cu și fără `ALLOW_PLACEHOLDERS`): curate.
+
+#### Abateri și motive
+- **Glow în `Pill`, nu doar în `Button`:** pill-ul din hero e sursa glow-ului în original. Regula `glow-in-afara-buton` permite `Button`, `Pill` și `global.css`.
+- **Variante folosite o singură dată** (`TextLink` `logo` / `skip`, `Section` `hero` / `footer`, `Pill` `bar`): elemente unice ale site-ului, permise explicit în `components.md`.
+- **DOM-ul are wrapper-e în plus** (Container pe două niveluri, `prose` în jurul paragrafelor): gutter-ul trebuie să rămână în afara `max-w-site` ca lățimile să nu se schimbe. Scripturile folosesc doar selectori `data-*`, deci nu sunt afectate.
+
+#### Neclarități (preexistente, neatinse ca să nu existe schimbări vizuale)
+- **Linkurile din meniul mobil au 35 px înălțime** (`text-h2` 32 px × 1.1) la 375–412, sub ținta de 44 px. Corectarea schimbă spațierea meniului; de decis.
+- **`--container-prose: 45rem` nu e folosit:** `max-w-prose` din Tailwind rămâne `65ch` (713.7 px la `text-lead`). Am păstrat `65ch`. Dacă se vrea 45rem (720 px), e o schimbare vizuală minoră.
+
 ### Următoarea secțiune: 2. Storytelling (`data-anim="words-light"`) ⏭️
 
 ## Etapa 8 ⏳

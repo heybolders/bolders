@@ -19,6 +19,17 @@ const CAPABILITIES_FILE = "src/scripts/animations/capabilities.ts";
 /** Fluid-ul derivă din WebGL-Fluid-Simulation (MIT): notița de licență trebuie să rămână în fișier. */
 const FLUID_LICENSE = ["MIT", "Pavel Dobryakov", "Permission is hereby granted, free of charge"];
 
+// Primitivele din src/components/ui/ (.claude/rules/components.md, docs/COMPONENTS.md)
+const UI = {
+  button: "src/components/ui/Button.astro",
+  textLink: "src/components/ui/TextLink.astro",
+  pill: "src/components/ui/Pill.astro",
+  heading: "src/components/ui/Heading.astro",
+  container: "src/components/ui/Container.astro",
+};
+const isTemplate = (file) =>
+  file.endsWith(".astro") && TEMPLATE_DIRS.some((dir) => file.startsWith(dir));
+
 /**
  * Excepții punctuale, fiecare cu motiv (aceeași listă în .claude/rules/styling.md).
  * `file` + `rule` + `match` (text exact din linie).
@@ -293,7 +304,7 @@ const CHECKS = [
   {
     rule: "box-shadow-animat",
     message:
-      "box-shadow animat (nicio umbră nu se animă; glow-ul butoanelor e static, .btn::before)",
+      "box-shadow animat (nicio umbră nu se animă; glow-ul butoanelor e static, shadow-glow)",
     applies: () => true,
     patterns: [
       /\bboxShadow\b/g,
@@ -332,6 +343,49 @@ const CHECKS = [
     code: true,
   },
   {
+    // eticheta din hero (Pill) e sursa glow-ului în original, deci are și ea shadow-glow
+    rule: "glow-in-afara-buton",
+    message:
+      "glow-ul și punctul lime al butonului doar în ui/Button.astro, ui/Pill.astro și global.css",
+    applies: (file) => ![UI.button, UI.pill, GLOBAL_CSS].includes(file),
+    patterns: [
+      /(?<![\w-])(?:[\w-]+:)*(?:shadow|bg|text|from|via|to|border|ring|outline)-glow\b/g,
+      /--(?:glow-[\w-]+|color-glow|shadow-glow)\b/g,
+      // punctul: un element mic (size-*) cu fundal lime, în aceeași listă de clase
+      /["'`][^"'`\n]*(?<![\w-])size-\d[^"'`\n]*(?<![\w-])bg-lime\b[^"'`\n]*["'`]/g,
+      /["'`][^"'`\n]*(?<![\w-])bg-lime\b[^"'`\n]*(?<![\w-])size-\d[^"'`\n]*["'`]/g,
+    ],
+    code: true,
+  },
+  {
+    rule: "titlu-direct",
+    message: "<h1>…<h6> scris direct (folosește ui/Heading.astro, cu `as` și `size`)",
+    applies: (file) => isTemplate(file) && file !== UI.heading,
+    patterns: [/<h[1-6](?=[\s>/])/g],
+    code: true,
+  },
+  {
+    rule: "buton-direct",
+    message: "<button>, <a> sau clase .btn în afara primitivelor (Button / TextLink)",
+    applies: (file) => isTemplate(file) && file !== UI.button,
+    patterns: [/<button(?=[\s>/])/g, /(?<![\w-])btn(?:-lg|-fill)?(?![\w-])/g],
+    code: true,
+  },
+  {
+    rule: "buton-direct",
+    message: "<a> scris direct (linkurile trec prin ui/TextLink.astro sau ui/Button.astro)",
+    applies: (file) => isTemplate(file) && ![UI.button, UI.textLink].includes(file),
+    patterns: [/<a(?=[\s>])/g],
+    code: true,
+  },
+  {
+    rule: "container-direct",
+    message: "lățimea maximă a containerului în afara ui/Container.astro",
+    applies: (file) => file !== UI.container,
+    patterns: [/(?<![\w-])(?:[\w-]+:)*max-w-(?:site|prose)\b/g],
+    code: true,
+  },
+  {
     rule: "import-relativ",
     message: "import relativ (folosește aliasul @/)",
     applies: () => true,
@@ -366,7 +420,7 @@ for (const { path, file } of files) {
     }
   }
 
-  if (file.endsWith(".astro") && TEMPLATE_DIRS.some((dir) => file.startsWith(dir))) {
+  if (isTemplate(file)) {
     for (const { index, text } of findHardcodedText(source)) {
       violations.push({
         file,

@@ -5,6 +5,7 @@ import { ClientRouter, fade } from "astro:transitions";
 import Footer from "@/components/global/Footer.astro";
 import Header from "@/components/global/Header.astro";
 import Seo from "@/components/global/Seo.astro";
+import TextLink from "@/components/ui/TextLink.astro";
 import { HEADER_TEXT } from "@/content/global";
 
 import "@/styles/global.css";
@@ -33,12 +34,9 @@ const { title, description, canonical, noindex = false } = Astro.props;
     <ClientRouter />
   </head>
   <body>
-    <a
-      href="#continut"
-      class="fixed top-3 left-gutter z-60 -translate-y-24 rounded-pill bg-paper px-6 py-3 font-medium text-ink focus-visible:translate-y-0"
-    >
+    <TextLink href="#continut" variant="skip">
       {HEADER_TEXT.skipLink}
-    </a>
+    </TextLink>
     <Header />
     <main
       id="continut"
