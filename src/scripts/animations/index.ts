@@ -9,6 +9,7 @@ import type { Cleanup } from "@/scripts/animations/types";
 
 export {
   hasFinePointer,
+  hasHover,
   isLowEndDevice,
   prefersReducedMotion,
   supportsWebGL,

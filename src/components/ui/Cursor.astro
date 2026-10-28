@@ -1,0 +1,24 @@
+---
+// Cursorul custom (ANIMATIONS.md „cursor”, DESIGN.md §9): punctul alb al originalului, inversat față de fundal.
+// Inclus o singură dată, în BaseLayout, și persistent între pagini. Rămâne ascuns până la prima mișcare
+// a mouse-ului; fără JS, pe touch sau la reduced motion nu apare, iar cursorul sistemului nu se schimbă.
+// Poziția și stările (doar transform și opacity) vin din src/scripts/animations/cursor.ts. Docs: docs/COMPONENTS.md.
+---
+
+{/* lumina: profilul punctului estompat din original (plin până la ¼ din rază, 50% la jumătate, 0 la ≈ 90%);
+    bg-radial e o elipsă farthest-corner, deci procentele sunt din semidiagonala pătratului (rază × √2) */}
+<div
+  data-anim="cursor"
+  transition:persist="cursor"
+  aria-hidden="true"
+  class="pointer-events-none fixed top-0 left-0 z-cursor opacity-0 mix-blend-difference"
+>
+  <div
+    data-cursor-glow
+    class="absolute size-cursor-glow -translate-x-1/2 -translate-y-1/2 bg-radial from-cursor from-18% via-cursor/50 via-40% to-transparent to-64% opacity-0"
+  ></div>
+  <div
+    data-cursor-dot
+    class="absolute size-cursor -translate-x-1/2 -translate-y-1/2 rounded-pill bg-cursor"
+  ></div>
+</div>

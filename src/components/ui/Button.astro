@@ -7,6 +7,7 @@ import type { HTMLAttributes } from "astro/types";
 // Punctul rămâne lime: la hover/focus se pierde în umplerea lime, la apăsare (:active) devine ink.
 // header: compact, peste blur · cta: mare, în pagini · footer: lățime plină pe mobil (formular, Etapa 6)
 // icon: fără chenar, punct sau glow; ținta de 44 px pentru o iconiță (toggle-ul meniului)
+// data-cursor: starea cursorului custom la hover (cursor.ts, delegare pe document)
 const VARIANTS = {
   header: "min-h-11 bg-ink-soft/50 text-lead backdrop-blur-nav",
   cta: "btn-lg min-h-14 bg-ink-soft text-lead",
@@ -36,6 +37,7 @@ const Tag = href ? "a" : "button";
 ---
 
 <Tag
+  data-cursor="button"
   {...attrs}
   href={href}
   type={href ? undefined : type}

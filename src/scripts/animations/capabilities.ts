@@ -1,4 +1,4 @@
-import { MEDIA_CONDITIONS } from "@/scripts/animations/conditions";
+import { MEDIA_CONDITIONS, POINTER_CONDITIONS } from "@/scripts/animations/conditions";
 
 // Capabilitățile dispozitivului, citite de efectele reactivate (ANIMATIONS.md, „Efecte reactivate”)
 // înainte să se monteze. Fiecare citire e ieftină și se face la apel, nu la import.
@@ -18,7 +18,12 @@ export function prefersReducedMotion(): boolean {
 
 /** Mouse sau trackpad: singurul caz în care are sens cursorul custom. */
 export function hasFinePointer(): boolean {
-  return window.matchMedia("(pointer: fine)").matches;
+  return window.matchMedia(POINTER_CONDITIONS.finePointer).matches;
+}
+
+/** Dispozitivul principal poate face hover: exclude telefoanele și tabletele fără mouse. */
+export function hasHover(): boolean {
+  return window.matchMedia(POINTER_CONDITIONS.hover).matches;
 }
 
 let webglSupport: boolean | undefined;

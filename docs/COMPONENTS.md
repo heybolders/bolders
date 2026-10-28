@@ -11,7 +11,7 @@ Primitivele din `src/components/ui/`. Secțiunile (`home/`, `global/`, paginile)
 
 ## Button
 
-`<a>` când primește `href`, altfel `<button>`. Punctul lime, umplerea din punct la hover/focus (`.btn` / `.btn-fill`, `global.css`), punctul ink la `:active` și glow-ul static (`shadow-glow`) sunt incluse în variantele pill.
+`<a>` când primește `href`, altfel `<button>`. Are `data-cursor="button"` (starea cursorului custom). Punctul lime, umplerea din punct la hover/focus (`.btn` / `.btn-fill`, `global.css`), punctul ink la `:active` și glow-ul static (`shadow-glow`) sunt incluse în variantele pill.
 
 | Prop | Tip | Implicit | |
 |---|---|---|---|
@@ -39,7 +39,7 @@ Primitivele din `src/components/ui/`. Secțiunile (`home/`, `global/`, paginile)
 
 ## TextLink
 
-Orice link care nu arată ca un buton. Starea paginii curente vine din `aria-current="page"` (varianta `current:`).
+Orice link care nu arată ca un buton. Are `data-cursor="link"` (starea cursorului custom). Starea paginii curente vine din `aria-current="page"` (varianta `current:`).
 
 | Prop | Tip | Implicit |
 |---|---|---|
@@ -193,3 +193,15 @@ Lumină difuză statică în spatele textelor (DESIGN.md §7). Fără animație.
 ```
 
 **Când:** în spatele titlurilor, unde originalul avea `centerbackground.png`. Părintele e o `Section` cu `layers` și `clip`; haloul stă primul în DOM, sub celelalte straturi decorative.
+
+## Cursor
+
+Cursorul custom (DESIGN.md §9, ANIMATIONS.md „`cursor`”). Fără props. **Inclus o singură dată, în `BaseLayout`**; nu se folosește în secțiuni.
+
+```astro
+<Cursor />
+```
+
+- `data-anim="cursor"`, `transition:persist="cursor"`, `aria-hidden`, `pointer-events-none`, `z-cursor`, `mix-blend-difference`; ascuns (`opacity-0`) până la prima mișcare a mouse-ului.
+- Stările de hover vin din `data-cursor` pe primitive: `Button` pune `data-cursor="button"`, `TextLink` pune `data-cursor="link"` (pe toate variantele). Un element interactiv nou primește starea doar dacă trece prin aceste primitive.
+

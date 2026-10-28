@@ -4,6 +4,7 @@ import type { HTMLAttributes } from "astro/types";
 // Orice link care nu e buton. Docs: docs/COMPONENTS.md. `current:` = aria-current="page" (global.css).
 // nav: pill-ul din header · menu: meniul mobil (mare) · footer: meniul din footer (mărimea vine din listă)
 // legal: linkurile legale · logo: simbolul din header · skip: „Sari la conținut”, vizibil doar la focus
+// data-cursor: starea cursorului custom la hover (cursor.ts, delegare pe document)
 const VARIANTS = {
   nav: "flex min-h-11 items-center rounded-pill px-6 text-lead font-medium transition-colors hover:text-mist current:text-lime",
   // py-1.25: text-h2 are ≈ 35 px pe telefoane; cu padding-ul ținta trece de 44 px (≈ 45 px)
@@ -29,6 +30,6 @@ interface Props extends Omit<HTMLAttributes<"a">, "class" | "href"> {
 const { href, variant = "footer", class: className, ...attrs } = Astro.props;
 ---
 
-<a {...attrs} href={href} class:list={[VARIANTS[variant], FOCUS, className]}>
+<a data-cursor="link" {...attrs} href={href} class:list={[VARIANTS[variant], FOCUS, className]}>
   <slot />
 </a>

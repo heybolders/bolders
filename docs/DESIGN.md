@@ -106,6 +106,7 @@ Mobile-first, cu prefixul `--color-` etc., ca să genereze utilitarele standard.
   --color-current: currentColor;
   --color-halo: var(--color-paper-dim); /* vârful luminii originale (centerbackground.png), ≈ 20% alb */
   --color-glow: #ddd6d6;              /* nuanța glow-ului (§8): umbra pill-ului din hero-ul original */
+  --color-cursor: var(--color-paper);  /* punctul cursorului (§9), alb ca în original */
 
   /* --font-sans: în `@theme inline { --font-sans: var(--font-manrope); }` – Fonts API din Astro
      generează un nume de familie cu hash și un fallback cu metrici ajustate, deci nu se scrie "Manrope" literal */
@@ -135,6 +136,8 @@ Mobile-first, cu prefixul `--color-` etc., ca să genereze utilitarele standard.
   --spacing-section: clamp(4rem, 2.5rem + 6vw, 8rem);     /* padding-section-large */
   --spacing-halo: 32rem;    /* diametrul haloului pe mobil (raza vizibilă originală ≈ 255px la 375) */
   --spacing-halo-lg: 60rem; /* diametrul de la md (≈ 475px rază la 1440) */
+  --spacing-cursor: 1rem;        /* punctul cursorului (§9), .cursor-element 1rem */
+  --spacing-cursor-glow: 10.5rem; /* lumina cursorului pe linkuri (§9): 6rem + estompare 15px ≈ 84px rază */
   --container-site: 81rem;  /* container-large */
   --container-text: 65ch;  /* măsura de lectură (max-w-text); ch se calculează din fontul elementului */
 
@@ -164,6 +167,8 @@ Mobile-first, cu prefixul `--color-` etc., ca să genereze utilitarele standard.
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
   --default-transition-duration: 200ms;
+
+  --z-index-cursor: 100;    /* cursorul (§9), peste header (z-50) și skip link (z-60); original 100000 */
 }
 
 /* straturile lui --shadow-glow (§8), măsurate pe pill-ul din hero-ul original; fără namespace Tailwind */
@@ -173,9 +178,17 @@ Mobile-first, cu prefixul `--color-` etc., ca să genereze utilitarele standard.
   --glow-spread: 6px;
   --glow-opacity: 20%;
 }
+
+/* cursorul (§9), citite din JS de cursor.ts */
+@theme static {
+  --cursor-follow-duration: 150ms; /* urmărirea, plafonată (original ≈ 375 ms) */
+  --cursor-state-duration: 200ms;  /* hover in/out, ca în IX2 */
+  --cursor-button-scale: 0.3;      /* lumina pe butoane: punctul estompat cu 10px */
+  --cursor-button-opacity: 0.27;
+}
 ```
 
-Duratele GSAP stau în modulul de animații (`docs/ANIMATIONS.md`), nu în CSS: `fast 0.2`, `base 0.5`, `slow 0.9`, `slower 1.4`.
+Duratele GSAP stau în modulul de animații (`docs/ANIMATIONS.md`), nu în CSS: `fast 0.2`, `base 0.5`, `slow 0.9`, `slower 1.4`. Excepție: cursorul (§9), ale cărui durate și dimensiuni sunt tokeni `@theme static`, citiți de `cursor.ts` (cerință la pasul 5).
 
 Corespondența cu scara din §1: `text-tag` = Tag, `text-body` = Body, `text-lead` = Text mare, `text-h3` = H3, `text-h2-sm` = Meniu footer / H2 mic, `text-h2` = H2 și bandă CTA, `text-story` = storytelling, `text-display` = hero. Wordmark-ul din footer nu are token de text: e un SVG care scalează la lățimea containerului (vezi mai jos). `--text-*: initial` elimină scara implicită (`text-xs`, `text-lg` etc. nu există).
 
@@ -291,7 +304,7 @@ Excepțiile reactivate din original (fum WebGL, cursor custom, glow pe butoane, 
 | Efect | Original | `data-anim` | Stare |
 |---|---|---|---|
 | Fum la cursor/atingere pe toată pagina (inclusiv mobil) | `splash-effect-8.js` (fluid WebGL pe canvas fix) | `fluid` | reactivat, pasul 6 |
-| Cursor custom | `.cursor-element` (IX2 `MOUSE_MOVE`) | `cursor` | reactivat, pasul 5 |
+| Cursor custom | `.cursor-element` (IX2 `MOUSE_MOVE`) | `cursor` | ✅ pasul 5 (28.10): punct alb doar pe desktop (mouse + hover), valorile din §9 |
 | Glow pe butoane | butonul „glowing” | — (decor static, §8) | ✅ pasul 3 (28.10, corectat): **halou static uniform pe contur** = umbra pill-ului din hero, pe toate butoanele și pe pill (decizie Adi); dunga rotativă de pe border eliminată |
 | Halouri de lumină difuză în spatele textelor | fundalul hero (omis la recreare) | — (decor static, §7) | ✅ pasul 2 (28.10): **static, ca în original** (decizie Adi, pentru performanță) |
 | Fum pe „să strălucești!” (în loop) | silabele din hero (intrare cu blur, buclă) | `smoke-text` | ✅ pasul 4 (28.10): valorile măsurate pe original, pe litere; a înlocuit respirația 700 → 200 → 700 |
@@ -360,3 +373,39 @@ Straturi: unul singur, offset x 2 px, offset y 2 px, blur 14 px, spread 6 px, cu
 ### Abateri față de original
 - Butoanele primesc umbra pill-ului (în original butoanele aveau dunga rotativă, iar „Contact” nu avea glow): decizia lui Adi.
 - Offset-ul de 2 px păstrat exact ca în original (cerința: straturile exact ca în original); haloul e ușor mai lat în dreapta-jos, dar vizibil și sus.
+
+## 9. Cursor custom
+
+Decizie Adi (28.10): punct alb, doar desktop, fidel originalului. Cursorul sistemului se ascunde, dar revine pe câmpuri de formular, text editabil și cât timp se selectează text. Întârzierea rămâne mică, precizia nu se pierde.
+
+### Originalul (Playwright pe bolders1.webflow.io la 1440 + IX2 `a-44`, `a-45`/`a-47`, `a-49`/`a-50`, 28.10)
+
+| | Valoare |
+|---|---|
+| Elemente | `.cursor-wrapper` (`fixed`, `inset 0`, 100vw × 100vh, flex centrat, `z-index: 100000`, `pointer-events: none`, **`mix-blend-mode: difference`**) cu `.cursor-element` în centru |
+| Punctul | **16 × 16 px** (1rem), `#ffffff`, `border-radius: 50%`, opacitate 1, fără umbră |
+| Activ | IX2 doar pe breakpoint-ul `main` (≥ 992 px); `* { cursor: none }` în codul custom de la 992 px în sus, **inclusiv pe input-uri** (computed `none`); sub 991 px wrapper-ul e `display: none` |
+| Urmărire | IX2 `MOUSE_MOVE` pe pagină, `x` −50vw → 50vw, `y` −50vh → 50vh, **smoothing 85**: la fiecare cadru poziția avansează cu 15% din distanța rămasă (exponențial, depinde de rata de cadre) |
+| Întârziere măsurată (salt de 1000 px, 60 Hz) | 38% la 25 ms, 62% la 50 ms, 86% la 100 ms, **95% la ≈ 155 ms**, 99% la ≈ 240 ms, **poziția finală (< 0.5 px) la ≈ 375 ms**; constanta de timp ≈ 50 ms |
+| Hover pe butoane (`.button`, `.footer_social-link`) | mărimea rămâne 1rem, `filter: blur(0 → 10px)`; **200 ms `ease`** |
+| Hover pe linkuri (`.navbar_link`, `.footer_link`, logo, linkuri externe etc.) | mărimea **1rem → 6rem** (`width`/`height`), `blur(0 → 15px)`; **200 ms `ease`** |
+| Ieșirea din hover | înapoi la 1rem, `blur(0)`, 200 ms `ease` |
+| Click | **fără stare** (nicio acțiune IX2 pe `mousedown`; mărimea și filtrul nu se schimbă) |
+| Ieșirea din fereastră | **punctul rămâne vizibil** la marginea unde a ieșit (opacitate 1) |
+| Înainte de prima mișcare | stă în centrul ecranului (`restingState 50`) |
+| Defect | IX2 folosește `mouseover`/`mouseout`, care se declanșează și la trecerea pe copiii linkului: lumina de 6rem pâlpâie (crește și revine la 1rem) când mouse-ul trece pe text |
+
+### Implementare
+- **Componentă:** `src/components/ui/Cursor.astro`, inclusă o dată în `BaseLayout`: wrapper `fixed top-0 left-0 z-cursor mix-blend-difference pointer-events-none opacity-0`, `aria-hidden`, `transition:persist="cursor"`. În el: punctul (`size-cursor rounded-pill bg-cursor`) și lumina (`size-cursor-glow`, `bg-radial from-cursor from-18% via-cursor/50 via-40% to-transparent to-64%`, `opacity-0`).
+- **Lumina fără `filter`:** `filter: blur()` e interzis în afara `smoke-text` (§4), deci estomparea e un gradient radial static, cu profilul unui disc estompat: pentru 6rem + 15 px (σ), intensitatea e ≈ 100% până la ¼ din rază, 50% la 48 px, ≈ 0 la ≈ 76 px. `bg-radial` e elipsa `farthest-corner`, deci opritorii sunt din semidiagonală (rază × √2): 18% / 40% / 64%. Pe linkuri lumina are `scale 1`, opacitate 1; pe butoane `scale .3`, opacitate **.27** (punctul de 16 px estompat cu σ 10 px are ≈ 27% în centru și ≈ 25 px rază vizibilă). Punctul se stinge (opacitate 0) cât lumina e aprinsă.
+- **Tokeni (§2):** `--color-cursor`, `--spacing-cursor`, `--spacing-cursor-glow`, `--z-index-cursor`; `@theme static`: `--cursor-follow-duration` 150ms, `--cursor-state-duration` 200ms, `--cursor-button-scale` .3, `--cursor-button-opacity` .27.
+- Comportamentul (urmărire, stări, excepții, View Transitions): `ANIMATIONS.md`, „`cursor`”.
+
+### Abateri față de original
+- **Urmărirea plafonată la 150 ms** (original: ≈ 375 ms până la poziția finală, 95% la ≈ 155 ms): `gsap.quickTo`, 150 ms `power2.out`, ajunge exact la țintă la 150 ms după ultima mișcare. Curba e apropiată de original în primele 50 ms (42% / 70% la 25 / 50 ms față de 38% / 62%), apoi mai rapidă.
+- **Estomparea e gradient, nu `filter: blur()`** (regulă de proiect); mărirea pe linkuri e `scale` pe lumină, nu `width`/`height` (fără layout). Punctul nu crește: se stinge, iar lumina crește din dimensiunea de pe buton.
+- **Activ după capabilități, nu după lățime:** mouse (`pointer: fine`) + `hover: hover`, fără reduced motion, la orice lățime (originalul: ≥ 992 px). O tabletă cu mouse primește cursorul.
+- **Cursorul sistemului revine** pe `input`, `textarea`, `select`, `[contenteditable]`, peste `iframe`-uri și în timpul selecției de text (originalul îl ascundea peste tot); punctul se ascunde acolo.
+- **Dispare la ieșirea din fereastră** și reapare direct sub mouse la revenire (originalul rămânea la margine). Apare la prima mișcare, nu în centrul ecranului.
+- **Fără pâlpâire pe linkuri:** starea se citește prin delegare (`pointerover` + `closest("[data-cursor]")`), deci trecerea pe copiii linkului nu o resetează.
+

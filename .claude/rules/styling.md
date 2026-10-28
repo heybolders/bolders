@@ -33,6 +33,8 @@ Permis **doar** în `src/styles/global.css`, **doar** în layere cu nume (`@laye
 | `.no-kerning` | components | `font-kerning: none` (fără utilitar Tailwind) pe cuvântul cu `smoke-text`: lățimea nu se schimbă când SplitText împarte literele |
 | `.hero-pending` | components | starea ascunsă a hero-ului, pusă de scriptul inline înaintea primului paint (ANIMATIONS.md, „hero-syllables”) |
 | `.hero-grid` | components | `mask-image: radial-gradient(...)` pe liniile de construcție |
+| `.has-custom-cursor` | base | pusă pe `<html>` de `cursor.ts` după inițializare: `cursor: none` pe tot documentul, cu `cursor: auto` pe câmpuri de formular și text editabil (selector pe descendenți, fără utilitar) |
+| `.is-selecting-text` | base | pusă pe `<html>` de `cursor.ts` cât timp se selectează text cu mouse-ul: cursorul sistemului revine (`cursor: auto`) |
 
 Alte excepții din `global.css`, fără clase: `::view-transition-group(header)` și varianta reduced motion a `::view-transition-*` (în `@layer base`), `@custom-variant current`.
 

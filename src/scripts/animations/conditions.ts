@@ -7,6 +7,13 @@ export const MEDIA_CONDITIONS = {
   reduceMotion: "(prefers-reduced-motion: reduce)",
 } as const satisfies Record<keyof AnimationConditions, string>;
 
+// cursorul custom (cursor.ts): matchMedia le reevaluează la schimbare (ex. tabletă la care se conectează un mouse)
+export const POINTER_CONDITIONS = {
+  finePointer: "(pointer: fine)",
+  hover: "(hover: hover)",
+  reduceMotion: MEDIA_CONDITIONS.reduceMotion,
+} as const;
+
 export function readConditions(context: gsap.Context): AnimationConditions {
   const c = context.conditions ?? {};
   return {

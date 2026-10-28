@@ -33,6 +33,8 @@
   --color-halo: var(--color-paper-dim);
   /* glow pe butoane și pe pill (DESIGN §8): nuanța umbrei pill-ului din hero-ul original; niciodată lime */
   --color-glow: #ddd6d6;
+  /* cursor custom (DESIGN §9): punctul alb al originalului, inversat de fundal prin mix-blend-difference */
+  --color-cursor: var(--color-paper);
 
   /* scară fluidă cu nume proprii; scara implicită Tailwind nu există */
   --text-*: initial;
@@ -68,6 +70,9 @@
   /* diametrul haloului: raza vizibilă a luminii originale ≈ 255 px la 375 și ≈ 475 px la 1440 */
   --spacing-halo: 32rem;
   --spacing-halo-lg: 60rem;
+  /* cursor (DESIGN §9): punctul de 1rem; lumina de pe linkuri = 6rem cu estompare de 15px, până la ≈ 84px rază */
+  --spacing-cursor: 1rem;
+  --spacing-cursor-glow: 10.5rem;
   --container-site: 81rem;
   /* măsura de lectură: 65ch, calculat din fontul elementului (Container size="text", prop measure) */
   --container-text: 65ch;
@@ -100,6 +105,9 @@
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
   --default-transition-duration: 200ms;
+
+  /* deasupra headerului (z-50) și a skip link-ului (z-60); originalul: 100000 */
+  --z-index-cursor: 100;
 }
 
 /* straturile lui --shadow-glow (DESIGN §8), măsurate pe pill-ul din hero-ul original; fără namespace Tailwind */
@@ -108,6 +116,17 @@
   --glow-blur: 14px;
   --glow-spread: 6px;
   --glow-opacity: 20%;
+}
+
+/* cursor (DESIGN §9), citite de src/scripts/animations/cursor.ts; fără namespace Tailwind */
+@theme static {
+  /* urmărirea: originalul ajunge la poziția finală în ≈ 375 ms; plafonat la 150 ms */
+  --cursor-follow-duration: 150ms;
+  /* hover in/out: 200 ms, ca în IX2 */
+  --cursor-state-duration: 200ms;
+  /* pe butoane: punctul de 1rem estompat cu 10px = lumina mică și slabă (≈ 27% în centru) */
+  --cursor-button-scale: 0.3;
+  --cursor-button-opacity: 0.27;
 }
 
 /* `inline`: --font-manrope e generată de Fonts API din Astro (familie + fallback optimizat) */
@@ -126,6 +145,28 @@
 
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-lime;
+  }
+}
+
+@layer base {
+  /*
+   * Cursor custom (ANIMATIONS.md „cursor”): clasele le pune modulul pe <html>, doar după inițializare și doar
+   * cu mouse + hover, fără reduced motion. Fără JS cursorul sistemului rămâne. Câmpurile de formular, textul
+   * editabil și selecția în curs păstrează cursorul nativ. `auto`, nu `revert-layer`: un div contenteditable
+   * nu are cursor în stilurile browserului, deci ar moșteni `none` de la părinte.
+   */
+  .has-custom-cursor,
+  .has-custom-cursor * {
+    cursor: none;
+  }
+
+  .has-custom-cursor :is(input, textarea, select, [contenteditable]:not([contenteditable="false"])),
+  .has-custom-cursor
+    :is(input, textarea, select, [contenteditable]:not([contenteditable="false"]))
+    *,
+  .has-custom-cursor.is-selecting-text,
+  .has-custom-cursor.is-selecting-text * {
+    cursor: auto;
   }
 }
 

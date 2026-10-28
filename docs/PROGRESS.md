@@ -184,7 +184,7 @@ Decizii confirmate de Adi (28.10):
 - Rămân eliminate: poze stock, preloader cu procent, contoare animate.
 - Regulă: nimic din original nu se elimină fără confirmarea lui Adi.
 
-Pași: 1 fundația ✅ · 2 halouri (static) ✅ · 3 glow pe butoane (static, haloul pill-ului) ✅ · 4 `smoke-text` ✅ · 5 `cursor` · 6 `fluid` (WebGL). Iconițe 3D: amânate.
+Pași: 1 fundația ✅ · 2 halouri (static) ✅ · 3 glow pe butoane (static, haloul pill-ului) ✅ · 4 `smoke-text` ✅ · 5 `cursor` ✅ · 6 `fluid` (WebGL). Iconițe 3D: amânate.
 
 ### Pasul 1 din 6: fundația ✅ (2026-10-28)
 Fără niciun efect vizual implementat; site-ul arată identic.
@@ -329,6 +329,47 @@ Varianta de mai sus (gradient radial sub buton, `.btn::before`) a fost **elimina
 - `npm run audit:rules` (0 abateri), `npm run check`, `npm run lint`, `npm run format:check`, `npm run build` (cu `ALLOW_PLACEHOLDERS=1`): curate.
 - **Abatere:** offset-ul 2 px / 2 px e păstrat exact ca în original (cerința „straturile exact ca în original”), deci haloul e cu 2 px mai lat în dreapta-jos; spread-ul de 6 px îl face vizibil și sus.
 - **Notă:** „Contact” e ascuns sub `lg` (meniu mobil), ca și în original, deci la 375 nu există captură pentru el; la 1440 și 1920 da.
+
+### Pasul 5 din 6: cursor custom ✅ (2026-10-28)
+**Decizie Adi (28.10):** punct alb, doar desktop, fidel originalului. Cursorul nativ ascuns, cu excepții: câmpuri de formular, text editabil și selecția de text. Întârziere mică, fără pierdere de precizie.
+
+#### Referința (Playwright pe bolders1.webflow.io la 1440 + IX2 `a-44`, `a-45`/`a-47`, `a-49`/`a-50`)
+- `.cursor-wrapper`: `fixed`, ecran întreg, `z-index 100000`, `pointer-events: none`, **`mix-blend-mode: difference`**; `.cursor-element`: **16 × 16 px, alb, rotund, opacitate 1**.
+- Urmărire: IX2 `MOUSE_MOVE`, **smoothing 85** (15% din distanța rămasă pe cadru, exponențial). Salt de 1000 px: 62% la 50 ms, 86% la 100 ms, 95% la ≈ 155 ms, 99% la ≈ 240 ms, **poziția finală la ≈ 375 ms** → peste 150 ms, **plafonat la 150 ms**.
+- Hover: butoane → mărimea rămâne 1rem, `blur 0 → 10px`; linkuri (nav, footer, logo, externe) → **1rem → 6rem**, `blur 0 → 15px`; ambele **200 ms `ease`**, la ieșire invers.
+- Click: **fără stare**. Ieșirea din fereastră: punctul **rămâne vizibil** la margine. Înainte de prima mișcare: în centrul ecranului.
+- Activ doar ≥ 992 px (`* { cursor: none }`, inclusiv pe input-uri). Defect: lumina de pe linkuri pâlpâie la trecerea pe text (`mouseover`/`mouseout` pe copii).
+- Tabel complet: DESIGN.md §9.
+
+#### Construit
+- **`src/components/ui/Cursor.astro`** (o dată în `BaseLayout`, `transition:persist="cursor"`, `aria-hidden`, `pointer-events-none`, `z-cursor`, `mix-blend-difference`, `opacity-0` în markup): punctul (`size-cursor bg-cursor`) + lumina (`size-cursor-glow`, gradient radial static cu profilul punctului estompat).
+- **`src/scripts/animations/cursor.ts`** (`data-anim="cursor"`, în registry): `gsap.matchMedia` pe `POINTER_CONDITIONS` + `hasFinePointer()`, `hasHover()` (nou în `capabilities.ts`), `!prefersReducedMotion()`; `gsap.quickTo` pe `x`/`y` (150 ms `power2.out`); stări prin delegare (`pointerover` + `closest("[data-cursor]")`), 200 ms; clasa `has-custom-cursor` pe `<html>` la prima mișcare, repusă la `astro:after-swap`; `is-selecting-text` cât timp se selectează; dispare la ieșirea din fereastră și peste `iframe`; cleanup cu `killTweensOf` + `clearProps`.
+- **Primitive:** `Button` → `data-cursor="button"`, `TextLink` → `data-cursor="link"` (toate variantele).
+- **Tokeni** (DESIGN.md §2 → `@theme`): `--color-cursor`, `--spacing-cursor` 1rem, `--spacing-cursor-glow` 10.5rem, `--z-index-cursor` 100; `@theme static`: `--cursor-follow-duration` 150ms, `--cursor-state-duration` 200ms, `--cursor-button-scale` .3, `--cursor-button-opacity` .27. `cursor.ts` le citește din `getComputedStyle` (acceptă `ms` și `s`: minificarea rescrie `150ms` ca `.15s`).
+- **CSS** (`global.css`, `@layer base`, documentat în `styling.md`): `.has-custom-cursor` (`cursor: none`) și excepțiile cu `cursor: auto` (câmpuri, `[contenteditable]`, `.is-selecting-text`). `auto`, nu `revert-layer`: un `div` editabil nu are cursor în stilurile browserului și ar fi moștenit `none`.
+- **Docs:** DESIGN.md §2, §6, §9 (nou); ANIMATIONS.md „`cursor`”; COMPONENTS.md „Cursor”; `.claude/rules/animations.md`, `components.md`, `styling.md`.
+
+#### Verificare (build cu `ALLOW_PLACEHOLDERS=1`, `astro preview`)
+- **1440 și 1920:** urmărirea ajunge la țintă în ≈ 150 ms (eșantioane pe cadru); hover pe CTA / „Contact” → punct 0, lumina .27 la `scale .3`; pe linkuri și logo → lumina 1 la `scale 1`, **fără pâlpâire** la trecerea pe text; click fără schimbare; ieșire din fereastră → opacitate 0, revenire → direct sub mouse.
+- **Cursor nativ:** `input` / `textarea` / `select` / `[contenteditable]` (injectate pentru test, site-ul nu are încă formulare) → `cursor: auto`, punctul ascuns; `iframe` → punctul ascuns; selecție de text cu mouse-ul → `is-selecting-text`, cursorul sistemului, punctul ascuns; după `pointerup` revine.
+- **Navigare** `/` → `/departamente` → `/agentie` → `/` (1920): un singur `[data-anim="cursor"]`, **același nod DOM**, **0 ascultători `pointer*` adăugați**, poziția neschimbată prin tranziție (fără salt), clasa de pe `<html>` păstrată.
+- **Schimbare de media query în sesiune:** reduced motion activat → clasa dispare, punctul se ascunde, stilurile inline curățate; dezactivat → revine la următoarea mișcare, hover funcțional.
+- **Reduced motion la 375, 768, 1440 și iPhone SE / iPhone 15 / Pixel 7 (emulare reală, cu și fără reduced motion):** niciun punct (opacitate 0, fără stil inline), `has-custom-cursor` absent, `cursor: auto`, fără scroll orizontal, consola curată.
+- **Performance trace la 1440** (3 s de mișcare continuă, 181 de mișcări, față de aceeași pagină fără cursor): **0 `Layout`** (la fel), **0 long tasks** (max 3.6 ms), paint-uri identice (26 / 26). Recalcul de stil: + ≈ 270, câte **1 element** (≈ 11 ms în 3 s).
+- Capturi și înregistrări: `.screenshots/etapa-efecte/cursor/` (`original-1440-{punct,hover-link,hover-buton,hover-cta,hover-logo}.png`, `nou-1440-{punct,hover-link,hover-buton,hover-cta,hover-logo,click-cta,camp-formular,selectie}.png`, `nou-1920-dupa-navigare.png`, `nou-<dispozitiv>[-reduced].png`, `video/{original,nou}/*.webm`).
+- `npm run audit:rules` (0 abateri), `npm run check` (0/0/0), `npm run lint`, `npm run format:check`, `npm run build` (cu `ALLOW_PLACEHOLDERS=1`): curate.
+
+#### Abateri și motive
+- **Urmărirea plafonată la 150 ms** (original ≈ 375 ms până la poziția finală): cerința pasului. `power2.out` e apropiată de original în primele 50 ms, apoi mai rapidă.
+- **Estomparea e gradient radial static, nu `filter: blur()`** (interzis în afara `smoke-text`), iar mărirea e `scale` pe lumină, nu `width`/`height`. Punctul nu crește: se stinge, lumina crește din mărimea de pe buton. Vizual apropiat (capturile `original-` / `nou-1440-hover-link.png`).
+- **Activ după capabilități, nu după lățime** (original: ≥ 992 px): o tabletă cu mouse primește cursorul; un desktop îngust (375/768 cu mouse, fără reduced motion) îl are și el.
+- **Cursorul nativ revine** pe câmpuri, text editabil, iframe-uri și la selecție (original: ascuns peste tot). **Dispare la ieșirea din fereastră** (original: rămâne la margine). **Apare la prima mișcare** (original: în centru). **Fără pâlpâire** pe linkuri.
+- **`cursor: none` la prima mișcare**, nu imediat la inițializare: altfel, cu mouse-ul nemișcat la încărcare, nu s-ar vedea niciun cursor.
+- **Durate ca tokeni CSS** (DESIGN.md §2 spunea că duratele GSAP stau în modul): cerința pasului; excepția e notată în DESIGN.md §2.
+- **Recalculul de stil nu e zero:** orice `transform` scris din JS (inclusiv `gsap.quickTo`) invalidează stilul elementului; costul e limitat la un singur element per cadru, fără layout și fără paint suplimentar.
+
+#### Neclarități
+- Pe butoanele cu umplere lime (hover), lumina inversată (`difference`) apare ca o pată închisă peste lime, cum ar fi și în original peste o suprafață deschisă. De văzut de Adi.
 
 ## Etapa 4: consolidare sistem de componente ✅ (2026-10-28)
 Fără nicio schimbare vizuală (verificat pixel cu pixel, vezi mai jos).

@@ -34,7 +34,7 @@ Capturile stărilor originale: `reference/screenshots/<pagina>/scroll-1440|375/`
 | `data-anim="marquee"` | bandă de mesaje, viteză legată de scroll | CTA final |
 | `data-anim="wordmark"` | wordmark-ul „Bolders” se ridică din mască | footer |
 | `data-anim="smoke-text"` | literele se dizolvă în fum stânga → dreapta și se rescriu, în loop | „strălucești!” (hero; „să” rămâne fix) |
-| `data-anim="cursor"` | cursor custom care urmărește mouse-ul | global, doar `pointer: fine` |
+| `data-anim="cursor"` | cursor custom care urmărește mouse-ul | global (`ui/Cursor.astro`), doar mouse + hover, fără reduced motion |
 | `data-anim="fluid"` | fum WebGL la cursor/atingere | global (canvas fix) |
 | `data-anim="parallax"` | deplasare verticală ușoară (max. 10%) | imaginea din echipă |
 | `data-anim="nav"` | header ascuns la scroll în jos, vizibil la scroll în sus; meniu mobil | header global |
@@ -225,7 +225,7 @@ SplitText `type: "lines"`, `mask: "lines"`, `autoSplit: true`, animația returna
 
 Ordinea implementării: 1 fundația (documentație, reguli, audit, `capabilities.ts`) · 2 halouri (static, fără `data-anim`, vezi DESIGN.md §7) · 3 glow pe butoane (static, fără `data-anim`, vezi DESIGN.md §8) · 4 `smoke-text` · 5 `cursor` · 6 `fluid`. Iconițele 3D: amânate până la fișierele originale.
 
-Toate pornesc din modulul central și verifică `capabilities.ts` (`prefersReducedMotion()`, `hasFinePointer()`, `supportsWebGL()`, `isLowEndDevice()`). Fără JS sau la reduced motion, pagina arată ca acum (efectele lipsesc, conținutul rămâne vizibil).
+Toate pornesc din modulul central și verifică `capabilities.ts` (`prefersReducedMotion()`, `hasFinePointer()`, `hasHover()`, `supportsWebGL()`, `isLowEndDevice()`). Fără JS sau la reduced motion, pagina arată ca acum (efectele lipsesc, conținutul rămâne vizibil).
 
 ### `smoke-text` — fum pe „strălucești!” ✅ (pasul 4)
 - **Ce face:** după intrarea hero-ului, literele din „strălucești!” se dizolvă în fum de la stânga la dreapta, apoi revin din ceață în aceeași ordine; pauză cu textul complet, apoi loop. **Doar pe acest cuvânt**; „să” rămâne fix. A înlocuit respirația 700 → 200 → 700.
@@ -252,11 +252,24 @@ Toate pornesc din modulul central și verifică `capabilities.ts` (`prefersReduc
 ### Glow pe butoane ✅ (pasul 3): static, fără `data-anim`
 Decizie Adi (28.10): halou **static** uniform pe contur (umbra pill-ului din hero-ul original, `shadow-glow`), mereu vizibil, pe toate butoanele și la toate rezoluțiile. **Nu e animație**: nu există `data-anim="glow"` și nici `glow.ts` (`audit:rules`, regula `glow-static`). Dunga de lumină care se rotește pe border în original e eliminată definitiv. Valori și implementare: DESIGN.md §8.
 
-### `cursor` — cursor custom
-- **Ce face:** punct care urmărește mouse-ul cu întârziere ușoară (ca în original) și se mărește pe elementele interactive.
-- **Proprietăți animate:** doar `transform` (translate + scale).
-- **Activ doar pe desktop cu `pointer: fine`** (`hasFinePointer()`); pe touch nu se montează. Cursorul nativ rămâne pe `input`/`textarea`/`select` și pe text editabil (punctul se ascunde acolo). Cursorul sistemului nu se ascunde pe linkuri/butoane fără ca punctul să indice clar starea.
-- **Mobil:** nu există.
+### `cursor` — cursor custom ✅ (pasul 5)
+- **Ce face:** punct alb (1rem) care urmărește mouse-ul cu o întârziere mică, inversat față de fundal (`mix-blend-difference`, ca în original). Pe butoane (`Button`) se estompează într-o lumină mică și slabă; pe linkuri (`TextLink`) într-o lumină de 6rem. Fără stare la click (nici originalul nu are). Valorile măsurate pe original și abaterile: DESIGN.md §9.
+- **Element:** `src/components/ui/Cursor.astro`, o singură dată în `BaseLayout`, `data-anim="cursor"`, `transition:persist="cursor"`, `aria-hidden`, `pointer-events-none`, `z-cursor`. Ascuns în markup (`opacity-0`): e decor, nu conținut, deci fără JS nu apare.
+- **Modul:** `src/scripts/animations/cursor.ts`, în registry.
+  - Activ doar dacă `hasFinePointer()`, `hasHover()` și `!prefersReducedMotion()` (`capabilities.ts`). Condițiile stau în `gsap.matchMedia` (`POINTER_CONDITIONS` din `conditions.ts`: `(pointer: fine)`, `(hover: hover)`, reduced motion), deci modulul se montează/demontează la schimbare (mouse conectat la o tabletă, reduced motion activat în timpul sesiunii).
+  - **Progressive enhancement:** clasa `has-custom-cursor` pe `<html>` (`cursor: none`, `global.css`) se pune **la prima mișcare a mouse-ului**, când punctul poate înlocui cursorul sistemului. Fără JS, pe touch sau la reduced motion clasa nu există.
+  - **Urmărire:** `gsap.quickTo` pe `x`/`y` ale wrapper-ului, **150 ms `power2.out`** (`--cursor-follow-duration`): ajunge exact la poziția mouse-ului la 150 ms după ultima mișcare. Doar `transform`; ascultători `pointermove` pasivi pe `document`.
+  - **Apariție:** la prima mișcare punctul sare direct sub mouse (`quickTo(value, start)`), apoi apare (opacitate, 200 ms); niciodată din colțul 0,0. La ieșirea din fereastră (`pointerout` cu `relatedTarget` null) dispare; la revenire sare din nou sub mouse.
+  - **Stări prin delegare:** un singur `pointerover` pe `document` citește `closest("[data-cursor]")`: `data-cursor="button"` e pus de `Button`, `data-cursor="link"` de `TextLink`. Tranziții 200 ms `power1.out` (`--cursor-state-duration`, „ease” din IX2), doar `opacity` și `scale` pe punct și pe lumină.
+    - implicit: punct opacitate 1; lumina opacitate 0, `scale .3`;
+    - `button`: punct 0; lumina opacitate **.27**, `scale .3` (`--cursor-button-*`);
+    - `link`: punct 0; lumina opacitate 1, `scale 1` (6rem estompat).
+  - **Cursorul sistemului revine** (punctul se ascunde): pe `input`, `textarea`, `select`, `[contenteditable]` (CSS: `cursor: auto` sub `.has-custom-cursor`), peste `iframe` și cât timp se selectează text cu mouse-ul apăsat (`selectionchange` cu selecție neconsumată → clasa `is-selecting-text` pe `<html>`, scoasă la `pointerup`).
+  - **Touch pe dispozitive hibride:** evenimentele `pointerType: "touch"` sunt ignorate; o atingere ascunde punctul.
+- **View Transitions:** elementul persistă (același nod DOM), instanța e persistentă în `index.ts`, deci nu se remontează și nu adaugă ascultători la navigare; poziția continuă fără salt. `ClientRouter` înlocuiește atributele de pe `<html>`, deci la `astro:after-swap` modulul repune `has-custom-cursor` (și `is-selecting-text`) și resetează starea de hover.
+- **Cleanup:** scoate ascultătorii și clasele, oprește tween-urile și curăță stilurile inline (`clearProps`): tween-urile create în handler-e nu sunt în context, deci `revert()` singur nu le-ar anula.
+- **Performanță (trace la 1440, 3 s de mișcare continuă):** 0 `Layout`, 0 long tasks (max 3.6 ms), aceleași paint-uri ca fără cursor. `transform`-ul scris din JS produce câte un recalcul de stil pe **un singur element** per cadru (≈ 0.04 ms; ≈ 11 ms în 3 s).
+- **Mobil:** nu există (touch: `pointer: coarse`, fără hover).
 - **Reduced motion:** nu se montează; rămâne cursorul sistemului.
 
 ### `fluid` — fum WebGL la cursor/atingere
