@@ -178,17 +178,9 @@ Mobile-first, cu prefixul `--color-` etc., ca să genereze utilitarele standard.
   --glow-spread: 6px;
   --glow-opacity: 20%;
 }
-
-/* cursorul (§9), citite din JS de cursor.ts */
-@theme static {
-  --cursor-follow-duration: 150ms; /* urmărirea, plafonată (original ≈ 375 ms) */
-  --cursor-state-duration: 200ms;  /* hover in/out, ca în IX2 */
-  --cursor-button-scale: 0.3;      /* lumina pe butoane: punctul estompat cu 10px */
-  --cursor-button-opacity: 0.27;
-}
 ```
 
-Duratele GSAP stau în modulul de animații (`docs/ANIMATIONS.md`), nu în CSS: `fast 0.2`, `base 0.5`, `slow 0.9`, `slower 1.4`. Excepție: cursorul (§9), ale cărui durate și dimensiuni sunt tokeni `@theme static`, citiți de `cursor.ts` (cerință la pasul 5).
+Duratele GSAP stau în modulul de animații (`docs/ANIMATIONS.md`), nu în CSS: `fast 0.2`, `base 0.5`, `slow 0.9`, `slower 1.4`. Duratele cursorului (§9) sunt în `CURSOR_TIMING` (`timing.ts`); tokenii CSS ai cursorului sunt doar dimensiuni, culoare și `z-index`.
 
 Corespondența cu scara din §1: `text-tag` = Tag, `text-body` = Body, `text-lead` = Text mare, `text-h3` = H3, `text-h2-sm` = Meniu footer / H2 mic, `text-h2` = H2 și bandă CTA, `text-story` = storytelling, `text-display` = hero. Wordmark-ul din footer nu are token de text: e un SVG care scalează la lățimea containerului (vezi mai jos). `--text-*: initial` elimină scara implicită (`text-xs`, `text-lg` etc. nu există).
 
@@ -376,7 +368,7 @@ Straturi: unul singur, offset x 2 px, offset y 2 px, blur 14 px, spread 6 px, cu
 
 ## 9. Cursor custom
 
-Decizie Adi (28.10): punct alb, doar desktop, fidel originalului. Cursorul sistemului se ascunde, dar revine pe câmpuri de formular, text editabil și cât timp se selectează text. Întârzierea rămâne mică, precizia nu se pierde.
+Decizie Adi (28.10): punct alb, doar desktop, fidel originalului. Cursorul sistemului se ascunde, dar revine pe câmpuri de formular, text editabil și cât timp se selectează text. Întârzierea rămâne mică, precizia nu se pierde. **Corectură (28.10): pe butoane cursorul dispare** (punct și lumină la opacitate 0; cursorul sistemului rămâne ascuns, feedback-ul e punctul lime al butonului).
 
 ### Originalul (Playwright pe bolders1.webflow.io la 1440 + IX2 `a-44`, `a-45`/`a-47`, `a-49`/`a-50`, 28.10)
 
@@ -397,13 +389,16 @@ Decizie Adi (28.10): punct alb, doar desktop, fidel originalului. Cursorul siste
 
 ### Implementare
 - **Componentă:** `src/components/ui/Cursor.astro`, inclusă o dată în `BaseLayout`: wrapper `fixed top-0 left-0 z-cursor mix-blend-difference pointer-events-none opacity-0`, `aria-hidden`, `transition:persist="cursor"`. În el: punctul (`size-cursor rounded-pill bg-cursor`) și lumina (`size-cursor-glow`, `bg-radial from-cursor from-18% via-cursor/50 via-40% to-transparent to-64%`, `opacity-0`).
-- **Lumina fără `filter`:** `filter: blur()` e interzis în afara `smoke-text` (§4), deci estomparea e un gradient radial static, cu profilul unui disc estompat: pentru 6rem + 15 px (σ), intensitatea e ≈ 100% până la ¼ din rază, 50% la 48 px, ≈ 0 la ≈ 76 px. `bg-radial` e elipsa `farthest-corner`, deci opritorii sunt din semidiagonală (rază × √2): 18% / 40% / 64%. Pe linkuri lumina are `scale 1`, opacitate 1; pe butoane `scale .3`, opacitate **.27** (punctul de 16 px estompat cu σ 10 px are ≈ 27% în centru și ≈ 25 px rază vizibilă). Punctul se stinge (opacitate 0) cât lumina e aprinsă.
-- **Tokeni (§2):** `--color-cursor`, `--spacing-cursor`, `--spacing-cursor-glow`, `--z-index-cursor`; `@theme static`: `--cursor-follow-duration` 150ms, `--cursor-state-duration` 200ms, `--cursor-button-scale` .3, `--cursor-button-opacity` .27.
+- **Lumina fără `filter`:** `filter: blur()` e interzis în afara `smoke-text` (§4), deci estomparea e un gradient radial static, cu profilul unui disc estompat: pentru 6rem + 15 px (σ), intensitatea e ≈ 100% până la ¼ din rază, 50% la 48 px, ≈ 0 la ≈ 76 px. `bg-radial` e elipsa `farthest-corner`, deci opritorii sunt din semidiagonală (rază × √2): 18% / 40% / 64%. Pe linkuri lumina are `scale 1`, opacitate 1; în repaus opacitate 0 la mărimea punctului (`scale` = `size-cursor` / `size-cursor-glow` ≈ .095, citit din elemente la montare), deci pe linkuri crește din punct (1rem → 6rem, ca în original). Punctul se stinge (opacitate 0) cât lumina e aprinsă.
+- **Pe butoane:** tot wrapper-ul face fade la opacitate 0 (200 ms), punctul și lumina rămân în starea de repaus; la ieșire revine. Așa nimic inversat de `mix-blend-difference` nu ajunge peste umplerea lime (fără pată închisă la hover, apăsare sau focus).
+- **Tokeni (§2), doar dimensiuni și culoare:** `--color-cursor`, `--spacing-cursor`, `--spacing-cursor-glow`, `--z-index-cursor`.
+- **Durate și easing (TS):** `CURSOR_TIMING` în `src/scripts/animations/timing.ts`: urmărire 0.15 s `power2.out`, stări 0.2 s (`DURATION.fast`) `power1.out`.
 - Comportamentul (urmărire, stări, excepții, View Transitions): `ANIMATIONS.md`, „`cursor`”.
 
 ### Abateri față de original
 - **Urmărirea plafonată la 150 ms** (original: ≈ 375 ms până la poziția finală, 95% la ≈ 155 ms): `gsap.quickTo`, 150 ms `power2.out`, ajunge exact la țintă la 150 ms după ultima mișcare. Curba e apropiată de original în primele 50 ms (42% / 70% la 25 / 50 ms față de 38% / 62%), apoi mai rapidă.
-- **Estomparea e gradient, nu `filter: blur()`** (regulă de proiect); mărirea pe linkuri e `scale` pe lumină, nu `width`/`height` (fără layout). Punctul nu crește: se stinge, iar lumina crește din dimensiunea de pe buton.
+- **Estomparea e gradient, nu `filter: blur()`** (regulă de proiect); mărirea pe linkuri e `scale` pe lumină, nu `width`/`height` (fără layout). Punctul nu crește: se stinge, iar lumina crește din mărimea punctului.
+- **Pe butoane cursorul dispare** (original: punctul estompat cu 10px rămânea vizibil): decizie Adi, corectura din 28.10; peste umplerea lime, `difference` producea o pată închisă.
 - **Activ după capabilități, nu după lățime:** mouse (`pointer: fine`) + `hover: hover`, fără reduced motion, la orice lățime (originalul: ≥ 992 px). O tabletă cu mouse primește cursorul.
 - **Cursorul sistemului revine** pe `input`, `textarea`, `select`, `[contenteditable]`, peste `iframe`-uri și în timpul selecției de text (originalul îl ascundea peste tot); punctul se ascunde acolo.
 - **Dispare la ieșirea din fereastră** și reapare direct sub mouse la revenire (originalul rămânea la margine). Apare la prima mișcare, nu în centrul ecranului.

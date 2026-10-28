@@ -118,17 +118,6 @@
   --glow-opacity: 20%;
 }
 
-/* cursor (DESIGN §9), citite de src/scripts/animations/cursor.ts; fără namespace Tailwind */
-@theme static {
-  /* urmărirea: originalul ajunge la poziția finală în ≈ 375 ms; plafonat la 150 ms */
-  --cursor-follow-duration: 150ms;
-  /* hover in/out: 200 ms, ca în IX2 */
-  --cursor-state-duration: 200ms;
-  /* pe butoane: punctul de 1rem estompat cu 10px = lumina mică și slabă (≈ 27% în centru) */
-  --cursor-button-scale: 0.3;
-  --cursor-button-opacity: 0.27;
-}
-
 /* `inline`: --font-manrope e generată de Fonts API din Astro (familie + fallback optimizat) */
 @theme inline {
   --font-sans: var(--font-manrope);

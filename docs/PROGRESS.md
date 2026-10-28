@@ -369,7 +369,23 @@ Varianta de mai sus (gradient radial sub buton, `.btn::before`) a fost **elimina
 - **Recalculul de stil nu e zero:** orice `transform` scris din JS (inclusiv `gsap.quickTo`) invalidează stilul elementului; costul e limitat la un singur element per cadru, fără layout și fără paint suplimentar.
 
 #### Neclarități
-- Pe butoanele cu umplere lime (hover), lumina inversată (`difference`) apare ca o pată închisă peste lime, cum ar fi și în original peste o suprafață deschisă. De văzut de Adi.
+- ~~Pe butoanele cu umplere lime (hover), lumina inversată (`difference`) apare ca o pată închisă peste lime.~~ Rezolvat de corectura de mai jos: pe butoane cursorul dispare.
+
+#### Corectură (2026-10-28): cursorul dispare pe butoane, duratele în TS ✅
+**Decizie Adi (28.10):** pe orice `Button` punctul și lumina fac fade la opacitate 0 și revin la ieșire; cursorul sistemului rămâne ascuns (feedback-ul e punctul lime al butonului). Fără pată închisă peste lime. Pe `TextLink` și restul, neschimbat. Duratele cursorului trec din tokeni CSS în TypeScript.
+- **`cursor.ts`:** starea `button` ascunde tot wrapper-ul (`syncVisibility`: vizibil doar dacă `hover !== "button"`), punctul și lumina rămân în repaus; `astro:after-swap` reface și vizibilitatea (după un click pe buton, punctul reapare pe pagina nouă). Starea „lumină mică .27 / scale .3” a fost ștearsă. Lumina pornește acum de la mărimea punctului (`size-cursor` / `size-cursor-glow` ≈ .095, citit din elemente la montare) în loc de .3: pe linkuri crește 1rem → 6rem, ca în original.
+- **Durate și easing:** `CURSOR_TIMING` în `src/scripts/animations/timing.ts` (urmărire 0.15 s `power2.out`, stări `DURATION.fast` = 0.2 s `power1.out`). Șterse: tokenii `@theme static` `--cursor-follow-duration`, `--cursor-state-duration`, `--cursor-button-scale`, `--cursor-button-opacity` și funcțiile de citire din CSS (`readRaw` / `readToken` / `readSeconds`). Tokenii CSS rămași: `--color-cursor`, `--spacing-cursor`, `--spacing-cursor-glow`, `--z-index-cursor`.
+- **Alte module care citesc durate din CSS:** niciunul (`getComputedStyle` / `getPropertyValue` nu mai apar în `src/`).
+- **Docs:** DESIGN.md §2 (blocul `@theme static` al cursorului și excepția despre durate eliminate) și §9; ANIMATIONS.md „`cursor`”.
+
+##### Verificare (build cu `ALLOW_PLACEHOLDERS=1`, `astro preview`)
+- **1440 și 1920**, hover și apăsare pe „Contact” din header și CTA-ul din hero (`/`), „Contact” din header și CTA-ul de pe 404: wrapper-ul la opacitate ≈ .15–.2 după 100 ms și **0 după 400 ms**, tot 0 cât e apăsat, `cursor: none` pe body; nicio pată pe capturi. La ieșirea normală de pe buton revine la 1.
+- **Footer:** nu are încă niciun `Button` (varianta `footer` e rezervată formularului din Etapa 6), deci nu există ce testa acolo. Toggle-ul meniului (`variant="icon"`) e ascuns de la `lg`, deci nu apare la 1440/1920.
+- **Apăsare + tragere de pe buton + eliberare:** browserul pornește drag-ul nativ al linkului și suprimă evenimentele pointer, deci punctul rămâne ascuns până la prima mișcare după eliberare, apoi revine (cursorul de drag al sistemului e vizibil între timp).
+- **Linkuri:** neschimbat (punct 0, lumină 1 la `scale 1`).
+- **Urmărire:** la țintă în **147 ms** (1440) / **149 ms** (1920) după salt, ca înainte.
+- Capturi și video: `.screenshots/etapa-efecte/cursor-v2/` (`nou-{1440,1920}-{acasa,404}-{header,hero,cta404}-{hover,apasat}.png`, `nou-1440-hover-link.png`, `video/*.webm`).
+- `npm run audit:rules` (0 abateri), `npm run check` (0/0/0), `npm run lint`, `npm run format:check`, `npm run build` (cu `ALLOW_PLACEHOLDERS=1`): curate.
 
 ## Etapa 4: consolidare sistem de componente ✅ (2026-10-28)
 Fără nicio schimbare vizuală (verificat pixel cu pixel, vezi mai jos).

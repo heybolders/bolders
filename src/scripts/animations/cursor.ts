@@ -2,43 +2,19 @@ import { gsap } from "gsap";
 
 import { hasFinePointer, hasHover, prefersReducedMotion } from "@/scripts/animations/capabilities";
 import { POINTER_CONDITIONS } from "@/scripts/animations/conditions";
-import { DURATION } from "@/scripts/animations/timing";
+import { CURSOR_TIMING } from "@/scripts/animations/timing";
 import type { AnimationFactory } from "@/scripts/animations/types";
 
-// Valori măsurate pe original (IX2 „Cursor”, „Button Hover In/Out”, „Link Hover In/Out”): DESIGN.md §9.
-// Durata urmăririi și stările vin din tokenii @theme (global.css), ca DESIGN.md să rămână sursa lor.
+// Valori măsurate pe original (IX2 „Cursor”, „Link Hover In/Out”): DESIGN.md §9.
+// Duratele: CURSOR_TIMING (timing.ts); dimensiunile și culoarea: tokenii din @theme (Cursor.astro).
 
 /** Zonele unde rămâne cursorul sistemului; aceeași listă ca excepția .has-custom-cursor din global.css. */
 const NATIVE_CURSOR =
   'input, textarea, select, [contenteditable]:not([contenteditable="false"]), iframe';
 const ROOT_ACTIVE = "has-custom-cursor";
 const ROOT_SELECTING = "is-selecting-text";
-// originalul se apropie exponențial (15% din distanță pe cadru); power2.out e cea mai apropiată curbă
-// care ajunge exact la țintă în durata plafonată
-const FOLLOW_EASE = "power2.out";
-// „ease” din CSS, ca în IX2
-const STATE_EASE = "power1.out";
 
 type Hover = "default" | "button" | "link";
-
-function readRaw(name: string): string {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-}
-
-function readToken(name: string): number {
-  return Number.parseFloat(readRaw(name));
-}
-
-/**
- * Durată din token, în secunde; valoarea implicită dacă tokenul lipsește. Minificarea CSS rescrie unitatea
- * (`150ms` devine `.15s` în build), deci se acceptă ambele.
- */
-function readSeconds(name: string, fallback: number): number {
-  const raw = readRaw(name);
-  const value = Number.parseFloat(raw);
-  if (Number.isNaN(value)) return fallback;
-  return raw.endsWith("ms") ? value / 1000 : value;
-}
 
 function readHover(target: Element | null): Hover {
   const kind = target?.closest<HTMLElement>("[data-cursor]")?.dataset["cursor"];
@@ -46,9 +22,10 @@ function readHover(target: Element | null): Hover {
 }
 
 /**
- * Punctul alb care urmărește mouse-ul (desktop, mouse + hover, fără reduced motion). Pe butoane se estompează
- * într-o lumină mică, pe linkuri într-o lumină de 6rem. Cursorul sistemului se ascunde doar după inițializare,
- * la prima mișcare a mouse-ului (clasa de pe <html>), și revine pe câmpuri de formular, text editabil, iframe-uri și în timpul selecției.
+ * Punctul alb care urmărește mouse-ul (desktop, mouse + hover, fără reduced motion). Pe butoane dispare
+ * (feedback-ul e punctul lime al butonului), pe linkuri se estompează într-o lumină de 6rem.
+ * Cursorul sistemului se ascunde doar după inițializare, la prima mișcare a mouse-ului (clasa de pe <html>),
+ * și revine pe câmpuri de formular, text editabil, iframe-uri și în timpul selecției.
  * Elementul e persistent (transition:persist), deci se montează o singură dată pe sesiune.
  */
 export const cursor: AnimationFactory = (el, { mm }) => {
@@ -61,22 +38,24 @@ export const cursor: AnimationFactory = (el, { mm }) => {
     if (!hasFinePointer() || !hasHover() || prefersReducedMotion()) return;
 
     const root = document.documentElement;
-    const follow = readSeconds("--cursor-follow-duration", DURATION.fast);
-    const stateDuration = readSeconds("--cursor-state-duration", DURATION.fast);
-    const buttonScale = readToken("--cursor-button-scale");
-    const buttonOpacity = readToken("--cursor-button-opacity");
+    const { follow, followEase, state: stateDuration, stateEase } = CURSOR_TIMING;
+    // lumina pornește de la mărimea punctului (raportul tokenilor size-cursor / size-cursor-glow), ca pe linkuri
+    // să crească din punct, ca în original (1rem → 6rem); citit o dată, la montare
+    const restScale = dot.offsetWidth / glow.offsetWidth;
 
-    // lumina pornește din dimensiunea de pe buton, ca pe linkuri să crească din punct, ca în original
+    // pe butoane punctul și lumina rămân în starea implicită: dispare tot wrapper-ul (syncVisibility), deci
+    // peste umplerea lime nu ajunge nimic inversat de mix-blend-difference
+    const DEFAULT = { dot: { opacity: 1 }, glow: { opacity: 0, scale: restScale } };
     const STATES = {
-      default: { dot: { opacity: 1 }, glow: { opacity: 0, scale: buttonScale } },
-      button: { dot: { opacity: 0 }, glow: { opacity: buttonOpacity, scale: buttonScale } },
+      default: DEFAULT,
+      button: DEFAULT,
       link: { dot: { opacity: 0 }, glow: { opacity: 1, scale: 1 } },
     } as const satisfies Record<Hover, { dot: gsap.TweenVars; glow: gsap.TweenVars }>;
 
     gsap.set(dot, STATES.default.dot);
     gsap.set(glow, STATES.default.glow);
-    const xTo = gsap.quickTo(el, "x", { duration: follow, ease: FOLLOW_EASE });
-    const yTo = gsap.quickTo(el, "y", { duration: follow, ease: FOLLOW_EASE });
+    const xTo = gsap.quickTo(el, "x", { duration: follow, ease: followEase });
+    const yTo = gsap.quickTo(el, "y", { duration: follow, ease: followEase });
 
     let hover: Hover = "default";
     let inWindow = false;
@@ -89,19 +68,19 @@ export const cursor: AnimationFactory = (el, { mm }) => {
     const setHover = (next: Hover): void => {
       if (next === hover) return;
       hover = next;
-      const vars = { duration: stateDuration, ease: STATE_EASE, overwrite: "auto" } as const;
+      const vars = { duration: stateDuration, ease: stateEase, overwrite: "auto" } as const;
       gsap.to(dot, { ...STATES[next].dot, ...vars });
       gsap.to(glow, { ...STATES[next].glow, ...vars });
     };
 
     const syncVisibility = (): void => {
-      const next = inWindow && !native && !selecting;
+      const next = inWindow && !native && !selecting && hover !== "button";
       if (next === shown) return;
       shown = next;
       gsap.to(el, {
         opacity: next ? 1 : 0,
         duration: stateDuration,
-        ease: STATE_EASE,
+        ease: stateEase,
         overwrite: "auto",
       });
     };
@@ -171,7 +150,9 @@ export const cursor: AnimationFactory = (el, { mm }) => {
     const onAfterSwap = (): void => {
       root.classList.toggle(ROOT_ACTIVE, active);
       root.classList.toggle(ROOT_SELECTING, selecting);
+      // după un click pe buton, punctul ascuns reapare pe pagina nouă
       setHover("default");
+      syncVisibility();
     };
 
     const passive = { passive: true } as const;
