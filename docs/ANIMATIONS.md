@@ -1,6 +1,6 @@
 # ANIMATIONS – Bolders
 
-Surse: `reference/webflow/ix2/ix2-site.json` (140 de evenimente IX2, rezumat în `IX2-SUMMARY.md`), codul GSAP inline din `reference/webflow/custom-code/home.custom.txt` (GSAP 3.11 + ScrollTrigger + SplitType), `reference/inspiratie/inspiratie.md` și capturile din `reference/inspiratie/live/`.
+Surse: `reference/webflow/ix2/ix2-site.json` (140 de evenimente IX2, rezumat în `IX2-SUMMARY.md`), codul GSAP inline din `reference/webflow/custom-code/home.custom.txt` (GSAP 3.11 + ScrollTrigger + SplitType), `reference/inspiratie/inspiratie.md` și capturile live (locale, în afara git: `.screenshots/etapa-1/inspiratie-live/`; trimiterile `live/…` de mai jos se referă la acest folder).
 Capturile stărilor originale: `reference/screenshots/<pagina>/scroll-1440|375/` și `home/hero-timeline/`.
 
 ## Principii

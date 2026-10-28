@@ -15,7 +15,7 @@ paths:
 - Mobile-first: clasele de bază sunt pentru 375 px, apoi `sm:`, `md:`, `lg:`, `xl:`, `2xl:`.
 - Ordinea claselor e sortată automat de `prettier-plugin-tailwindcss`. Nu se sortează manual și nu se comite cod neformatat.
 - Accentul `lime` se folosește doar ca semnal (stare activă, punct buton, progres) și pentru separatorul „/” din meniul footerului (element de identitate). Lista anti-banal din DESIGN.md §5 e obligatorie.
-- Mărimi de text doar din scara proprie: `text-tag`, `text-body`, `text-lead`, `text-h3`, `text-h2-sm`, `text-h2`, `text-story`, `text-display`. `font-light` (200) doar cu `text-display`. Wordmark-ul din footer e SVG (DESIGN.md §2).
+- Mărimi de text doar din scara proprie: `text-tag`, `text-body`, `text-lead`, `text-h3`, `text-h2-sm`, `text-h2`, `text-story`, `text-display`. `font-light` (200) doar cu `text-display`, peste ~3rem; nu pe hero (H1-ul hero e tot 700, DESIGN.md §2). Wordmark-ul din footer e SVG (DESIGN.md §2).
 - Contrast minim WCAG AA pentru text (`paper-muted` pe `ink` e verificat; `paper-dim` doar pentru stări animate, niciodată pentru text final).
 
 ## CSS scris de mână

@@ -32,3 +32,8 @@ Logo Nou/
 # Inspiration videos (extracted frames in reference/inspiratie/frames/ stay in repo)
 reference/inspiratie/**/*.mov
 reference/inspiratie/**/*.mp4
+
+# Automated screenshots, videos and Playwright output (.claude/rules/screenshots.md)
+.screenshots/
+test-results/
+playwright-report/

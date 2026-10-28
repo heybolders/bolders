@@ -197,7 +197,9 @@ Cazuri în care utilitarele nu ajung și se scrie CSS în `@layer components` di
 
 Originalul crește în trepte (breakpoint-urile Webflow): între 479 și 767 rămâne ≈ 32–33 px, apoi sare la 58 px; la 992 are 75.3 px. Tokenul e continuu (`min()` între panta de mobil 412 → 768 și panta de desktop 1440 → 1920), deci coincide în punctele de mai sus și diferă între trepte (600: 44 vs 33 px; 992: 70.7 vs 75.3 px). Hero-ul nu mai folosește `tracking-display` (originalul are letter-spacing normal).
 
-**Regulă de greutate:** Manrope 200 (`font-light`) se folosește **doar** cu `text-display`. Regula „niciodată sub ~3rem” e suspendată pentru hero (decizie Adi, 28.10: greutățile 200/700 rămân, mărimea vine din original): „Acum este momentul” se randează la 28 px pe mobil. Pentru orice alt text, sub ~3rem greutatea minimă e 400.
+**Hero:** tot H1-ul („Acum este momentul” + „să strălucești!”) e Manrope **700** (`font-bold`), alb (`paper`), la toate rezoluțiile (decizie Adi, 28.10).
+
+**Regulă de greutate (alte titluri display):** Manrope 200 (`font-light`) se folosește **doar** cu `text-display` și doar peste ~3rem. Nu se aplică pe hero. Pentru orice alt text, sub ~3rem greutatea minimă e 400.
 
 ## 3. Direcția de modernizare
 
@@ -212,7 +214,7 @@ Originalul crește în trepte (breakpoint-urile Webflow): între 479 și 767 ră
 
 **Ce se schimbă:**
 
-1. **Un singur moment îndrăzneț: tipografia ca obiect.** Contrastul vine din *greutatea* aceluiași font, nu din al doilea font. Display-ul se scrie cu Manrope 200 (ExtraLight) la dimensiuni foarte mari, iar cuvintele-cheie în același rând cu 700. Varianta studiors (serif italic + grotesk) devine la noi „Manrope subțire + Manrope gros”. Silabele din „st·ră·lu·ce·ști!” rămân semnătura hero-ului: intră din mască, apoi literele trec prin fum în loop (`smoke-text`).
+1. **Un singur moment îndrăzneț: tipografia ca obiect.** Contrastul vine din *greutatea* aceluiași font, nu din al doilea font. Display-ul se scrie cu Manrope 200 (ExtraLight) la dimensiuni foarte mari, iar cuvintele-cheie în același rând cu 700. Excepție: H1-ul hero e în întregime 700, alb (§2). Varianta studiors (serif italic + grotesk) devine la noi „Manrope subțire + Manrope gros”. Silabele din „st·ră·lu·ce·ști!” rămân semnătura hero-ului: intră din mască, apoi literele trec prin fum în loop (`smoke-text`).
 2. **Lime-ul e semnal, nu decor.** Apare numai acolo unde ceva e activ sau acționabil: punctul din butoane, linkul curent, pasul curent din metodă, progresul formularului. Singura excepție decorativă e separatorul „/” din meniul footerului (identitate din original). Maximum ~3% din suprafața unui ecran. Fără titluri lime și fără fundaluri lime.
 3. **Hero centrat, secțiunile editoriale asimetrice.** Hero-ul rămâne **centrat**, ca în original: pill, titlu, subtitlu, buton, în această ordine, toate centrate pe axa paginii. Titlul display are mărimea originalului (28 px pe mobil → 80 px la 1440); pe mobil stă pe două rânduri („Acum este momentul” / „să strălucești!”), cuvântul accentuat nu se rupe. Restul secțiunilor folosesc o grilă de 12 coloane în `container-site`: titlurile pornesc din coloana 1, textul de susținere stă decalat în coloanele 7–12 (cf. `sectiune sub hero.png`). Contrastul dintre hero-ul centrat și secțiunile aliniate la stânga e intenționat.
 4. **Liniile de construcție ale lui „b” ca motiv structural.** Liniile subțiri `line` din fundalul hero-ului și din `resurse/card-bolders-linii-constructie.svg` devin o grilă de fundal vizibilă doar în hero și în metodă, aliniată la coloanele reale. Nu e textură decorativă: arată grila pe care stă conținutul.
@@ -226,7 +228,7 @@ Schiță homepage (desktop):
 │                 (pill) Construim viitorul tău digital!                      │
 │                         Acum este momentul                                  │
 │                        să st|ră|lu|ce|șt|i!                                 │
-│               ← display 200/700, centrat, silabe mascate →                  │
+│               ← display 700, centrat, silabe mascate →                      │
 │     Afacerea ta merită mai mult decât să fie doar un nume pe internet.      │
 │                         (● Hai să discutăm!)                                │
 ├─────────────────────────────────────────────────────────────────────────────┤

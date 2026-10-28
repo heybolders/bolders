@@ -4,7 +4,7 @@ import { ROUTES } from "@/config/navigation";
 export const HERO = {
   pill: "Construim viitorul tău digital!",
   title: {
-    /** Manrope 200 */
+    /** Manrope 700, ca tot H1-ul hero */
     light: "Acum este momentul",
     /** Manrope 700; cuvântul accentuat e împărțit în silabele originale */
     bold: "să",

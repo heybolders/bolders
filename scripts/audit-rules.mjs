@@ -3,6 +3,7 @@
 // Excepțiile permise sunt listate în ALLOW și documentate în .claude/rules/styling.md.
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
+import { execFileSync } from "node:child_process";
 
 const ROOT = process.cwd();
 const SRC = join(ROOT, "src");
@@ -456,6 +457,40 @@ function auditStaticHalo() {
 }
 
 auditStaticHalo();
+
+/**
+ * Capturile automate stau în .screenshots/ (ignorat de git, .claude/rules/screenshots.md).
+ * Imaginile/video-urile urmărite sunt permise doar în src/, public/, direct în reference/inspiratie/
+ * (inspirația manuală) și în excepțiile de mai jos.
+ */
+const TRACKED_MEDIA = /\.(png|jpe?g|webp|webm|mp4)$/i;
+const TRACKED_MEDIA_ALLOW = [
+  /^src\//,
+  /^public\//,
+  /^reference\/inspiratie\/[^/]+$/,
+  /^LDR_LLL1_0\.png$/,
+  // Referințele din Etapa 1 ale site-ului original
+  /^reference\/media\//,
+  /^reference\/screenshots\/(home|departamente|privacy-policy-and-terms)\//,
+];
+
+function auditTrackedMedia() {
+  const tracked = execFileSync("git", ["ls-files", "-z"], { cwd: ROOT, encoding: "utf8" })
+    .split("\0")
+    .filter((file) => TRACKED_MEDIA.test(file));
+  for (const file of tracked) {
+    if (TRACKED_MEDIA_ALLOW.some((pattern) => pattern.test(file))) continue;
+    violations.push({
+      file,
+      line: 1,
+      rule: "captura-urmarita",
+      message: "imagine/video urmărit de git în afara folderelor permise (mut-o în .screenshots/)",
+      snippet: file,
+    });
+  }
+}
+
+auditTrackedMedia();
 
 if (violations.length === 0) {
   console.log(`audit:rules: ${files.length} fișiere, 0 abateri.`);

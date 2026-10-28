@@ -270,4 +270,27 @@ Făcut la cererea lui Adi înaintea pasului 3 (`glow`), care rămâne de făcut.
 - Mărimea 28 px pe mobil la weight 200 e mult mai mică decât înainte (52 px); de privit pe telefon.
 - Titlurile stub-urilor au scăzut odată cu tokenul; dacă trebuie să rămână mari, au nevoie de un token separat.
 
+### H1 hero la 700 + capturile automate scoase din git ✅ (2026-10-28)
+
+#### H1 hero la 700 (decizie Adi, 28.10)
+- `Hero.astro`: „Acum este momentul” trece de la `font-light` (200) la `font-bold` (700), aceeași clasă ca „să strălucești!”. Tot H1-ul e 700, alb (`paper`), la toate rezoluțiile. Mărimea, line-height-ul, culoarea și animațiile neschimbate.
+- `hero-syllables.ts` și `smoke-text.ts`: verificate, nicio greutate hardcodată și nimic dependent de 200.
+- DESIGN.md §2: regula „Manrope 200 doar peste ~3rem” rămâne pentru alte titluri display și nu se mai aplică pe hero; mențiunea „suspendată pe hero” ștearsă. §3 (punctul 1 + schița) aliniat. `.claude/rules/styling.md` aliniat.
+- Rezolvă neclaritatea de la pasul 4 („28 px pe mobil la weight 200, de privit pe telefon”). În DESIGN.md nu exista o decizie deschisă separată despre 200/300 pe mobil.
+- **Consecință:** la 700, „Acum este momentul” nu mai încape pe un rând pe mobil (iPhone SE / iPhone 15 / Pixel 7): titlul are 3 rânduri („Acum este / momentul / să strălucești!”), înainte avea 2. Mărimea nu s-a schimbat (cerință). De confirmat cu Adi.
+- Verificare (build cu `ALLOW_PLACEHOLDERS=1`, `astro preview`): iPhone SE, iPhone 15, Pixel 7 (emulare reală), 768, 1440, 1920: weight 700 și `rgb(255, 255, 255)` pe ambele părți, mărimi 28 / 28 / 28.6 / 58.5 / 80 / 90 px (identice cu pasul 4), fără scroll orizontal, consola curată. Capturi: `.screenshots/etapa-efecte/h1-700/`.
+
+#### Capturile automate scoase din git
+- `.screenshots/` (rădăcină) + `test-results/` + `playwright-report/` în `.gitignore`.
+- 175 de fișiere mutate (nimic șters de pe disc, istoricul neatins), cu prefixul folderului de capturi înlocuit: `reference/screenshots/etapa-*` → `.screenshots/etapa-*`, `reference/inspiratie/live/*` → `.screenshots/etapa-1/inspiratie-live/*`. Căile `reference/screenshots/etapa-*` și `live/…` din secțiunile de mai sus se citesc acum din `.screenshots/` (doar local). ANIMATIONS.md actualizat.
+- Rămân în git: `src/`, `public/`, imaginile manuale direct din `reference/inspiratie/`, referințele din Etapa 1 (`reference/media/`, `reference/screenshots/{home,departamente,privacy-policy-and-terms}/`) și `LDR_LLL1_0.png`.
+- Regulă permanentă: `.claude/rules/screenshots.md` (capturi, video și output Playwright doar în `.screenshots/<etapa>/<subiect>/`).
+- `audit:rules`: regulă nouă `captura-urmarita` (din `git ls-files`), excepțiile explicite în `TRACKED_MEDIA_ALLOW`. Testată cu o imagine temporară urmărită în `docs/` (prinsă, ieșire 1), apoi scoasă.
+
+#### Neclarități
+- Titlul hero pe 3 rânduri pe mobil (vezi mai sus).
+
 ### Următoarea secțiune: 2. Storytelling (`data-anim="words-light"`) ⏭️
+
+## Etapa 8 ⏳
+- Șterge folderul `.screenshots/` local.
